@@ -1,0 +1,32 @@
+# Python bytecode & cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environments & Packages
+.venv/
+venv/
+ENV/
+env/
+dist/
+build/
+*.egg-info/
+
+# Local configuration / secrets
+.env
+.env.*
+.flaskenv
+
+# Project specific uploads & logs
+uploads/
+*.log
+
+# OS & Editor files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
