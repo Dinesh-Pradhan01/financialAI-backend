@@ -1,36 +1,76 @@
+"""
+Async SQLAlchemy database connection for NeonDB PostgreSQL.
+
+Provides:
+- async engine (singleton)
+- async session factory
+- get_db() FastAPI dependency yielding AsyncSession
+- init_db() to create tables on startup
+"""
+
 import logging
-from motor.motor_asyncio import AsyncIOMotorClient
+from typing import AsyncGenerator
+
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.pool import NullPool
+
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-class MongoDBConnectionManager:
-    def __init__(self):
-        self.client: AsyncIOMotorClient = None
-        self.db = None
+# ---------------------------------------------------------------------------
+# Engine & session factory (module-level singletons)
+# ---------------------------------------------------------------------------
 
-    def connect(self):
+# NeonDB requires sslmode=require and works best with NullPool for serverless
+engine = create_async_engine(
+    settings.DATABASE_URL,
+    echo=settings.DEBUG,
+    pool_pre_ping=True,
+    # NullPool is recommended for serverless Postgres (NeonDB)
+    # to avoid idle connection issues
+    poolclass=NullPool,
+)
+
+async_session_factory = async_sessionmaker(
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
+
+
+# ---------------------------------------------------------------------------
+# FastAPI dependency
+# ---------------------------------------------------------------------------
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """
+    FastAPI dependency that yields an async SQLAlchemy session.
+    Commits on success, rolls back on exception, always closes.
+    """
+    async with async_session_factory() as session:
         try:
-            logger.info("Connecting to MongoDB...")
-            self.client = AsyncIOMotorClient(settings.MONGODB_URL)
-            self.db = self.client[settings.DATABASE_NAME]
-            logger.info("Successfully connected to MongoDB.")
-        except Exception as e:
-            logger.error(f"Error connecting to MongoDB: {e}")
-            raise e
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
 
-    def disconnect(self):
-        if self.client is not None:
-            logger.info("Closing MongoDB connection...")
-            self.client.close()
-            logger.info("MongoDB connection closed.")
-            self.client = None
-            self.db = None
 
-db_manager = MongoDBConnectionManager()
+# ---------------------------------------------------------------------------
+# Table creation
+# ---------------------------------------------------------------------------
 
-async def get_db():
-    """FastAPI Dependency for accessing the MongoDB database instance."""
-    if db_manager.db is None:
-        raise RuntimeError("Database not initialized. Please call connect() first.")
-    return db_manager.db
+async def init_db() -> None:
+    """Initialize database connection. Automatic table creation is disabled in favor of Alembic."""
+    logger.info("Database engine initialized. Schema migrations are managed by Alembic.")
+
+
+async def close_db() -> None:
+    """Dispose of the engine connection pool."""
+    await engine.dispose()
+    logger.info("Database engine disposed.")

@@ -1,26 +1,36 @@
-from typing import Annotated, Any
-from bson import ObjectId
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
+"""
+SQLAlchemy ORM base and common model utilities for PostgreSQL.
+"""
 
-def validate_object_id(v: Any) -> str:
-    """Validate and convert an incoming value to a valid MongoDB ObjectId string."""
-    if isinstance(v, ObjectId):
-        return str(v)
-    if not isinstance(v, str) or not ObjectId.is_valid(v):
-        raise ValueError(f"Invalid ObjectId: {v}")
-    return v
+from datetime import datetime, timezone
 
-# Annotated type helper for MongoDB ObjectId mapping
-PyObjectId = Annotated[str, BeforeValidator(validate_object_id)]
+from sqlalchemy import DateTime, func
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-class MongoBaseModel(BaseModel):
+
+class Base(DeclarativeBase):
     """
-    Base model for MongoDB documents incorporating ObjectId mapping.
-    Maps '_id' from MongoDB to 'id' in application code.
+    Declarative base for all SQLAlchemy ORM models.
+    Import this in every model file and register tables via subclassing.
     """
-    id: PyObjectId = Field(default=None, alias="_id")
+    pass
 
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
+
+class TimestampMixin:
+    """
+    Mixin that adds created_at and updated_at columns to any model.
+    updated_at is automatically set on every UPDATE.
+    """
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        server_default=func.now(),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
     )

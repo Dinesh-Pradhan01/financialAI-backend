@@ -20,6 +20,7 @@ build/
 .env
 .env.*
 .flaskenv
+firebase-service-account*.json
 
 # Project specific uploads & logs
 uploads/
@@ -30,3 +31,7 @@ uploads/
 .idea/
 .DS_Store
 Thumbs.db
+
+db_schema_*.md
+AUTH_*.md
+0.*

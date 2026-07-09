@@ -1,53 +1,64 @@
-from typing import Any, Dict, List, Optional
-from bson import ObjectId
-from motor.motor_asyncio import AsyncIOMotorDatabase
+"""
+Generic async repository pattern for SQLAlchemy ORM models.
+"""
 
-class BaseRepository:
-    def __init__(self, db: AsyncIOMotorDatabase, collection_name: str):
-        """
-        Base repository pattern class to handle basic CRUD operations asynchronously on MongoDB.
-        """
-        self.db = db
-        self.collection = db[collection_name]
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
 
-    async def get_by_id(self, id: str) -> Optional[Dict[str, Any]]:
-        """Fetch a single document by its string representation of ObjectId."""
-        if not ObjectId.is_valid(id):
-            return None
-        return await self.collection.find_one({"_id": ObjectId(id)})
+from sqlalchemy import select, update, delete
+from sqlalchemy.ext.asyncio import AsyncSession
 
-    async def find(self, query: Dict[str, Any], limit: int = 100, skip: int = 0) -> List[Dict[str, Any]]:
-        """Query multiple documents from the collection."""
-        cursor = self.collection.find(query).skip(skip).limit(limit)
-        return await cursor.to_list(length=limit)
+from app.database.models import Base
 
-    async def create(self, data: Dict[str, Any]) -> str:
-        """Insert a new document and return the string representation of its inserted ID."""
-        if "_id" in data and isinstance(data["_id"], str) and ObjectId.is_valid(data["_id"]):
-            data["_id"] = ObjectId(data["_id"])
-            
-        result = await self.collection.insert_one(data)
-        return str(result.inserted_id)
+T = TypeVar("T", bound=Base)
 
-    async def update(self, id: str, data: Dict[str, Any]) -> bool:
-        """Update an existing document by its ID. Returns True if modified, else False."""
-        if not ObjectId.is_valid(id):
-            return False
-        
-        # Prevent modification of the primary key
-        if "_id" in data:
-            del data["_id"]
-            
-        result = await self.collection.update_one(
-            {"_id": ObjectId(id)},
-            {"$set": data}
+
+class BaseRepository(Generic[T]):
+    """
+    Base repository providing common CRUD operations on a SQLAlchemy model.
+    """
+
+    def __init__(self, session: AsyncSession, model: Type[T]):
+        self.session = session
+        self.model = model
+
+    async def get_by_id(self, id: int) -> Optional[T]:
+        """Fetch a single record by primary key."""
+        return await self.session.get(self.model, id)
+
+    async def find(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> List[T]:
+        """Query records with optional column-value filters."""
+        stmt = select(self.model)
+        if filters:
+            for col, val in filters.items():
+                stmt = stmt.where(getattr(self.model, col) == val)
+        stmt = stmt.offset(offset).limit(limit)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def create(self, obj: T) -> T:
+        """Insert a new record and return it with its generated ID."""
+        self.session.add(obj)
+        await self.session.flush()  # assigns the ID
+        await self.session.refresh(obj)
+        return obj
+
+    async def update_by_id(self, id: int, data: Dict[str, Any]) -> bool:
+        """Update a record by primary key. Returns True if a row was matched."""
+        stmt = (
+            update(self.model)
+            .where(self.model.id == id)
+            .values(**data)
         )
-        return result.modified_count > 0
+        result = await self.session.execute(stmt)
+        return result.rowcount > 0
 
-    async def delete(self, id: str) -> bool:
-        """Delete a document by its ID. Returns True if deleted, else False."""
-        if not ObjectId.is_valid(id):
-            return False
-            
-        result = await self.collection.delete_one({"_id": ObjectId(id)})
-        return result.deleted_count > 0
+    async def delete_by_id(self, id: int) -> bool:
+        """Delete a record by primary key. Returns True if a row was deleted."""
+        stmt = delete(self.model).where(self.model.id == id)
+        result = await self.session.execute(stmt)
+        return result.rowcount > 0
