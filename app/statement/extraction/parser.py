@@ -28,6 +28,12 @@ class FallbackStatementParser:
             bank_name = "Axis Bank"
         elif "kotak" in text_lower:
             bank_name = "Kotak Mahindra Bank"
+        else:
+            # Fallback to search for generic bank name pattern like "XYZ Bank" or "XYZ Bank (Sample)"
+            # Capture 1 to 3 words before "Bank" on the same line (using [ \t] instead of \s to prevent matching across lines)
+            bank_match = re.search(r"\b([A-Za-z0-9\-&']+(?:[ \t]+[A-Za-z0-9\-&']+){0,2}[ \t]+Bank(?:[ \t]*\(Sample\))?)\b", text)
+            if bank_match:
+                bank_name = bank_match.group(1).strip()
         
         # 2. Dynamically detect Account Holder Name
         account_holder = "Customer"
@@ -39,14 +45,30 @@ class FallbackStatementParser:
             candidate = re.split(r'\n|\r|\t|:', candidate)[0].strip()
             if len(candidate) > 3:
                 account_holder = candidate
-                
+        
+        # Heuristic search if label match fails
+        if account_holder == "Customer":
+            lines = [l.strip() for l in text.split("\n") if l.strip()]
+            for idx, line in enumerate(lines):
+                # Look for lines containing "Account Statement" or statement dates
+                if "account statement" in line.lower() or re.search(r"\b\d{2}\s+[A-Za-z]{3}\s+\d{4}\b", line):
+                    if idx + 1 < len(lines):
+                        next_line = lines[idx + 1]
+                        if re.search(r"\b\d{2}\s+[A-Za-z]{3}\s+\d{4}\b", next_line) and idx + 2 < len(lines):
+                            next_line = lines[idx + 2]
+                        # Verify the candidate is a short, name-like string (2-3 words, only letters and spaces)
+                        if re.match(r"^[A-Za-z\s'\.]{3,35}$", next_line) and not any(k in next_line.lower() for k in ("statement", "account", "period", "date", "summary", "bank", "page", "active", "status", "no.", "number", "type", "particulars", "opening", "closing")):
+                            account_holder = next_line.strip()
+                            break
+                            
         # If the file contains Rohan, align with Rohan Sharma
         if "rohan" in text_lower:
             account_holder = "Rohan Sharma"
 
         # 3. Account Number
         account_number = "····3421"
-        acc_match = re.search(r"(?:account|acc|a/c)\s*(?:no|number)?\s*:?\s*([0-9Xx\·\-]{4,18})", text, re.IGNORECASE)
+        # Support dots, spaces, or colons after No/Number, e.g. Account No. 1845..., Account Number: 1845...
+        acc_match = re.search(r"(?:account|acc|a/c)\s*(?:no|number)?\.?\s*[:\-]?\s*([0-9Xx\·\-\*]{4,20})", text, re.IGNORECASE)
         if acc_match:
             candidate = acc_match.group(1).strip()
             if len(candidate) >= 4:
@@ -54,15 +76,24 @@ class FallbackStatementParser:
 
         # 4. IFSC Code
         ifsc_code = None
-        ifsc_match = re.search(r"(?:ifsc|ifs\s*code)\s*:?\s*([A-Z]{4}0[A-Z0-9]{6})", text, re.IGNORECASE)
+        # Try search with prefix first to avoid generic match collision (handling "IFSC Code NFBK0265840" or "IFSC Code: NFBK0265840")
+        ifsc_match = re.search(r"(?:ifsc\s*code|ifsc|ifs\s*code)\s*:?\s*([A-Z]{4}0[A-Z0-9]{6})", text, re.IGNORECASE)
         if ifsc_match:
-            ifsc_code = ifsc_match.group(1).strip()
-        elif "state bank of india" in bank_name or "sbi" in bank_name.lower():
-            ifsc_code = "SBIN0001234"
-        elif "hdfc" in bank_name.lower():
-            ifsc_code = "HDFC0000104"
-        elif "icici" in bank_name.lower():
-            ifsc_code = "ICIC0000210"
+            ifsc_code = ifsc_match.group(1).strip().upper()
+        else:
+            # Fallback to direct pattern match
+            direct_match = re.search(r"\b([A-Z]{4}0[A-Z0-9]{6})\b", text, re.IGNORECASE)
+            if direct_match:
+                ifsc_code = direct_match.group(1).strip().upper()
+                
+        # Default mock fallback if still None and matching known banks
+        if not ifsc_code:
+            if "state bank of india" in bank_name or "sbi" in bank_name.lower():
+                ifsc_code = "SBIN0001234"
+            elif "hdfc" in bank_name.lower():
+                ifsc_code = "HDFC0000104"
+            elif "icici" in bank_name.lower():
+                ifsc_code = "ICIC0000210"
 
         # 5. Branch
         branch = "Main Branch"
@@ -74,15 +105,15 @@ class FallbackStatementParser:
         opening_balance = 10000.0
         closing_balance = 15000.0
         
-        # Try to find balances in the text
-        op_match = re.search(r"(?:opening|previous)\s+balance\s*:?\s*(?:inr|rs\.?)?\s*([\d,]+\.?\d*)", text, re.IGNORECASE)
+        # Try to find balances in the text (flexible separators before numbers, like colons, spaces, dashes)
+        op_match = re.search(r"(?:opening|previous)\s+balance[^\d\n]*([\d,]+\.?\d*)", text, re.IGNORECASE)
         if op_match:
             try:
                 opening_balance = float(op_match.group(1).replace(",", ""))
             except ValueError:
                 pass
                 
-        cl_match = re.search(r"(?:closing|net|available|current)\s+balance\s*:?\s*(?:inr|rs\.?)?\s*([\d,]+\.?\d*)", text, re.IGNORECASE)
+        cl_match = re.search(r"(?:closing|net|available|current)\s+balance[^\d\n]*([\d,]+\.?\d*)", text, re.IGNORECASE)
         if cl_match:
             try:
                 closing_balance = float(cl_match.group(1).replace(",", ""))
@@ -94,6 +125,11 @@ class FallbackStatementParser:
         period_match = re.search(r"(?:period|statement period|duration)\s*:?\s*([\d\w\s\-\/to]+)", text, re.IGNORECASE)
         if period_match:
             statement_period = period_match.group(1).strip().split('\n')[0]
+        else:
+            # Fallback: look for date range pattern like "01 Feb 2026 - 28 Feb 2026" or "01-Feb-2026 to 28-Feb-2026"
+            range_match = re.search(r"\b(\d{2}\s+[A-Za-z]{3}\s+\d{4}\s*[-–to]+\s*\d{2}\s+[A-Za-z]{3}\s+\d{4})\b", text)
+            if range_match:
+                statement_period = range_match.group(1).strip()
             
         statement_month = "March 2026"
         # Try to extract a month
@@ -173,6 +209,100 @@ class FallbackStatementParser:
                     except Exception:
                         pass # Ignore parsing issues for single lines
 
+        # Try multi-line column-by-column transaction grouping if single-line regex yielded less than 3 lines
+        if len(transactions) < 3:
+            logger.info("Single-line parsing failed. Trying multi-line column transaction grouping...")
+            multi_line_transactions = []
+            date_regex = r"^\d{2}\s+[A-Za-z]{3}(?:\s+\d{4})?$"
+            
+            i = 0
+            while i < len(lines):
+                # Check if this line is a serial number and the next is a date
+                if lines[i].isdigit() and i + 1 < len(lines) and re.match(date_regex, lines[i+1]):
+                    tx_lines = [lines[i]]
+                    i += 1
+                    # Read all lines until the next transaction starts or a summary/end block is reached
+                    while i < len(lines):
+                        if lines[i].isdigit() and i + 1 < len(lines) and re.match(date_regex, lines[i+1]):
+                            break
+                        if any(k in lines[i].lower() for k in ("account summary", "particulars", "end of statement", "opening balance", "closing balance")):
+                            break
+                        tx_lines.append(lines[i])
+                        i += 1
+                    
+                    if len(tx_lines) >= 4:
+                        try:
+                            tx_date = FallbackStatementParser._normalize_date(tx_lines[1])
+                            description = tx_lines[2]
+                            category = "Uncategorized"
+                            ref_no = None
+                            
+                            rem_lines_cleaned = [l for l in tx_lines[3:] if l != "-"]
+                            
+                            # Parse category
+                            for l in rem_lines_cleaned:
+                                if l in ("Other", "Travel", "Food", "Salary", "Utilities", "Shopping", "Entertainment", "Airlines", "Fuel", "Restaurant", "Grocery", "Lifestyle", "Movies", "Rent", "Investment"):
+                                    category = l
+                                    break
+                            
+                            # Parse reference number
+                            for l in rem_lines_cleaned:
+                                if "upi" in l.lower() or "ref" in l.lower() or re.match(r"^\d{12}$", l) or re.match(r"^[A-Z0-9]{10,20}$", l):
+                                    ref_no = l
+                                    break
+                                    
+                            # Parse numbers
+                            numbers = []
+                            for l in rem_lines_cleaned:
+                                cleaned = l.replace(",", "").strip()
+                                try:
+                                    val = float(cleaned)
+                                    if val < 9999999.0 and not (ref_no and l in ref_no) and l != tx_lines[1].split()[-1]:
+                                        numbers.append(val)
+                                except ValueError:
+                                    pass
+                                    
+                            debit = 0.0
+                            credit = 0.0
+                            running = 0.0
+                            
+                            if len(numbers) >= 2:
+                                running = numbers[-1]
+                                amount = numbers[-2]
+                                if category == "Salary" or any(k in description.lower() for k in ("salary", "refund", "deposit", "credit", "cr")):
+                                    credit = amount
+                                else:
+                                    debit = amount
+                            elif len(numbers) == 1:
+                                running = numbers[0]
+                                
+                            multi_line_transactions.append({
+                                "transaction_date": tx_date,
+                                "value_date": tx_date,
+                                "narration": description,
+                                "debit_amount": debit,
+                                "credit_amount": credit,
+                                "running_balance": running,
+                                "reference_number": ref_no,
+                                "utr_upi_ref": ref_no,
+                                "cheque_number": None,
+                                "category": category
+                            })
+                        except Exception:
+                            pass
+                else:
+                    i += 1
+                    
+            if len(multi_line_transactions) >= 3:
+                transactions = multi_line_transactions
+                logger.info(f"Successfully extracted {len(transactions)} transactions via multi-line parser.")
+                # Dynamically set opening/closing balances from first/last transactions if they exist
+                try:
+                    opening_balance = transactions[0]["running_balance"] - transactions[0]["credit_amount"] + transactions[0]["debit_amount"]
+                    closing_balance = transactions[-1]["running_balance"]
+                except Exception:
+                    pass
+
         # 9. Fallback High-Fidelity Dataset Generator (Rohan Sharma demo-aligned)
         # If we failed to parse actual transactions or if it's Rohan Sharma, we generate standard high-fidelity data
         if len(transactions) < 3 or account_holder == "Rohan Sharma":
@@ -228,6 +358,15 @@ class FallbackStatementParser:
             # Recalculate opening/closing based on synthetic list
             opening_balance = 2000000.0
             closing_balance = 1984050.0
+
+        # Update statement_month using transactions if parsed successfully and not Rohan Sharma demo
+        if transactions and len(transactions) >= 3 and account_holder != "Rohan Sharma":
+            try:
+                first_date_str = transactions[0]["transaction_date"]
+                dt = datetime.strptime(first_date_str, "%Y-%m-%d")
+                statement_month = dt.strftime("%B %Y")
+            except Exception:
+                pass
 
         return {
             "bank_name": bank_name,

@@ -3,7 +3,8 @@ import shutil
 from typing import Generator
 from fastapi import UploadFile
 
-UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads")
+# Save uploads in the parent workspace directory to prevent Uvicorn hot-reload from killing background tasks.
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "uploads")
 
 class FileManager:
     def __init__(self, upload_dir: str = UPLOAD_DIR):
