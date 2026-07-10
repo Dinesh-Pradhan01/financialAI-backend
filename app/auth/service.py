@@ -47,6 +47,17 @@ async def get_or_create_user(
     """
     existing = await get_user_by_firebase_id(db, firebase_id)
 
+    if existing is None:
+        # Try to find by email to prevent duplicate key unique constraint violations
+        email_stmt = select(User).where(User.email == email)
+        email_res = await db.execute(email_stmt)
+        existing = email_res.scalar_one_or_none()
+        if existing is not None:
+            logger.info("Linking existing user with email %s to new firebase_id %s", email, firebase_id)
+            existing.firebase_id = firebase_id
+            existing.email_verified = email_verified or existing.email_verified
+            await db.flush()
+
     now = datetime.now(timezone.utc).replace(tzinfo=None)
 
     if existing is not None:
