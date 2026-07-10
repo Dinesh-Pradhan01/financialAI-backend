@@ -97,7 +97,7 @@ class UserResponse(BaseModel):
     email: str
     role: str
     email_verified: bool
-    person_id: Optional[str] = None
+    person_id: Optional[uuid.UUID] = None
     profile_completed: bool = False
 
     model_config = {"from_attributes": True}
@@ -110,7 +110,7 @@ class UserResponse(BaseModel):
             email=user.email,
             role=user.role,
             email_verified=user.email_verified,
-            person_id=str(user.person_id) if user.person_id else None,
+            person_id=user.person_id,
             profile_completed=profile_completed,
         )
 

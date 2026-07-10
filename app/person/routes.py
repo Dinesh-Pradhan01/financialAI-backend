@@ -134,14 +134,7 @@ async def update_my_profile(
     # Mark profile completed
     person.profile_completed = True
 
-    try:
-        await db.flush()
-    except Exception as exc:
-        logger.exception("PATCH /persons/me flush failed for person %s (user %s): %s", person.id, current_user.id, exc)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to save profile. Please try again.",
-        )
+    await db.flush()
     logger.info("Updated person profile %s for user %s. profile_completed set to True.", person.id, current_user.id)
 
     return person

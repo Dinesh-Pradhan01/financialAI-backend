@@ -12,6 +12,7 @@ import os
 from fastapi import APIRouter, Depends, Response, Request, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+# pyrefly: ignore [missing-import]
 from firebase_admin import auth as firebase_auth
 
 from app.auth.dependencies import get_firebase_synced_user, get_current_session_user
