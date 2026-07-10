@@ -46,7 +46,7 @@ async def get_or_create_user(
     """
     existing = await get_user_by_firebase_id(db, firebase_id)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
 
     if existing is not None:
         # Update email/verification if changed on the Firebase side
@@ -78,7 +78,7 @@ async def get_or_create_user(
 
 async def update_last_login(db: AsyncSession, user: User) -> None:
     """Update last_login_at timestamp for a user."""
-    user.last_login_at = datetime.now(timezone.utc)
+    user.last_login_at = datetime.now(timezone.utc).replace(tzinfo=None)
     await db.flush()
 
 
@@ -94,7 +94,7 @@ async def create_session(
     raw_token = secrets.token_urlsafe(64)
     hashed_token = hash_token(raw_token)
     
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     expires_at = now + timedelta(days=SESSION_EXPIRY_DAYS)
     
     session_record = Session(
@@ -129,8 +129,12 @@ async def verify_session(db: AsyncSession, raw_token: str) -> Optional[User]:
     if not session_record:
         return None
         
-    now = datetime.now(timezone.utc)
-    if session_record.expires_at < now:
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    # Ensure both datetimes are naive (strip tzinfo if DB returns aware)
+    db_expires = session_record.expires_at
+    if db_expires.tzinfo is not None:
+        db_expires = db_expires.replace(tzinfo=None)
+    if db_expires < now:
         # Session expired, mark it revoked
         session_record.is_revoked = True
         await db.flush()

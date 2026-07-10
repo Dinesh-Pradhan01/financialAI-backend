@@ -22,15 +22,15 @@ class TimestampMixin:
     updated_at is automatically set on every UPDATE.
     """
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        DateTime(timezone=False),
+        default=datetime.utcnow,
         server_default=func.now(),
         nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        DateTime(timezone=False),
+        default=datetime.utcnow,
         server_default=func.now(),
-        onupdate=lambda: datetime.now(timezone.utc),
+        onupdate=datetime.utcnow,
         nullable=False,
     )
