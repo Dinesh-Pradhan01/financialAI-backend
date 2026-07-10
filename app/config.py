@@ -9,14 +9,11 @@ class Settings(BaseSettings):
     APP_NAME: str = "Spotlite Backend API"
     DEBUG: bool = False
     
-    # Database settings
-    DATABASE_URL: str = "postgresql://localhost/postgres"
-
     # AI settings
     GEMINI_API_KEY: Optional[str] = None
     GEMINI_MODEL: str = "gemini-2.5-flash"
     # PostgreSQL (NeonDB) settings
-    DATABASE_URL: str = os.getenv("DATABASE_URL")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://localhost/postgres")
 
     @field_validator("DATABASE_URL")
     @classmethod
@@ -33,8 +30,8 @@ class Settings(BaseSettings):
         return v
 
     # Firebase settings
-    FIREBASE_PROJECT_ID: str = os.getenv("FIREBASE_PROJECT_ID")
-    FIREBASE_CREDENTIALS_PATH: str = os.getenv("FIREBASE_CREDENTIALS_PATH")
+    FIREBASE_PROJECT_ID: Optional[str] = os.getenv("FIREBASE_PROJECT_ID")
+    FIREBASE_CREDENTIALS_PATH: Optional[str] = os.getenv("FIREBASE_CREDENTIALS_PATH")
 
     # CORS settings
     CORS_ORIGINS: str = "http://localhost:8000,http://localhost:8080"

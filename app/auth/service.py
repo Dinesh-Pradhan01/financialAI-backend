@@ -43,6 +43,7 @@ async def get_or_create_user(
 ) -> User:
     """
     Find an existing user by firebase_id, or create a new one.
+    Links the user to an isolated Person workspace record.
     """
     existing = await get_user_by_firebase_id(db, firebase_id)
 
@@ -56,13 +57,57 @@ async def get_or_create_user(
             existing.updated_at = now
             await db.flush()
             logger.info("Updated email info for user %s", firebase_id)
+            
+        # Backwards compatibility migration: Create & link a Person if person_id is null
+        if existing.person_id is None:
+            from app.database.models import Person
+            # Check if a Person record with this email already exists
+            person_stmt = select(Person).where(Person.email == email)
+            person_res = await db.execute(person_stmt)
+            person = person_res.scalar_one_or_none()
+
+            if person is None:
+                person = Person(
+                    email=email,
+                    full_name=email.split("@")[0].capitalize(),
+                    created_at=datetime.utcnow()
+                )
+                db.add(person)
+                await db.flush()
+                logger.info("Created new Person %s for existing user %s", person.id, firebase_id)
+            else:
+                logger.info("Found existing Person record %s for existing user %s, reusing it", person.id, firebase_id)
+
+            existing.person_id = person.id
+            existing.updated_at = now
+            await db.flush()
+            logger.info("Migrated and linked Person %s for existing user %s", person.id, firebase_id)
+            
         return existing
 
-    # Create a new user row
+    # 1. Check if a Person record with this email already exists
+    from app.database.models import Person
+    person_stmt = select(Person).where(Person.email == email)
+    person_res = await db.execute(person_stmt)
+    person = person_res.scalar_one_or_none()
+
+    if person is None:
+        person = Person(
+            email=email,
+            full_name=email.split("@")[0].capitalize(),
+            created_at=datetime.utcnow()
+        )
+        db.add(person)
+        await db.flush()  # Populates person.id UUID
+    else:
+        logger.info("Found existing Person record %s for email %s, reusing it for user signup", person.id, email)
+
+    # 2. Create the new User and link to Person
     user = User(
         firebase_id=firebase_id,
         email=email,
         email_verified=email_verified,
+        person_id=person.id,
         role=UserRole.USER.value,
         is_active=True,
         created_at=now,
@@ -72,7 +117,7 @@ async def get_or_create_user(
     await db.flush()
     await db.refresh(user)
 
-    logger.info("Created new user %s (%s)", firebase_id, email)
+    logger.info("Created new user %s (%s) linked to Person %s", firebase_id, email, person.id)
     return user
 
 

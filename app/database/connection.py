@@ -12,14 +12,6 @@ import logging
 from typing import AsyncGenerator
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from typing import AsyncGenerator
-
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
-from sqlalchemy.pool import NullPool
 
 from app.config import settings
 
@@ -33,7 +25,9 @@ class PostgreSQLConnectionManager:
     def connect(self):
         try:
             logger.info("Initializing PostgreSQL database engine...")
-            connect_args = {}
+            connect_args = {
+                "statement_cache_size": 0
+            }
             if "localhost" not in settings.DATABASE_URL and "127.0.0.1" not in settings.DATABASE_URL:
                 connect_args["ssl"] = True
 
@@ -64,11 +58,63 @@ class PostgreSQLConnectionManager:
             async with self.engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
                 logger.info("Running database column migrations...")
-                await conn.execute(text("ALTER TABLE documents ADD COLUMN IF NOT EXISTS person_id UUID REFERENCES persons(id) ON DELETE CASCADE;"))
-                await conn.execute(text("ALTER TABLE accounts ADD COLUMN IF NOT EXISTS person_id UUID REFERENCES persons(id) ON DELETE CASCADE;"))
-                await conn.execute(text("ALTER TABLE accounts ADD COLUMN IF NOT EXISTS account_type VARCHAR(50) DEFAULT 'savings';"))
-                await conn.execute(text("ALTER TABLE transactions ADD COLUMN IF NOT EXISTS merchant_id UUID REFERENCES merchants(id) ON DELETE SET NULL;"))
-                await conn.execute(text("ALTER TABLE transactions ADD COLUMN IF NOT EXISTS classification VARCHAR(50) DEFAULT 'expense';"))
+                
+                async def column_exists(table: str, col: str) -> bool:
+                    res = await conn.execute(text(
+                        f"SELECT 1 FROM information_schema.columns "
+                        f"WHERE table_name = '{table}' AND column_name = '{col}';"
+                    ))
+                    return res.fetchone() is not None
+
+                if not await column_exists("documents", "person_id"):
+                    await conn.execute(text("ALTER TABLE documents ADD COLUMN person_id UUID REFERENCES persons(id) ON DELETE CASCADE;"))
+                if not await column_exists("accounts", "person_id"):
+                    await conn.execute(text("ALTER TABLE accounts ADD COLUMN person_id UUID REFERENCES persons(id) ON DELETE CASCADE;"))
+                if not await column_exists("accounts", "account_type"):
+                    await conn.execute(text("ALTER TABLE accounts ADD COLUMN account_type VARCHAR(50) DEFAULT 'savings';"))
+                if not await column_exists("transactions", "merchant_id"):
+                    await conn.execute(text("ALTER TABLE transactions ADD COLUMN merchant_id UUID REFERENCES merchants(id) ON DELETE SET NULL;"))
+                if not await column_exists("transactions", "classification"):
+                    await conn.execute(text("ALTER TABLE transactions ADD COLUMN classification VARCHAR(50) DEFAULT 'expense';"))
+
+                # New onboarding columns on persons table
+                if not await column_exists("persons", "phone"):
+                    await conn.execute(text("ALTER TABLE persons ADD COLUMN phone VARCHAR(20);"))
+                if not await column_exists("persons", "date_of_birth"):
+                    await conn.execute(text("ALTER TABLE persons ADD COLUMN date_of_birth TIMESTAMP;"))
+                if not await column_exists("persons", "gender"):
+                    await conn.execute(text("ALTER TABLE persons ADD COLUMN gender VARCHAR(20);"))
+                if not await column_exists("persons", "address"):
+                    await conn.execute(text("ALTER TABLE persons ADD COLUMN address VARCHAR(500);"))
+                if not await column_exists("persons", "city"):
+                    await conn.execute(text("ALTER TABLE persons ADD COLUMN city VARCHAR(100);"))
+                if not await column_exists("persons", "state"):
+                    await conn.execute(text("ALTER TABLE persons ADD COLUMN state VARCHAR(100);"))
+                if not await column_exists("persons", "pincode"):
+                    await conn.execute(text("ALTER TABLE persons ADD COLUMN pincode VARCHAR(10);"))
+                if not await column_exists("persons", "pan_number"):
+                    await conn.execute(text("ALTER TABLE persons ADD COLUMN pan_number VARCHAR(10);"))
+                if not await column_exists("persons", "occupation"):
+                    await conn.execute(text("ALTER TABLE persons ADD COLUMN occupation VARCHAR(100);"))
+                if not await column_exists("persons", "bank_count"):
+                    await conn.execute(text("ALTER TABLE persons ADD COLUMN bank_count INTEGER;"))
+                if not await column_exists("persons", "primary_bank"):
+                    await conn.execute(text("ALTER TABLE persons ADD COLUMN primary_bank VARCHAR(100);"))
+                if not await column_exists("persons", "profile_completed"):
+                    await conn.execute(text("ALTER TABLE persons ADD COLUMN profile_completed BOOLEAN DEFAULT FALSE NOT NULL;"))
+
+                # Alter users.person_id type from INTEGER to UUID and configure foreign key safely
+                result = await conn.execute(text(
+                    "SELECT data_type FROM information_schema.columns "
+                    "WHERE table_name = 'users' AND column_name = 'person_id';"
+                ))
+                row = result.fetchone()
+                if row and row[0] != 'uuid':
+                    logger.info("Migrating users.person_id from INTEGER to UUID...")
+                    await conn.execute(text("ALTER TABLE users ALTER COLUMN person_id TYPE UUID USING person_id::text::uuid;"))
+                    await conn.execute(text("ALTER TABLE users DROP CONSTRAINT IF EXISTS fk_users_person_id;"))
+                    await conn.execute(text("ALTER TABLE users ADD CONSTRAINT fk_users_person_id FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE SET NULL;"))
+                    logger.info("users.person_id column successfully migrated to UUID.")
             logger.info("Database tables and migrations verified/created successfully.")
         except Exception as e:
             logger.error(f"Error creating database tables and running migrations: {e}")
@@ -98,55 +144,11 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise e
         finally:
             await session.close()
-# ---------------------------------------------------------------------------
-# Engine & session factory (module-level singletons)
-# ---------------------------------------------------------------------------
-
-# NeonDB requires sslmode=require and works best with NullPool for serverless
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=settings.DEBUG,
-    pool_pre_ping=True,
-    # NullPool is recommended for serverless Postgres (NeonDB)
-    # to avoid idle connection issues
-    poolclass=NullPool,
-)
-
-async_session_factory = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
-
-
-# ---------------------------------------------------------------------------
-# FastAPI dependency
-# ---------------------------------------------------------------------------
-
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """
-    FastAPI dependency that yields an async SQLAlchemy session.
-    Commits on success, rolls back on exception, always closes.
-    """
-    async with async_session_factory() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-
-
-# ---------------------------------------------------------------------------
-# Table creation
-# ---------------------------------------------------------------------------
-
 async def init_db() -> None:
-    """Initialize database connection. Automatic table creation is disabled in favor of Alembic."""
-    logger.info("Database engine initialized. Schema migrations are managed by Alembic.")
-
+    """Initialize database connection manager and verify tables/migrations."""
+    db_manager.connect()
+    await db_manager.create_tables()
 
 async def close_db() -> None:
-    """Dispose of the engine connection pool."""
-    await engine.dispose()
-    logger.info("Database engine disposed.")
+    """Dispose of the database connection pool."""
+    await db_manager.disconnect()

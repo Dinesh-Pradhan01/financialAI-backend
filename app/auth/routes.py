@@ -10,6 +10,7 @@ import logging
 import os
 
 from fastapi import APIRouter, Depends, Response, Request
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_firebase_synced_user, get_current_session_user
@@ -75,7 +76,16 @@ async def sync_user(
         path="/",
     )
 
-    return UserResponse.model_validate(current_user)
+    profile_completed = False
+    if current_user.person_id:
+        from app.database.models import Person
+        stmt = select(Person.profile_completed).where(Person.id == current_user.person_id)
+        res = await db.execute(stmt)
+        profile_completed = res.scalar_one_or_none() or False
+
+    user_resp = UserResponse.model_validate(current_user)
+    user_resp.profile_completed = profile_completed
+    return user_resp
 
 
 @router.get(
@@ -85,8 +95,18 @@ async def sync_user(
 )
 async def get_me(
     current_user: User = Depends(get_current_session_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    return UserResponse.model_validate(current_user)
+    profile_completed = False
+    if current_user.person_id:
+        from app.database.models import Person
+        stmt = select(Person.profile_completed).where(Person.id == current_user.person_id)
+        res = await db.execute(stmt)
+        profile_completed = res.scalar_one_or_none() or False
+
+    user_resp = UserResponse.model_validate(current_user)
+    user_resp.profile_completed = profile_completed
+    return user_resp
 
 
 @router.post(
