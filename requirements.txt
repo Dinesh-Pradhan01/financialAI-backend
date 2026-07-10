@@ -8,3 +8,6 @@ pydantic-settings>=2.0.0
 python-multipart>=0.0.9
 pypdf>=4.0.0
 google-generativeai>=0.8.0
+firebase-admin>=6.0.0
+slowapi>=0.1.9
+alembic>=1.13.0

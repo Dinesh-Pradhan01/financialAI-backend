@@ -5,15 +5,25 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database.connection import db_manager, get_db
 from app.statement.upload.routes import router as statement_router
+from app.database.connection import init_db, close_db, get_db
+from app.auth.firebase import initialize_firebase
+from app.auth.routes import router as auth_router
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup logic: Initialize database engine & create tables
     db_manager.connect()
     await db_manager.create_tables()
+    # Startup: Initialize Firebase Admin SDK
+    initialize_firebase()
+    # Startup: Create database tables (if not exist)
+    await init_db()
     yield
     # Shutdown logic: Dispose database engine
     await db_manager.disconnect()
@@ -26,6 +36,8 @@ from fastapi.openapi.docs import (
 )
 
 from fastapi.openapi.utils import get_openapi
+    # Shutdown: Dispose database engine
+    await close_db()
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -91,6 +103,28 @@ app.add_middleware(
 )
 
 app.include_router(statement_router)
+    lifespan=lifespan
+)
+
+# ---------------------------------------------------------------------------
+# CORS Middleware
+# ---------------------------------------------------------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ---------------------------------------------------------------------------
+# Routers
+# ---------------------------------------------------------------------------
+app.include_router(auth_router, prefix="/api")
+
+# ---------------------------------------------------------------------------
+# Health / Root
+# ---------------------------------------------------------------------------
 
 @app.get("/")
 async def root():
@@ -104,6 +138,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 async def health_check(db: AsyncSession = Depends(get_db)):
     """
     Perform a health check by pinging the PostgreSQL database to verify connectivity.
+    Perform a health check by running a simple query against PostgreSQL.
     """
     try:
         # Send a ping query to the database
