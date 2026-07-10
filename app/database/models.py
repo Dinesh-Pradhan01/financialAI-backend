@@ -11,16 +11,16 @@ class Base(DeclarativeBase):
 class TimestampMixin:
     """Mixin that adds created_at and updated_at columns with timezone to models."""
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        DateTime(timezone=False),
+        default=datetime.utcnow,
         server_default=func.now(),
         nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        DateTime(timezone=False),
+        default=datetime.utcnow,
         server_default=func.now(),
-        onupdate=lambda: datetime.now(timezone.utc),
+        onupdate=datetime.utcnow,
         nullable=False,
     )
 

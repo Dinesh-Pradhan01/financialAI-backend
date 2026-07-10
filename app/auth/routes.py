@@ -9,13 +9,15 @@ Auth API routes.
 import logging
 import os
 
-from fastapi import APIRouter, Depends, Response, Request
+from fastapi import APIRouter, Depends, Response, Request, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from firebase_admin import auth as firebase_auth
 
 from app.auth.dependencies import get_firebase_synced_user, get_current_session_user
-from app.auth.model import User, UserResponse
-from app.auth.service import create_session, revoke_session, update_last_login
+from app.auth.firebase import verify_firebase_token
+from app.auth.model import User, UserResponse, GoogleTokenPayload
+from app.auth.service import create_session, revoke_session, update_last_login, get_or_create_user
 from app.database.connection import get_db
 
 logger = logging.getLogger(__name__)
@@ -83,9 +85,71 @@ async def sync_user(
         res = await db.execute(stmt)
         profile_completed = res.scalar_one_or_none() or False
 
-    user_resp = UserResponse.model_validate(current_user)
-    user_resp.profile_completed = profile_completed
-    return user_resp
+    return UserResponse.from_user(current_user, profile_completed=profile_completed)
+
+@router.post(
+    "/google",
+    summary="Sign in with Google",
+    description="Verify Google Firebase token, sync user to db, and create session.",
+)
+async def google_sign_in(
+    payload: GoogleTokenPayload,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        decoded = await verify_firebase_token(payload.token)
+    except firebase_auth.ExpiredIdTokenError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired.")
+    except firebase_auth.InvalidIdTokenError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token.")
+    except Exception as e:
+        logger.error("Google token verification failed: %s", e)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed.")
+
+    uid = decoded.get("uid")
+    email = decoded.get("email")
+
+    if not uid or not email:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token missing uid or email.")
+
+    # Sync against the internal PostgreSQL database
+    user = await get_or_create_user(
+        db=db,
+        firebase_id=uid,
+        email=email,
+        email_verified=decoded.get("email_verified", True)
+    )
+    
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account is deactivated.")
+
+    # Create backend session
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+
+    session_token = await create_session(
+        db=db,
+        user_id=user.id,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
+    await update_last_login(db, user)
+
+    # Set HTTP-only cookie
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=session_token,
+        httponly=True,
+        secure=_IS_PRODUCTION,
+        samesite="lax",
+        max_age=7 * 24 * 60 * 60,
+        path="/",
+    )
+
+    return {"status": "success", "uid": uid, "email": email}
 
 
 @router.get(
@@ -104,9 +168,7 @@ async def get_me(
         res = await db.execute(stmt)
         profile_completed = res.scalar_one_or_none() or False
 
-    user_resp = UserResponse.model_validate(current_user)
-    user_resp.profile_completed = profile_completed
-    return user_resp
+    return UserResponse.from_user(current_user, profile_completed=profile_completed)
 
 
 @router.post(

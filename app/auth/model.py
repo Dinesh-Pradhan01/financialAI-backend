@@ -11,6 +11,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 from sqlalchemy import Boolean, Integer, String, DateTime, ForeignKey, BigInteger, Text
+from sqlalchemy.dialects.postgresql import UUID
+import uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.models import Base, TimestampMixin
@@ -41,7 +43,7 @@ class User(TimestampMixin, Base):
         String(128), unique=True, index=True, nullable=False
     )
     person_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("persons.id", ondelete="SET NULL"), unique=True, nullable=True
+        UUID(as_uuid=True), unique=True, nullable=True
     )
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -50,7 +52,7 @@ class User(TimestampMixin, Base):
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     last_login_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=False), nullable=True
     )
     
     sessions: Mapped[list["Session"]] = relationship(
@@ -74,10 +76,10 @@ class Session(Base):
     user_agent: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
+        DateTime(timezone=False), default=datetime.utcnow, nullable=False
     )
     expires_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
+        DateTime(timezone=False), nullable=False
     )
     is_revoked: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     
@@ -95,10 +97,22 @@ class UserResponse(BaseModel):
     email: str
     role: str
     email_verified: bool
-    person_id: Optional[uuid.UUID] = None
+    person_id: Optional[str] = None
     profile_completed: bool = False
 
     model_config = {"from_attributes": True}
+
+    @classmethod
+    def from_user(cls, user: "User", profile_completed: bool = False) -> "UserResponse":
+        """Build response with computed profile_completed flag."""
+        return cls(
+            id=user.id,
+            email=user.email,
+            role=user.role,
+            email_verified=user.email_verified,
+            person_id=str(user.person_id) if user.person_id else None,
+            profile_completed=profile_completed,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -111,3 +125,7 @@ class TokenPayload(BaseModel):
     uid: str
     email: Optional[str] = None
     email_verified: bool = False
+
+class GoogleTokenPayload(BaseModel):
+    """Payload for Google Sign-In containing the Firebase ID token."""
+    token: str
