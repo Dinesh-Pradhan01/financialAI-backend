@@ -69,8 +69,8 @@ class StatementProcessingService:
             extracted_data = None
             if gemini_service.is_available():
                 num_pages = len(pages_text)
-                if num_pages <= 2:
-                    # Single-shot extraction for small statements
+                if num_pages <= 15:
+                    # Single-shot extraction for small-to-medium statements
                     logger.info(f"[{document_id}] PDF has {num_pages} page(s). Dispatching single-shot prompt to Gemini LLM API...")
                     logs.append(f"[{datetime.utcnow().isoformat()}] Dispatching single-shot prompt to Gemini API.")
                     extracted_data = await gemini_service.extract_statement_data(pdf_text)
@@ -83,7 +83,7 @@ class StatementProcessingService:
                         logger.info(f"[{document_id}] Gemini LLM single-shot extraction successful.")
                         stages.append("detected")
                 else:
-                    # Page-chunked extraction for multi-page statements
+                    # Page-chunked extraction for multi-page statements (larger than 15 pages)
                     logger.info(f"[{document_id}] PDF has {num_pages} pages. Dispatching page-chunked parallel prompts to Gemini LLM API...")
                     logs.append(f"[{datetime.utcnow().isoformat()}] Initiating page-chunked parallel extraction ({num_pages} pages).")
                     
@@ -95,8 +95,8 @@ class StatementProcessingService:
                         output_tokens += meta_metrics.get("output_tokens", 0)
                         model_used = meta_metrics.get("model_used", settings.GEMINI_MODEL)
                         
-                        # 3b. Group pages into 2-page chunks
-                        chunk_size = 2
+                        # 3b. Group pages into 5-page chunks to respect daily quota limits on Gemini Free Tier
+                        chunk_size = 5
                         page_chunks = [pages_text[i:i + chunk_size] for i in range(0, num_pages, chunk_size)]
                         logs.append(f"[{datetime.utcnow().isoformat()}] Extracted account metadata. Processing {len(page_chunks)} page chunks in parallel...")
                         
@@ -176,52 +176,83 @@ class StatementProcessingService:
 
                 # Insert Transactions
                 raw_transactions = extracted_data.get("transactions") or []
-                logger.info(f"[{document_id}] Ingesting {len(raw_transactions)} transactions...")
+                logger.info(f"[{document_id}] Ingesting {len(raw_transactions)} transactions in batch...")
+                
+                from app.database.models import Merchant, Transaction
+                from sqlalchemy import select
+
+                # 1. Pre-extract and clean all unique merchant names
+                merchant_names = set()
+                for tx in raw_transactions:
+                    name = tx.get("merchant_name")
+                    if name:
+                        merchant_names.add(name.strip())
+
+                # 2. Batch fetch existing merchants matching these names
+                merchant_cache = {}
+                if merchant_names:
+                    stmt = select(Merchant).where(Merchant.name.in_(list(merchant_names)))
+                    result = await session.execute(stmt)
+                    existing_merchants = result.scalars().all()
+                    for m in existing_merchants:
+                        merchant_cache[m.name] = m.id
+
+                    # 3. Create missing merchants in a batch
+                    new_merchants = []
+                    for name in merchant_names:
+                        if name not in merchant_cache:
+                            new_m = Merchant(
+                                id=uuid.uuid4(),
+                                name=name,
+                                created_at=datetime.utcnow()
+                            )
+                            session.add(new_m)
+                            new_merchants.append(new_m)
+                    
+                    if new_merchants:
+                        await session.flush()
+                        for new_m in new_merchants:
+                            merchant_cache[new_m.name] = new_m.id
+
+                # 4. Instantiate all Transaction models and add to session
+                transaction_instances = []
                 for index, tx in enumerate(raw_transactions):
                     norm_tx = StatementNormalizer.normalize_transaction(tx)
                     
-                    # Convert date strings (YYYY-MM-DD) into Python date objects for SQL compatibility
                     tx_date = datetime.strptime(norm_tx["transaction_date"], "%Y-%m-%d").date()
                     val_date = datetime.strptime(norm_tx["value_date"], "%Y-%m-%d").date() if norm_tx.get("value_date") else tx_date
                     
-                    # Find or create merchant if merchant_name is extracted
+                    # Resolve merchant_id from cache
                     merchant_id = None
                     merchant_name = norm_tx.get("merchant_name")
                     if merchant_name:
-                        merchant_name_clean = merchant_name.strip()
-                        merchant_repo = BaseRepository(session, "merchants")
-                        existing_merchants = await merchant_repo.find({"name": merchant_name_clean})
-                        if existing_merchants:
-                            merchant_id = existing_merchants[0].id
-                        else:
-                            # Create new merchant
-                            merchant_id_str = await merchant_repo.create({
-                                "name": merchant_name_clean,
-                                "created_at": datetime.utcnow()
-                            })
-                            merchant_id = uuid.UUID(merchant_id_str)
-                    
-                    tx_doc = {
-                        "document_id": document_id,
-                        "account_id": account_id,
-                        "merchant_id": merchant_id,
-                        "transaction_date": tx_date,
-                        "value_date": val_date,
-                        "narration": norm_tx["narration"],
-                        "debit_amount": norm_tx["debit_amount"],
-                        "credit_amount": norm_tx["credit_amount"],
-                        "running_balance": norm_tx["running_balance"],
-                        "reference_number": norm_tx["reference_number"],
-                        "utr_upi_ref": norm_tx["utr_upi_ref"],
-                        "cheque_number": norm_tx["cheque_number"],
-                        "category": norm_tx["category"],
-                        "classification": norm_tx["classification"],
-                        "type": norm_tx["type"],
-                        "created_at": datetime.utcnow()
-                    }
-                    
-                    await transaction_repo.create(tx_doc)
-                    logger.info(f"  [{document_id}]   -> Ingested Tx #{index+1}: {tx_date} | {norm_tx['narration'][:35]}... | {norm_tx['type']}: {norm_tx['debit_amount'] or norm_tx['credit_amount']}")
+                        merchant_id = merchant_cache.get(merchant_name.strip())
+
+                    tx_instance = Transaction(
+                        id=uuid.uuid4(),
+                        document_id=uuid.UUID(document_id) if isinstance(document_id, str) else document_id,
+                        account_id=uuid.UUID(account_id) if isinstance(account_id, str) else account_id,
+                        merchant_id=merchant_id,
+                        transaction_date=tx_date,
+                        value_date=val_date,
+                        narration=norm_tx["narration"],
+                        debit_amount=norm_tx["debit_amount"],
+                        credit_amount=norm_tx["credit_amount"],
+                        running_balance=norm_tx["running_balance"],
+                        reference_number=norm_tx["reference_number"],
+                        utr_upi_ref=norm_tx["utr_upi_ref"],
+                        cheque_number=norm_tx["cheque_number"],
+                        category=norm_tx["category"],
+                        classification=norm_tx["classification"],
+                        type=norm_tx["type"],
+                        created_at=datetime.utcnow()
+                    )
+                    transaction_instances.append(tx_instance)
+
+                if transaction_instances:
+                    session.add_all(transaction_instances)
+                    await session.flush()
+                    logger.info(f"[{document_id}] Successfully batched-inserted {len(transaction_instances)} transactions.")
 
                 logs.append(f"[{datetime.utcnow().isoformat()}] Stored {len(raw_transactions)} transactions.")
                 stages.append("normalized")

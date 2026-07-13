@@ -10,6 +10,7 @@ htmlcov/
 # Environments & Packages
 .venv/
 venv/
+spot/
 ENV/
 env/
 dist/
@@ -20,6 +21,7 @@ build/
 .env
 .env.*
 .flaskenv
+firebase-service-account*.json
 
 # Project specific uploads & logs
 uploads/
@@ -30,3 +32,6 @@ uploads/
 .idea/
 .DS_Store
 Thumbs.db
+
+db_schema_*.md
+0.*

@@ -54,6 +54,7 @@ class ExtractedTransactionsChunkSchema(BaseModel):
 
 class GeminiExtractionService:
     def __init__(self):
+        self.semaphore = asyncio.Semaphore(1)
         self.api_key = settings.GEMINI_API_KEY
         if self.api_key:
             try:
@@ -72,6 +73,31 @@ class GeminiExtractionService:
 
     def is_available(self) -> bool:
         return self.model is not None
+
+    async def _generate_content_with_retry(self, prompt: str, generation_config: Any) -> Any:
+        """Call Gemini model with sequential semaphore control and exponential backoff retry for 429 errors."""
+        async with self.semaphore:
+            # Space requests to prevent hitting the 15 RPM rate limit
+            await asyncio.sleep(4.0)
+            
+            max_retries = 3
+            retry_delay = 5.0
+            for attempt in range(max_retries):
+                try:
+                    response = await asyncio.to_thread(
+                        self.model.generate_content,
+                        prompt,
+                        generation_config=generation_config
+                    )
+                    return response
+                except Exception as e:
+                    err_str = str(e)
+                    if ("429" in err_str or "rate limit" in err_str.lower() or "quota" in err_str.lower()) and attempt < max_retries - 1:
+                        logger.warning(f"Gemini API rate limited (429/quota). Retrying in {retry_delay}s... (Attempt {attempt+1}/{max_retries})")
+                        await asyncio.sleep(retry_delay)
+                        retry_delay *= 2
+                    else:
+                        raise e
 
     async def extract_statement_data(self, pdf_text: str) -> Optional[Dict[str, Any]]:
         """
@@ -92,12 +118,8 @@ class GeminiExtractionService:
                 temperature=0.1
             )
             
-            # Call Gemini in a thread pool to avoid blocking the async event loop
-            response = await asyncio.to_thread(
-                self.model.generate_content,
-                prompt,
-                generation_config=generation_config
-            )
+            # Call Gemini with retry buffer
+            response = await self._generate_content_with_retry(prompt, generation_config)
             
             if not response.text:
                 logger.error("Empty response received from Gemini API.")
@@ -144,11 +166,7 @@ class GeminiExtractionService:
                 temperature=0.1
             )
             
-            response = await asyncio.to_thread(
-                self.model.generate_content,
-                prompt,
-                generation_config=generation_config
-            )
+            response = await self._generate_content_with_retry(prompt, generation_config)
             
             if not response.text:
                 logger.error("Empty response received from Gemini API during metadata extraction.")
@@ -185,11 +203,7 @@ class GeminiExtractionService:
                 temperature=0.1
             )
             
-            response = await asyncio.to_thread(
-                self.model.generate_content,
-                prompt,
-                generation_config=generation_config
-            )
+            response = await self._generate_content_with_retry(prompt, generation_config)
             
             if not response.text:
                 logger.error("Empty response received from Gemini API during transactions chunk extraction.")

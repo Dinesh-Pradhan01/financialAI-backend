@@ -1,12 +1,28 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
-from sqlalchemy import String, Integer, Float, Text, ForeignKey, Numeric, Date, DateTime, JSON
+from sqlalchemy import String, Integer, Float, Text, ForeignKey, Numeric, Date, DateTime, JSON, func, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 class Base(DeclarativeBase):
     pass
+
+class TimestampMixin:
+    """Mixin that adds created_at and updated_at columns with timezone to models."""
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False),
+        default=datetime.utcnow,
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False),
+        default=datetime.utcnow,
+        server_default=func.now(),
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )
 
 class Person(Base):
     __tablename__ = "persons"
@@ -14,6 +30,18 @@ class Person(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     full_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    date_of_birth: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    gender: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    address: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    city: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    state: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    pincode: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
+    pan_number: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
+    occupation: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    bank_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    primary_bank: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    profile_completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="false")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
@@ -139,3 +167,4 @@ class ProcessingMetadata(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     document: Mapped["Document"] = relationship("Document", back_populates="metadata_logs")
+

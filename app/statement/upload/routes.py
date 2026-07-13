@@ -1,6 +1,7 @@
 import os
 import uuid
 import logging
+import asyncio
 from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, UploadFile, File, BackgroundTasks, Depends, HTTPException, Query
@@ -118,11 +119,16 @@ async def upload_single_statement(
     file_path = file_manager.save_file(doc_id, file)
     logger.info(f"  [6/6] Saved PDF locally to path: {file_path}")
     
-    # 6. Dispatch processing task to background thread pool
-    logger.info(f"==> Dispatching extraction pipeline to background queue. Document ID: {doc_id}")
-    background_tasks.add_task(StatementProcessingService.process_statement_task, doc_id, file_path, person_id)
+    # 6. Execute processing task in the background
+    logger.info(f"==> Enqueuing extraction pipeline to background tasks. Document ID: {doc_id}")
+    background_tasks.add_task(
+        StatementProcessingService.process_statement_task,
+        doc_id,
+        file_path,
+        person_id
+    )
     
-    # Fetch database record to return standard Pydantic response
+    # Fetch database record to return initial state (PENDING)
     doc_record = await document_repo.get_by_id(doc_id)
     return doc_record
 
@@ -206,18 +212,26 @@ async def upload_bulk_statements(
             await db.commit()
             
             file_path = file_manager.save_file(doc_id, file)
-            background_tasks.add_task(StatementProcessingService.process_statement_task, doc_id, file_path, person_id)
-            
             uploaded.append({
                 "document_id": doc_id,
                 "filename": file.filename,
-                "status": DocumentStatus.PENDING
+                "file_path": file_path
             })
         except Exception as e:
             errors.append({
                 "filename": file.filename,
                 "error": str(e)
             })
+            
+    # Process all uploaded documents in parallel in the background
+    if uploaded:
+        for item in uploaded:
+            file_path = item.pop("file_path", None)
+            background_tasks.add_task(
+                StatementProcessingService.process_statement_task,
+                item["document_id"], file_path, person_id
+            )
+            item["status"] = DocumentStatus.PENDING
             
     return {"uploaded": uploaded, "errors": errors}
 
@@ -227,6 +241,20 @@ async def get_uploaded_documents(db: AsyncSession = Depends(get_db)):
     document_repo = BaseRepository(db, "documents")
     docs = await document_repo.find({}, limit=100)
     return docs
+
+@router.get("/{id}", response_model=DocumentResponse)
+async def get_document_by_id(id: str, db: AsyncSession = Depends(get_db)):
+    """Fetch details of a single uploaded document by its ID."""
+    try:
+        doc_uuid = uuid.UUID(id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid Document ID format.")
+        
+    document_repo = BaseRepository(db, "documents")
+    doc = await document_repo.get_by_id(id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found.")
+    return doc
 
 @router.get("/{id}/status")
 async def get_processing_status(id: str, db: AsyncSession = Depends(get_db)):
@@ -358,10 +386,18 @@ async def reprocess_statement(
     # We commit changes to db before starting background task
     await db.commit()
     
-    # 3. Add to background pipeline task
+    # 3. Execute processing task in the background
     person_id_str = str(doc.person_id) if doc.person_id else None
-    background_tasks.add_task(StatementProcessingService.process_statement_task, id, file_path, person_id_str)
+    logger.info(f"==> Enqueuing re-extraction pipeline to background tasks. Document ID: {id}")
+    background_tasks.add_task(
+        StatementProcessingService.process_statement_task,
+        id,
+        file_path,
+        person_id_str
+    )
     
+    # Refresh to return status PENDING
+    await db.refresh(doc)
     return doc
 
 @router.delete("/{id}")

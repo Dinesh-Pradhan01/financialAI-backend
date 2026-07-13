@@ -3,28 +3,42 @@ import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+import logging
+# Configure logging format and level to display info/debug logs in the console
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+import traceback
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.database.connection import db_manager, get_db
 from app.statement.upload.routes import router as statement_router
+from app.database.connection import init_db, close_db, get_db
+from app.auth.firebase import initialize_firebase
+from app.auth.routes import router as auth_router
+from app.person.routes import router as person_router
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
+
+logger = logging.getLogger("main")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup logic: Initialize database engine & create tables
-    db_manager.connect()
-    await db_manager.create_tables()
+    # Startup: Initialize database engine, run migrations, and initialize Firebase SDK
+    await init_db()
+    initialize_firebase()
     yield
-    # Shutdown logic: Dispose database engine
-    await db_manager.disconnect()
+    # Shutdown: Dispose database engine
+    await close_db()
 
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import (
     get_swagger_ui_html,
     get_swagger_ui_oauth2_redirect_html,
     get_redoc_html,
 )
-
 from fastapi.openapi.utils import get_openapi
 
 app = FastAPI(
@@ -81,16 +95,47 @@ async def redoc_html():
         redoc_js_url="https://cdnjs.cloudflare.com/ajax/libs/redoc/2.1.3/redoc.standalone.js",
     )
 
-# Enable CORS for frontend UI interaction (Rohan's dashboard)
+# ---------------------------------------------------------------------------
+# Request Logging Middleware
+# ---------------------------------------------------------------------------
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    origin = request.headers.get("origin")
+    host = request.headers.get("host")
+    logger.info("----> [Request] %s %s | Host: %s | Origin: %s", request.method, request.url.path, host, origin)
+    try:
+        response = await call_next(request)
+        logger.info("<---- [Response] %s %s | Status: %s", request.method, request.url.path, response.status_code)
+        return response
+    except Exception as e:
+        logger.error("!!!!! [Exception] %s %s | Error: %s", request.method, request.url.path, e)
+        logger.error(traceback.format_exc())
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Internal Server Error: {str(e)}"}
+        )
+
+# ---------------------------------------------------------------------------
+# CORS Middleware
+# ---------------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# ---------------------------------------------------------------------------
+# Routers
+# ---------------------------------------------------------------------------
 app.include_router(statement_router)
+app.include_router(auth_router, prefix="/api")
+app.include_router(person_router, prefix="/api")
+
+# ---------------------------------------------------------------------------
+# Health / Root
+# ---------------------------------------------------------------------------
 
 @app.get("/")
 async def root():
@@ -104,6 +149,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 async def health_check(db: AsyncSession = Depends(get_db)):
     """
     Perform a health check by pinging the PostgreSQL database to verify connectivity.
+    Perform a health check by running a simple query against PostgreSQL.
     """
     try:
         # Send a ping query to the database
