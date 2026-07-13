@@ -119,14 +119,17 @@ async def upload_single_statement(
     file_path = file_manager.save_file(doc_id, file)
     logger.info(f"  [6/6] Saved PDF locally to path: {file_path}")
     
-    # 6. Execute processing task inline to wait for completion
-    logger.info(f"==> Executing extraction pipeline. Document ID: {doc_id}")
-    await StatementProcessingService.process_statement_task(doc_id, file_path, person_id)
+    # 6. Execute processing task in the background
+    logger.info(f"==> Enqueuing extraction pipeline to background tasks. Document ID: {doc_id}")
+    background_tasks.add_task(
+        StatementProcessingService.process_statement_task,
+        doc_id,
+        file_path,
+        person_id
+    )
     
-    # Fetch database record and refresh to load the latest status and fields
+    # Fetch database record to return initial state (PENDING)
     doc_record = await document_repo.get_by_id(doc_id)
-    if doc_record:
-        await db.refresh(doc_record)
     return doc_record
 
 @router.post("/upload/bulk")
@@ -220,25 +223,15 @@ async def upload_bulk_statements(
                 "error": str(e)
             })
             
-    # Process all uploaded documents in parallel
+    # Process all uploaded documents in parallel in the background
     if uploaded:
-        tasks = [
-            StatementProcessingService.process_statement_task(
-                item["document_id"], item["file_path"], person_id
-            )
-            for item in uploaded
-        ]
-        await asyncio.gather(*tasks)
-        
-        # Refresh and update status for response
         for item in uploaded:
             file_path = item.pop("file_path", None)
-            doc_record = await document_repo.get_by_id(item["document_id"])
-            if doc_record:
-                await db.refresh(doc_record)
-                item["status"] = doc_record.status
-            else:
-                item["status"] = DocumentStatus.FAILED
+            background_tasks.add_task(
+                StatementProcessingService.process_statement_task,
+                item["document_id"], file_path, person_id
+            )
+            item["status"] = DocumentStatus.PENDING
             
     return {"uploaded": uploaded, "errors": errors}
 
@@ -393,12 +386,17 @@ async def reprocess_statement(
     # We commit changes to db before starting background task
     await db.commit()
     
-    # 3. Execute processing task inline
+    # 3. Execute processing task in the background
     person_id_str = str(doc.person_id) if doc.person_id else None
-    logger.info(f"==> Reprocessing extraction pipeline. Document ID: {id}")
-    await StatementProcessingService.process_statement_task(id, file_path, person_id_str)
+    logger.info(f"==> Enqueuing re-extraction pipeline to background tasks. Document ID: {id}")
+    background_tasks.add_task(
+        StatementProcessingService.process_statement_task,
+        id,
+        file_path,
+        person_id_str
+    )
     
-    # Fetch database record and refresh to load the latest status
+    # Refresh to return status PENDING
     await db.refresh(doc)
     return doc
 

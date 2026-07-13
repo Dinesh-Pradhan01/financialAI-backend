@@ -4,6 +4,11 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 import logging
+# Configure logging format and level to display info/debug logs in the console
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 import traceback
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, Request
