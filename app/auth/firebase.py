@@ -74,5 +74,5 @@ async def verify_firebase_token(token: str) -> Dict[str, Any]:
     """
     # check_revoked=True adds an extra call to Firebase but ensures tokens
     # that were revoked (e.g. via admin panel or password change) are rejected.
-    decoded = firebase_auth.verify_id_token(token, check_revoked=True)
+    decoded = firebase_auth.verify_id_token(token, check_revoked=True, clock_skew_seconds=10)
     return decoded
