@@ -12,6 +12,7 @@ htmlcov/
 venv/
 spot/
 ENV/
+scratch/
 env/
 dist/
 build/

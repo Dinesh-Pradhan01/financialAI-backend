@@ -80,13 +80,17 @@ async def sync_user(
     )
 
     profile_completed = False
+    full_name = None
     if current_user.person_id:
         from app.database.models import Person
-        stmt = select(Person.profile_completed).where(Person.id == current_user.person_id)
+        stmt = select(Person.profile_completed, Person.full_name).where(Person.id == current_user.person_id)
         res = await db.execute(stmt)
-        profile_completed = res.scalar_one_or_none() or False
+        row = res.fetchone()
+        if row:
+            profile_completed = row[0] or False
+            full_name = row[1]
 
-    return UserResponse.from_user(current_user, profile_completed=profile_completed)
+    return UserResponse.from_user(current_user, profile_completed=profile_completed, full_name=full_name)
 
 @router.post(
     "/google",
@@ -163,13 +167,17 @@ async def get_me(
     db: AsyncSession = Depends(get_db),
 ):
     profile_completed = False
+    full_name = None
     if current_user.person_id:
         from app.database.models import Person
-        stmt = select(Person.profile_completed).where(Person.id == current_user.person_id)
+        stmt = select(Person.profile_completed, Person.full_name).where(Person.id == current_user.person_id)
         res = await db.execute(stmt)
-        profile_completed = res.scalar_one_or_none() or False
+        row = res.fetchone()
+        if row:
+            profile_completed = row[0] or False
+            full_name = row[1]
 
-    return UserResponse.from_user(current_user, profile_completed=profile_completed)
+    return UserResponse.from_user(current_user, profile_completed=profile_completed, full_name=full_name)
 
 
 @router.post(

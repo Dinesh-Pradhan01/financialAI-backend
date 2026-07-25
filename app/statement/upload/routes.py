@@ -19,6 +19,8 @@ from app.statement.model import (
     AccountResponse, TransactionResponse, TransactionListResponse,
     ExtractedStatementResponse
 )
+from app.auth.dependencies import get_current_session_user
+from app.auth.model import User
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +31,7 @@ async def upload_single_statement(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     person_id: Optional[str] = Query(None, description="The user/person ID associating this statement"),
+    current_user: User = Depends(get_current_session_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -64,36 +67,31 @@ async def upload_single_statement(
     file_size = len(content)
     await file.seek(0)
     
-    # 3b. Setup / Verify Person record association (with default fallback for offline/no-auth testing)
+    # 3b. Setup / Verify Person record association (with role boundaries)
     person_repo = BaseRepository(db, "persons")
     
-    if person_id:
-        person = await person_repo.get_by_id(person_id)
+    if current_user.role == "admin" and person_id:
+        try:
+            person_uuid = uuid.UUID(person_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid person_id UUID format.")
+        person = await person_repo.get_by_id(str(person_uuid))
         if not person:
-            try:
-                p_uuid = uuid.UUID(person_id)
-                await person_repo.create({
-                    "id": p_uuid,
-                    "email": f"user_{person_id[:8]}@example.com",
-                    "full_name": f"User {person_id[:8]}",
-                    "created_at": datetime.utcnow()
-                })
-            except Exception:
-                person_id = None
-                
-    if not person_id:
-        default_uuid = uuid.UUID("00000000-0000-0000-0000-000000000000")
-        existing_default = await person_repo.get_by_id(str(default_uuid))
-        if not existing_default:
             await person_repo.create({
-                "id": default_uuid,
-                "email": "default@example.com",
-                "full_name": "Default User",
+                "id": person_uuid,
+                "email": f"user_{person_id[:8]}@example.com",
+                "full_name": f"User {person_id[:8]}",
                 "created_at": datetime.utcnow()
             })
-        person_id = str(default_uuid)
+    else:
+        if not current_user.person_id:
+            raise HTTPException(
+                status_code=400,
+                detail="No person profile associated with the current user."
+            )
+        person_uuid = current_user.person_id
 
-    person_uuid = uuid.UUID(person_id)
+    person_id_str = str(person_uuid)
     
     # 4. Save document record in database
     doc_data = {
@@ -125,7 +123,7 @@ async def upload_single_statement(
         StatementProcessingService.process_statement_task,
         doc_id,
         file_path,
-        person_id
+        person_id_str
     )
     
     # Fetch database record to return initial state (PENDING)
@@ -137,42 +135,38 @@ async def upload_bulk_statements(
     background_tasks: BackgroundTasks,
     files: List[UploadFile] = File(...),
     person_id: Optional[str] = Query(None, description="The user/person ID associating these statements"),
+    current_user: User = Depends(get_current_session_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Uploads multiple PDF statements.
     Processes each document asynchronously, returning success and failure logs.
     """
-    # Setup / Verify Person record association (with default fallback for offline/no-auth testing)
+    # Setup / Verify Person record association (with role boundaries)
     person_repo = BaseRepository(db, "persons")
     
-    if person_id:
-        person = await person_repo.get_by_id(person_id)
+    if current_user.role == "admin" and person_id:
+        try:
+            person_uuid = uuid.UUID(person_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid person_id UUID format.")
+        person = await person_repo.get_by_id(str(person_uuid))
         if not person:
-            try:
-                p_uuid = uuid.UUID(person_id)
-                await person_repo.create({
-                    "id": p_uuid,
-                    "email": f"user_{person_id[:8]}@example.com",
-                    "full_name": f"User {person_id[:8]}",
-                    "created_at": datetime.utcnow()
-                })
-            except Exception:
-                person_id = None
-                
-    if not person_id:
-        default_uuid = uuid.UUID("00000000-0000-0000-0000-000000000000")
-        existing_default = await person_repo.get_by_id(str(default_uuid))
-        if not existing_default:
             await person_repo.create({
-                "id": default_uuid,
-                "email": "default@example.com",
-                "full_name": "Default User",
+                "id": person_uuid,
+                "email": f"user_{person_id[:8]}@example.com",
+                "full_name": f"User {person_id[:8]}",
                 "created_at": datetime.utcnow()
             })
-        person_id = str(default_uuid)
+    else:
+        if not current_user.person_id:
+            raise HTTPException(
+                status_code=400,
+                detail="No person profile associated with the current user."
+            )
+        person_uuid = current_user.person_id
 
-    person_uuid = uuid.UUID(person_id)
+    person_id_str = str(person_uuid)
     uploaded = []
     errors = []
     document_repo = BaseRepository(db, "documents")
@@ -229,21 +223,33 @@ async def upload_bulk_statements(
             file_path = item.pop("file_path", None)
             background_tasks.add_task(
                 StatementProcessingService.process_statement_task,
-                item["document_id"], file_path, person_id
+                item["document_id"], file_path, person_id_str
             )
             item["status"] = DocumentStatus.PENDING
             
     return {"uploaded": uploaded, "errors": errors}
 
 @router.get("", response_model=List[DocumentResponse])
-async def get_uploaded_documents(db: AsyncSession = Depends(get_db)):
+async def get_uploaded_documents(
+    current_user: User = Depends(get_current_session_user),
+    db: AsyncSession = Depends(get_db)
+):
     """Fetch list of all uploaded documents."""
     document_repo = BaseRepository(db, "documents")
-    docs = await document_repo.find({}, limit=100)
+    if current_user.role == "admin":
+        docs = await document_repo.find({}, limit=100)
+    else:
+        if not current_user.person_id:
+            return []
+        docs = await document_repo.find({"person_id": current_user.person_id}, limit=100)
     return docs
 
 @router.get("/{id}", response_model=DocumentResponse)
-async def get_document_by_id(id: str, db: AsyncSession = Depends(get_db)):
+async def get_document_by_id(
+    id: str,
+    current_user: User = Depends(get_current_session_user),
+    db: AsyncSession = Depends(get_db)
+):
     """Fetch details of a single uploaded document by its ID."""
     try:
         doc_uuid = uuid.UUID(id)
@@ -254,10 +260,18 @@ async def get_document_by_id(id: str, db: AsyncSession = Depends(get_db)):
     doc = await document_repo.get_by_id(id)
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
+        
+    if current_user.role != "admin" and doc.person_id != current_user.person_id:
+        raise HTTPException(status_code=403, detail="Access denied to this document.")
+        
     return doc
 
 @router.get("/{id}/status")
-async def get_processing_status(id: str, db: AsyncSession = Depends(get_db)):
+async def get_processing_status(
+    id: str,
+    current_user: User = Depends(get_current_session_user),
+    db: AsyncSession = Depends(get_db)
+):
     """Check the status and processing stage logs of a statement."""
     try:
         doc_uuid = uuid.UUID(id)
@@ -268,6 +282,9 @@ async def get_processing_status(id: str, db: AsyncSession = Depends(get_db)):
     doc = await document_repo.get_by_id(id)
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
+        
+    if current_user.role != "admin" and doc.person_id != current_user.person_id:
+        raise HTTPException(status_code=403, detail="Access denied to this document.")
         
     # Query metadata logs
     meta_repo = BaseRepository(db, "processing_metadata")
@@ -292,7 +309,11 @@ async def get_processing_status(id: str, db: AsyncSession = Depends(get_db)):
     return response
 
 @router.get("/{id}/extracted", response_model=ExtractedStatementResponse)
-async def get_extracted_statement(id: str, db: AsyncSession = Depends(get_db)):
+async def get_extracted_statement(
+    id: str,
+    current_user: User = Depends(get_current_session_user),
+    db: AsyncSession = Depends(get_db)
+):
     """Fetch the document details, parsed account info, and transactions."""
     try:
         doc_uuid = uuid.UUID(id)
@@ -303,6 +324,9 @@ async def get_extracted_statement(id: str, db: AsyncSession = Depends(get_db)):
     doc = await document_repo.get_by_id(id)
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
+        
+    if current_user.role != "admin" and doc.person_id != current_user.person_id:
+        raise HTTPException(status_code=403, detail="Access denied to this document.")
     
     # Query account information
     account_repo = BaseRepository(db, "accounts")
@@ -324,6 +348,7 @@ async def get_transactions_by_statement_id(
     id: str,
     limit: int = Query(100, ge=1, le=1000),
     skip: int = Query(0, ge=0),
+    current_user: User = Depends(get_current_session_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Fetch transactions for a statement with support for pagination."""
@@ -331,6 +356,14 @@ async def get_transactions_by_statement_id(
         doc_uuid = uuid.UUID(id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid Document ID format.")
+        
+    document_repo = BaseRepository(db, "documents")
+    doc = await document_repo.get_by_id(id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found.")
+        
+    if current_user.role != "admin" and doc.person_id != current_user.person_id:
+        raise HTTPException(status_code=403, detail="Access denied to this document.")
         
     transaction_repo = BaseRepository(db, "transactions")
     
@@ -351,6 +384,7 @@ async def get_transactions_by_statement_id(
 async def reprocess_statement(
     id: str,
     background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_session_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Retriggers processing on an already uploaded PDF file."""
@@ -363,6 +397,9 @@ async def reprocess_statement(
     doc = await document_repo.get_by_id(id)
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
+        
+    if current_user.role != "admin" and doc.person_id != current_user.person_id:
+        raise HTTPException(status_code=403, detail="Access denied to this document.")
         
     # Check if local file exists
     file_extension = os.path.splitext(doc.filename)[1] or ".pdf"
@@ -401,7 +438,11 @@ async def reprocess_statement(
     return doc
 
 @router.delete("/{id}")
-async def delete_uploaded_statement(id: str, db: AsyncSession = Depends(get_db)):
+async def delete_uploaded_statement(
+    id: str,
+    current_user: User = Depends(get_current_session_user),
+    db: AsyncSession = Depends(get_db)
+):
     """
     Cascades delete for statement.
     Deletes PDF from file system, and removes document, accounts, transactions, 
@@ -416,6 +457,9 @@ async def delete_uploaded_statement(id: str, db: AsyncSession = Depends(get_db))
     doc = await document_repo.get_by_id(id)
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
+        
+    if current_user.role != "admin" and doc.person_id != current_user.person_id:
+        raise HTTPException(status_code=403, detail="Access denied to this document.")
         
     # 1. Remove file from storage
     file_extension = os.path.splitext(doc.filename)[1] or ".pdf"

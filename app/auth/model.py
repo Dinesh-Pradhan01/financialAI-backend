@@ -99,12 +99,15 @@ class UserResponse(BaseModel):
     email_verified: bool
     person_id: Optional[uuid.UUID] = None
     profile_completed: bool = False
+    full_name: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
     @classmethod
-    def from_user(cls, user: "User", profile_completed: bool = False) -> "UserResponse":
-        """Build response with computed profile_completed flag."""
+    def from_user(
+        cls, user: "User", profile_completed: bool = False, full_name: Optional[str] = None
+    ) -> "UserResponse":
+        """Build response with computed profile_completed flag and full_name."""
         return cls(
             id=user.id,
             email=user.email,
@@ -112,6 +115,7 @@ class UserResponse(BaseModel):
             email_verified=user.email_verified,
             person_id=user.person_id,
             profile_completed=profile_completed,
+            full_name=full_name,
         )
 
 
