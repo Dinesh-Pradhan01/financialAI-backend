@@ -54,6 +54,9 @@ class User(TimestampMixin, Base):
     last_login_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=False), nullable=True
     )
+    business_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("general_info.id"), nullable=True
+    )
     
     sessions: Mapped[list["Session"]] = relationship(
         "Session", back_populates="user", cascade="all, delete-orphan"
@@ -98,6 +101,7 @@ class UserResponse(BaseModel):
     role: str
     email_verified: bool
     person_id: Optional[uuid.UUID] = None
+    business_id: Optional[uuid.UUID] = None
     profile_completed: bool = False
     full_name: Optional[str] = None
 
@@ -105,7 +109,7 @@ class UserResponse(BaseModel):
 
     @classmethod
     def from_user(
-        cls, user: "User", profile_completed: bool = False, full_name: Optional[str] = None
+        cls, user: "User", profile_completed: bool = False, full_name: Optional[str] = None, business_id: Optional[uuid.UUID] = None
     ) -> "UserResponse":
         """Build response with computed profile_completed flag and full_name."""
         return cls(
@@ -114,6 +118,7 @@ class UserResponse(BaseModel):
             role=user.role,
             email_verified=user.email_verified,
             person_id=user.person_id,
+            business_id=business_id or user.business_id,
             profile_completed=profile_completed,
             full_name=full_name,
         )

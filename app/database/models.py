@@ -42,6 +42,7 @@ class Person(Base):
     bank_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     primary_bank: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     profile_completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="false")
+    business_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships

@@ -71,6 +71,7 @@ async def get_or_create_user(
             
         # Backwards compatibility migration: Create & link a Person if person_id is null
         if existing.person_id is None:
+            from sqlalchemy.exc import IntegrityError
             from app.database.models import Person
             # Check if a Person record with this email already exists
             person_stmt = select(Person).where(Person.email == email)
@@ -78,14 +79,21 @@ async def get_or_create_user(
             person = person_res.scalar_one_or_none()
 
             if person is None:
-                person = Person(
-                    email=email,
-                    full_name=email.split("@")[0].capitalize(),
-                    created_at=datetime.utcnow()
-                )
-                db.add(person)
-                await db.flush()
-                logger.info("Created new Person %s for existing user %s", person.id, firebase_id)
+                try:
+                    async with db.begin_nested():
+                        person = Person(
+                            email=email,
+                            full_name=email.split("@")[0].capitalize(),
+                            created_at=datetime.utcnow()
+                        )
+                        db.add(person)
+                        await db.flush()
+                        logger.info("Created new Person %s for existing user %s", person.id, firebase_id)
+                except IntegrityError:
+                    person_stmt = select(Person).where(Person.email == email)
+                    person_res = await db.execute(person_stmt)
+                    person = person_res.scalar_one()
+                    logger.info("Person record was created concurrently for %s", email)
             else:
                 logger.info("Found existing Person record %s for existing user %s, reusing it", person.id, firebase_id)
 
@@ -97,35 +105,55 @@ async def get_or_create_user(
         return existing
 
     # 1. Check if a Person record with this email already exists
+    from sqlalchemy.exc import IntegrityError
     from app.database.models import Person
     person_stmt = select(Person).where(Person.email == email)
     person_res = await db.execute(person_stmt)
     person = person_res.scalar_one_or_none()
 
     if person is None:
-        person = Person(
-            email=email,
-            full_name=email.split("@")[0].capitalize(),
-            created_at=datetime.utcnow()
-        )
-        db.add(person)
-        await db.flush()  # Populates person.id UUID
+        try:
+            async with db.begin_nested():
+                person = Person(
+                    email=email,
+                    full_name=email.split("@")[0].capitalize(),
+                    created_at=datetime.utcnow()
+                )
+                db.add(person)
+                await db.flush()  # Populates person.id UUID
+        except IntegrityError:
+            person_stmt = select(Person).where(Person.email == email)
+            person_res = await db.execute(person_stmt)
+            person = person_res.scalar_one()
+            logger.info("Person record was created concurrently for %s", email)
     else:
         logger.info("Found existing Person record %s for email %s, reusing it for user signup", person.id, email)
 
     # 2. Create the new User and link to Person
-    user = User(
-        firebase_id=firebase_id,
-        email=email,
-        email_verified=email_verified,
-        person_id=person.id,
-        role=UserRole.USER.value,
-        is_active=True,
-        created_at=now,
-        updated_at=now,
-    )
-    db.add(user)
-    await db.flush()
+    try:
+        async with db.begin_nested():
+            user = User(
+                firebase_id=firebase_id,
+                email=email,
+                email_verified=email_verified,
+                person_id=person.id,
+                role=UserRole.USER.value,
+                is_active=True,
+                created_at=now,
+                updated_at=now,
+            )
+            db.add(user)
+            await db.flush()
+    except IntegrityError:
+        user_stmt = select(User).where(User.firebase_id == firebase_id)
+        user_res = await db.execute(user_stmt)
+        user = user_res.scalar_one_or_none()
+        if not user:
+            user_stmt = select(User).where(User.email == email)
+            user_res = await db.execute(user_stmt)
+            user = user_res.scalar_one()
+        logger.info("User record was created concurrently for %s", email)
+
     await db.refresh(user)
 
     logger.info("Created new user %s (%s) linked to Person %s", firebase_id, email, person.id)

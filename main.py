@@ -20,6 +20,8 @@ from app.database.connection import init_db, close_db, get_db
 from app.auth.firebase import initialize_firebase
 from app.auth.routes import router as auth_router
 from app.person.routes import router as person_router
+from app.business.routes import router as business_router
+from app.company.routes import router as company_router
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
@@ -132,6 +134,8 @@ app.add_middleware(
 app.include_router(statement_router)
 app.include_router(auth_router, prefix="/api")
 app.include_router(person_router, prefix="/api")
+app.include_router(business_router, prefix="/api")
+app.include_router(company_router, prefix="/api")
 
 # ---------------------------------------------------------------------------
 # Health / Root

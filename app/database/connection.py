@@ -51,6 +51,7 @@ class PostgreSQLConnectionManager:
     async def create_tables(self):
         """Creates tables dynamically in the PostgreSQL database if they don't exist."""
         from app.database.models import Base
+        import app.business.models  # Register business models with Base.metadata
         if self.engine is None:
             raise RuntimeError("Database engine not initialized. Please call connect() first.")
         try:
@@ -102,6 +103,10 @@ class PostgreSQLConnectionManager:
                     await conn.execute(text("ALTER TABLE persons ADD COLUMN primary_bank VARCHAR(100);"))
                 if not await column_exists("persons", "profile_completed"):
                     await conn.execute(text("ALTER TABLE persons ADD COLUMN profile_completed BOOLEAN DEFAULT FALSE NOT NULL;"))
+                if not await column_exists("persons", "business_id"):
+                    await conn.execute(text("ALTER TABLE persons ADD COLUMN business_id UUID REFERENCES general_info(id) ON DELETE SET NULL;"))
+                if not await column_exists("users", "business_id"):
+                    await conn.execute(text("ALTER TABLE users ADD COLUMN business_id UUID REFERENCES general_info(id) ON DELETE SET NULL;"))
 
                 # Alter users.person_id type from INTEGER to UUID and configure foreign key safely
                 result = await conn.execute(text(

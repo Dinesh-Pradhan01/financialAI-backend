@@ -5,11 +5,23 @@ from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
 import google.generativeai as genai
 from app.config import settings
-from app.ai.prompts import SYSTEM_INSTRUCTION, USER_PROMPT_TEMPLATE, METADATA_PROMPT_TEMPLATE, TRANSACTIONS_PROMPT_TEMPLATE
+from app.ai.prompts import SYSTEM_INSTRUCTION, USER_PROMPT_TEMPLATE, METADATA_PROMPT_TEMPLATE, TRANSACTIONS_PROMPT_TEMPLATE, AI_VIEW_PROMPT_TEMPLATE, BUSINESS_REGISTRATION_PROMPT_TEMPLATE
 
 logger = logging.getLogger(__name__)
 
 # Pydantic schemas for structured extraction from Gemini API
+class ExtractedBusinessRegistrationSchema(BaseModel):
+    company_name: Optional[str]
+    business_pan: Optional[str]
+    cin: Optional[str]
+    gstin: Optional[str]
+    date_of_incorporation: Optional[str]
+    registered_address: Optional[str]
+    city: Optional[str]
+    state: Optional[str]
+    pincode: Optional[str]
+    udyam_number: Optional[str]
+
 class ExtractedTransactionSchema(BaseModel):
     transaction_date: str  # YYYY-MM-DD
     value_date: Optional[str]
@@ -221,6 +233,77 @@ class GeminiExtractionService:
             
         except Exception as e:
             logger.warning(f"Gemini API transactions chunk extraction failed: {e}")
+            return None
+
+    async def generate_company_ai_view(self, company_name: str, business_category: str, business_type: str, industry: str, description: str) -> Optional[str]:
+        """
+        Calls Gemini to generate a markdown AI View report of a company.
+        """
+        if not self.is_available():
+            logger.warning("Gemini API not configured. Cannot generate AI view.")
+            return "# AI View Unavailable\nGemini API is not configured."
+
+        try:
+            prompt = AI_VIEW_PROMPT_TEMPLATE.format(
+                company_name=company_name,
+                business_category=business_category,
+                business_type=business_type,
+                industry=industry,
+                description=description
+            )
+            
+            generation_config = genai.GenerationConfig(
+                response_mime_type="text/plain",
+                temperature=0.7
+            )
+            
+            response = await self._generate_content_with_retry(prompt, generation_config)
+            
+            if not response.text:
+                return "# AI View Unavailable\nFailed to generate insights."
+                
+            return response.text
+            
+        except Exception as e:
+            logger.warning(f"Gemini API AI View generation failed: {e}")
+            return f"# Error\nCould not generate AI insights: {e}"
+
+    async def extract_business_registration_data(self, document_text: str) -> Optional[Dict[str, Any]]:
+        """
+        Calls Gemini to extract business details from registration document text.
+        Returns a dict matching the ExtractedBusinessRegistrationSchema, or None if extraction fails.
+        """
+        if not self.is_available():
+            logger.warning("Gemini API not configured. Cannot perform online extraction.")
+            return None
+
+        try:
+            prompt = BUSINESS_REGISTRATION_PROMPT_TEMPLATE.format(document_text=document_text)
+            
+            generation_config = genai.GenerationConfig(
+                response_mime_type="application/json",
+                response_schema=ExtractedBusinessRegistrationSchema,
+                temperature=0.1
+            )
+            
+            response = await self._generate_content_with_retry(prompt, generation_config)
+            
+            if not response.text:
+                logger.error("Empty response received from Gemini API during business registration extraction.")
+                return None
+                
+            extracted_data = json.loads(response.text)
+            
+            usage = getattr(response, "usage_metadata", None)
+            extracted_data["_metrics"] = {
+                "input_tokens": getattr(usage, "prompt_token_count", 0) if usage else 0,
+                "output_tokens": getattr(usage, "candidates_token_count", 0) if usage else 0,
+                "model_used": settings.GEMINI_MODEL
+            }
+            return extracted_data
+            
+        except Exception as e:
+            logger.warning(f"Gemini API business registration extraction failed: {e}")
             return None
 
 gemini_service = GeminiExtractionService()

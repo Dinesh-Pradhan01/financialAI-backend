@@ -55,3 +55,48 @@ Please analyze the text above and extract ONLY the list of transactions present 
 Generate output as valid JSON matching the specified schema.
 """
 
+AI_VIEW_PROMPT_TEMPLATE = """
+You are SpotLite AI, a Business Intelligence Agent. The user wants to know everything you know about the following company based on your general knowledge and training data (as if they were searching the web).
+
+Company Name: {company_name}
+Business Category: {business_category}
+Industry: {industry}
+
+Please provide a comprehensive markdown report about this company based on your existing knowledge. 
+If this is a known company, include sections such as:
+1. Company Overview
+2. Products & Services
+3. Market Position & Competitors
+4. Notable History or News
+
+CRITICAL INSTRUCTION: If you do not have reliable public information about this specific company (for example, if it is a small, private, or fictional company like "{company_name}"), do NOT hallucinate or make up details. Simply state that there is no significant public record or information available for this company in your knowledge base.
+
+Output MUST be purely in Markdown format without markdown code blocks wrapper.
+"""
+
+BUSINESS_REGISTRATION_PROMPT_TEMPLATE = """
+You are an enterprise-grade AI Business Analyst.
+Your task is to analyze raw text extracted from a company's registration document, PAN card, or incorporation certificate.
+Extract the following information:
+- Company Name
+- Business PAN (10 character alphanumeric)
+- CIN (Corporate Identification Number, if present)
+- GSTIN (15 character alphanumeric, if present)
+- Date of Incorporation (Convert to YYYY-MM-DD format)
+- Registered Address
+- City
+- State
+- Pincode (6-digit)
+- Udyam/MSME Number (if present)
+
+If any field is not found in the provided text, leave it as null.
+Extract cleanly, without any hallucinations.
+
+Here is the raw text extracted from the document:
+--- START OF TEXT ---
+{document_text}
+--- END OF TEXT ---
+
+Generate output as valid JSON matching the specified schema.
+"""
+
