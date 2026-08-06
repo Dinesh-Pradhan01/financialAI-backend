@@ -90,6 +90,11 @@ async def sync_user(
             profile_completed = row[0] or False
             full_name = row[1]
 
+    logger.info(
+        "SYNC response for user %s (person_id=%s): profile_completed=%s, business_id=%s",
+        current_user.email, current_user.person_id, profile_completed, current_user.business_id,
+    )
+
     return UserResponse.from_user(current_user, profile_completed=profile_completed, full_name=full_name)
 
 @router.post(

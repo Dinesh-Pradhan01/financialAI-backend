@@ -137,6 +137,7 @@ async def get_or_create_user(
                 email=email,
                 email_verified=email_verified,
                 person_id=person.id,
+                business_id=person.business_id,
                 role=UserRole.USER.value,
                 is_active=True,
                 created_at=now,

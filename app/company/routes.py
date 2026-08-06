@@ -35,11 +35,16 @@ UPLOAD_DIR = os.path.join(os.getcwd(), "uploads", "business_docs")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 async def get_user_business(user: User, db: AsyncSession) -> GeneralInfo:
-    if not user.business_id:
-        raise HTTPException(status_code=404, detail="User does not have an associated business.")
-    
-    res = await db.execute(select(GeneralInfo).where(GeneralInfo.id == user.business_id))
-    business = res.scalar_one_or_none()
+    business = None
+    if user.business_id:
+        res = await db.execute(select(GeneralInfo).where(GeneralInfo.id == user.business_id))
+        business = res.scalar_one_or_none()
+    elif user.person_id:
+        res = await db.execute(select(GeneralInfo).where(GeneralInfo.person_id == user.person_id))
+        business = res.scalar_one_or_none()
+        if business:
+            user.business_id = business.id
+            await db.flush()
     
     if not business:
         raise HTTPException(status_code=404, detail="Business profile not found.")
