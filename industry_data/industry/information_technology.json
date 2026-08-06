@@ -1,0 +1,552 @@
+[
+    {
+        "s_no": 1,
+        "name": "TCS",
+        "url": "https://www.screener.in/company/TCS/consolidated/",
+        "cmp_rs": 2372.75,
+        "pe": 15.97,
+        "market_cap_cr": 858481.75,
+        "div_yield_pct": 2.7,
+        "net_profit_qtr_cr": 13420.0,
+        "qtr_profit_var_pct": 8.45,
+        "sales_qtr_cr": 72275.0,
+        "qtr_sales_var_pct": 13.93,
+        "roce_pct": 63.03,
+        "full_name": "Tata Consultancy Services Ltd",
+        "nse_symbol": "TCS",
+        "bse_code": "532540",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 63437.0,
+                "expenditure": 46562.0,
+                "profit": 12819.0,
+                "operating_profit": 16875.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 65799.0,
+                "expenditure": 47821.0,
+                "profit": 12131.0,
+                "operating_profit": 17978.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 67087.0,
+                "expenditure": 48818.0,
+                "profit": 10720.0,
+                "operating_profit": 18269.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 70698.0,
+                "expenditure": 51422.0,
+                "profit": 13784.0,
+                "operating_profit": 19276.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 72275.0,
+                "expenditure": 53719.0,
+                "profit": 13420.0,
+                "operating_profit": 18556.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/tata-consultancy-services-ltd/tcs/532540/brsr"
+    },
+    {
+        "s_no": 2,
+        "name": "Infosys",
+        "url": "https://www.screener.in/company/INFY/consolidated/",
+        "cmp_rs": 1134.2,
+        "pe": 14.78,
+        "market_cap_cr": 460210.63,
+        "div_yield_pct": 4.29,
+        "net_profit_qtr_cr": 7775.0,
+        "qtr_profit_var_pct": 12.25,
+        "sales_qtr_cr": 48211.0,
+        "qtr_sales_var_pct": 14.03,
+        "roce_pct": 39.95,
+        "full_name": "Infosys Ltd",
+        "nse_symbol": "INFY",
+        "bse_code": "500209",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 42279.0,
+                "expenditure": 32336.0,
+                "profit": 6924.0,
+                "operating_profit": 9943.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 44490.0,
+                "expenditure": 33955.0,
+                "profit": 7375.0,
+                "operating_profit": 10535.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 45479.0,
+                "expenditure": 34845.0,
+                "profit": 6666.0,
+                "operating_profit": 10634.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 46402.0,
+                "expenditure": 35235.0,
+                "profit": 8509.0,
+                "operating_profit": 11167.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 48211.0,
+                "expenditure": 36802.0,
+                "profit": 7775.0,
+                "operating_profit": 11409.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/infosys-ltd/infy/500209/brsr"
+    },
+    {
+        "s_no": 3,
+        "name": "HCL Technologies",
+        "url": "https://www.screener.in/company/HCLTECH/consolidated/",
+        "cmp_rs": 1343.95,
+        "pe": 20.09,
+        "market_cap_cr": 364703.0,
+        "div_yield_pct": 4.01,
+        "net_profit_qtr_cr": 4626.0,
+        "qtr_profit_var_pct": 20.32,
+        "sales_qtr_cr": 34579.0,
+        "qtr_sales_var_pct": 13.94,
+        "roce_pct": 30.4,
+        "full_name": "HCL Technologies Ltd",
+        "nse_symbol": "HCLTECH",
+        "bse_code": "532281",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 30349.0,
+                "expenditure": 24314.0,
+                "profit": 3844.0,
+                "operating_profit": 6035.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 31942.0,
+                "expenditure": 25397.0,
+                "profit": 4236.0,
+                "operating_profit": 6545.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 33872.0,
+                "expenditure": 26460.0,
+                "profit": 4082.0,
+                "operating_profit": 7412.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 33981.0,
+                "expenditure": 27269.0,
+                "profit": 4490.0,
+                "operating_profit": 6712.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 34579.0,
+                "expenditure": 27709.0,
+                "profit": 4626.0,
+                "operating_profit": 6870.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/hcl-technologies-ltd/hcltech/532281/brsr"
+    },
+    {
+        "s_no": 4,
+        "name": "Wipro",
+        "url": "https://www.screener.in/company/WIPRO/consolidated/",
+        "cmp_rs": 183.7,
+        "pe": 13.82,
+        "market_cap_cr": 181941.18,
+        "div_yield_pct": 6.01,
+        "net_profit_qtr_cr": 3356.3,
+        "qtr_profit_var_pct": 0.65,
+        "sales_qtr_cr": 24478.6,
+        "qtr_sales_var_pct": 10.59,
+        "roce_pct": 17.84,
+        "full_name": "Wipro Ltd",
+        "nse_symbol": "WIPRO",
+        "bse_code": "507685",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 22135.0,
+                "expenditure": 17902.0,
+                "profit": 3336.0,
+                "operating_profit": 4233.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 22697.0,
+                "expenditure": 18325.0,
+                "profit": 3262.0,
+                "operating_profit": 4372.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 23556.0,
+                "expenditure": 19259.0,
+                "profit": 3145.0,
+                "operating_profit": 4296.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 24236.0,
+                "expenditure": 19327.0,
+                "profit": 3522.0,
+                "operating_profit": 4909.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 24479.0,
+                "expenditure": 19846.0,
+                "profit": 3356.0,
+                "operating_profit": 4633.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/wipro-ltd/wipro/507685/brsr"
+    },
+    {
+        "s_no": 5,
+        "name": "Tech Mahindra",
+        "url": "https://www.screener.in/company/TECHM/consolidated/",
+        "cmp_rs": 1648.4,
+        "pe": 30.34,
+        "market_cap_cr": 161557.22,
+        "div_yield_pct": 3.1,
+        "net_profit_qtr_cr": 1486.3,
+        "qtr_profit_var_pct": 28.45,
+        "sales_qtr_cr": 15711.9,
+        "qtr_sales_var_pct": 17.68,
+        "roce_pct": 23.12,
+        "full_name": "Tech Mahindra Ltd",
+        "nse_symbol": "TECHM",
+        "bse_code": "532755",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 13351.0,
+                "expenditure": 11416.0,
+                "profit": 1129.0,
+                "operating_profit": 1935.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 13995.0,
+                "expenditure": 11830.0,
+                "profit": 1202.0,
+                "operating_profit": 2165.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 14393.0,
+                "expenditure": 12028.0,
+                "profit": 1119.0,
+                "operating_profit": 2366.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 15076.0,
+                "expenditure": 12511.0,
+                "profit": 1356.0,
+                "operating_profit": 2565.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 15712.0,
+                "expenditure": 12974.0,
+                "profit": 1486.0,
+                "operating_profit": 2738.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/tech-mahindra-ltd/techm/532755/brsr"
+    },
+    {
+        "s_no": 6,
+        "name": "LTM",
+        "url": "https://www.screener.in/company/LTM/consolidated/",
+        "cmp_rs": 4368.05,
+        "pe": 23.09,
+        "market_cap_cr": 129565.7,
+        "div_yield_pct": 1.71,
+        "net_profit_qtr_cr": 1468.6,
+        "qtr_profit_var_pct": 16.92,
+        "sales_qtr_cr": 11608.0,
+        "qtr_sales_var_pct": 17.96,
+        "roce_pct": 29.6,
+        "full_name": "LTM Ltd",
+        "nse_symbol": "LTM",
+        "bse_code": "540005",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 9841.0,
+                "expenditure": 8191.0,
+                "profit": 1255.0,
+                "operating_profit": 1649.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 10394.0,
+                "expenditure": 8464.0,
+                "profit": 1381.0,
+                "operating_profit": 1930.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 10781.0,
+                "expenditure": 8778.0,
+                "profit": 960.0,
+                "operating_profit": 2003.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 11292.0,
+                "expenditure": 9319.0,
+                "profit": 1387.0,
+                "operating_profit": 1973.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 11608.0,
+                "expenditure": 9547.0,
+                "profit": 1469.0,
+                "operating_profit": 2061.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/ltm-ltd/ltm/540005/brsr"
+    },
+    {
+        "s_no": 7,
+        "name": "Oracle Fin.Serv.",
+        "url": "https://www.screener.in/company/OFSS/consolidated/",
+        "cmp_rs": 11102.5,
+        "pe": 28.36,
+        "market_cap_cr": 96675.64,
+        "div_yield_pct": 3.62,
+        "net_profit_qtr_cr": 1415.5,
+        "qtr_profit_var_pct": 120.52,
+        "sales_qtr_cr": 3125.2,
+        "qtr_sales_var_pct": 68.73,
+        "roce_pct": 45.28,
+        "full_name": "Oracle Financial Services Software Ltd",
+        "nse_symbol": "OFSS",
+        "bse_code": "532466",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 1852.0,
+                "expenditure": 1006.0,
+                "profit": 642.0,
+                "operating_profit": 846.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 1789.0,
+                "expenditure": 1034.0,
+                "profit": 546.0,
+                "operating_profit": 755.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 1966.0,
+                "expenditure": 1146.0,
+                "profit": 610.0,
+                "operating_profit": 820.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 2065.0,
+                "expenditure": 1009.0,
+                "profit": 842.0,
+                "operating_profit": 1056.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 3125.0,
+                "expenditure": 1249.0,
+                "profit": 1416.0,
+                "operating_profit": 1876.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/oracle-financial-services-software-ltd/ofss/532466/brsr"
+    },
+    {
+        "s_no": 8,
+        "name": "Persistent Systems",
+        "url": "https://www.screener.in/company/PERSISTENT/consolidated/",
+        "cmp_rs": 5425.0,
+        "pe": 44.34,
+        "market_cap_cr": 85579.43,
+        "div_yield_pct": 0.74,
+        "net_profit_qtr_cr": 529.26,
+        "qtr_profit_var_pct": 33.73,
+        "sales_qtr_cr": 4055.94,
+        "qtr_sales_var_pct": 25.1,
+        "roce_pct": 34.36,
+        "full_name": "Persistent Systems Ltd",
+        "nse_symbol": "PERSISTENT",
+        "bse_code": "533179",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 3242.0,
+                "expenditure": 2658.0,
+                "profit": 396.0,
+                "operating_profit": 584.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3334.0,
+                "expenditure": 2722.0,
+                "profit": 425.0,
+                "operating_profit": 612.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3581.0,
+                "expenditure": 2898.0,
+                "profit": 471.0,
+                "operating_profit": 683.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 3778.0,
+                "expenditure": 3045.0,
+                "profit": 439.0,
+                "operating_profit": 733.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 4056.0,
+                "expenditure": 3288.0,
+                "profit": 529.0,
+                "operating_profit": 768.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/persistent-systems-ltd/persistent/533179/brsr"
+    },
+    {
+        "s_no": 9,
+        "name": "Coforge",
+        "url": "https://www.screener.in/company/COFORGE/consolidated/",
+        "cmp_rs": 1719.5,
+        "pe": 39.72,
+        "market_cap_cr": 76160.2,
+        "div_yield_pct": 0.71,
+        "net_profit_qtr_cr": 531.7,
+        "qtr_profit_var_pct": 96.31,
+        "sales_qtr_cr": 5527.7,
+        "qtr_sales_var_pct": 49.22,
+        "roce_pct": 23.5,
+        "full_name": "Coforge Ltd",
+        "nse_symbol": "COFORGE",
+        "bse_code": "532541",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3704.0,
+                "expenditure": 3127.0,
+                "profit": 356.0,
+                "operating_profit": 577.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3986.0,
+                "expenditure": 3253.0,
+                "profit": 425.0,
+                "operating_profit": 732.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 4232.0,
+                "expenditure": 3508.0,
+                "profit": 297.0,
+                "operating_profit": 723.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 4450.0,
+                "expenditure": 3574.0,
+                "profit": 666.0,
+                "operating_profit": 876.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 5528.0,
+                "expenditure": 4470.0,
+                "profit": 532.0,
+                "operating_profit": 1058.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/coforge-ltd/coforge/532541/brsr"
+    },
+    {
+        "s_no": 10,
+        "name": "Mphasis",
+        "url": "https://www.screener.in/company/MPHASIS/consolidated/",
+        "cmp_rs": 2325.45,
+        "pe": 22.89,
+        "market_cap_cr": 44386.41,
+        "div_yield_pct": 2.66,
+        "net_profit_qtr_cr": 489.51,
+        "qtr_profit_var_pct": 10.82,
+        "sales_qtr_cr": 4384.05,
+        "qtr_sales_var_pct": 17.46,
+        "roce_pct": 22.09,
+        "full_name": "Mphasis Ltd",
+        "nse_symbol": "MPHASIS",
+        "bse_code": "526299",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3732.0,
+                "expenditure": 3030.0,
+                "profit": 442.0,
+                "operating_profit": 703.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3902.0,
+                "expenditure": 3180.0,
+                "profit": 469.0,
+                "operating_profit": 722.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 4003.0,
+                "expenditure": 3252.0,
+                "profit": 442.0,
+                "operating_profit": 750.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 4243.0,
+                "expenditure": 3439.0,
+                "profit": 510.0,
+                "operating_profit": 804.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 4384.0,
+                "expenditure": 3589.0,
+                "profit": 490.0,
+                "operating_profit": 795.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/mphasis-ltd/mphasis/526299/brsr"
+    }
+]

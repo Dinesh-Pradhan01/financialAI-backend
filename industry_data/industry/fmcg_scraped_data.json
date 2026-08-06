@@ -1,0 +1,552 @@
+[
+    {
+        "s_no": 1,
+        "name": "Hind. Unilever",
+        "url": "https://www.screener.in/company/HINDUNILVR/consolidated/",
+        "cmp_rs": 2101.15,
+        "pe": 44.77,
+        "market_cap_cr": 493684.36,
+        "div_yield_pct": 1.94,
+        "net_profit_qtr_cr": 2680.0,
+        "qtr_profit_var_pct": -3.72,
+        "sales_qtr_cr": 17341.0,
+        "qtr_sales_var_pct": 10.05,
+        "roce_pct": 28.42,
+        "full_name": "Hindustan Unilever Ltd",
+        "nse_symbol": "HINDUNILVR",
+        "bse_code": "500696",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 15757.0,
+                "expenditure": 12118.0,
+                "profit": 2768.0,
+                "operating_profit": 3639.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 15919.0,
+                "expenditure": 12137.0,
+                "profit": 2694.0,
+                "operating_profit": 3782.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 16441.0,
+                "expenditure": 12660.0,
+                "profit": 6603.0,
+                "operating_profit": 3781.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 16351.0,
+                "expenditure": 12514.0,
+                "profit": 2994.0,
+                "operating_profit": 3837.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 17341.0,
+                "expenditure": 13394.0,
+                "profit": 2680.0,
+                "operating_profit": 3947.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/hindustan-unilever-ltd/hindunilvr/500696/brsr"
+    },
+    {
+        "s_no": 2,
+        "name": "ITC",
+        "url": "https://www.screener.in/company/ITC/consolidated/",
+        "cmp_rs": 281.4,
+        "pe": 16.87,
+        "market_cap_cr": 352579.22,
+        "div_yield_pct": 5.14,
+        "net_profit_qtr_cr": 5469.74,
+        "qtr_profit_var_pct": 5.3,
+        "sales_qtr_cr": 17824.68,
+        "qtr_sales_var_pct": -5.01,
+        "roce_pct": 38.91,
+        "full_name": "ITC Ltd",
+        "nse_symbol": "ITC",
+        "bse_code": "500875",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 18765.0,
+                "expenditure": 12246.0,
+                "profit": 19808.0,
+                "operating_profit": 6519.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 21495.0,
+                "expenditure": 14678.0,
+                "profit": 5343.0,
+                "operating_profit": 6816.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 19502.0,
+                "expenditure": 12807.0,
+                "profit": 5187.0,
+                "operating_profit": 6695.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 20047.0,
+                "expenditure": 13165.0,
+                "profit": 5018.0,
+                "operating_profit": 6883.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 17825.0,
+                "expenditure": 10900.0,
+                "profit": 5470.0,
+                "operating_profit": 6924.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/itc-ltd/itc/500875/brsr"
+    },
+    {
+        "s_no": 3,
+        "name": "Nestle India",
+        "url": "https://www.screener.in/company/NESTLEIND/consolidated/",
+        "cmp_rs": 1507.85,
+        "pe": 77.43,
+        "market_cap_cr": 290760.89,
+        "div_yield_pct": 0.78,
+        "net_profit_qtr_cr": 975.12,
+        "qtr_profit_var_pct": 48.61,
+        "sales_qtr_cr": 6378.18,
+        "qtr_sales_var_pct": 25.16,
+        "roce_pct": 84.14,
+        "full_name": "Nestle India Ltd",
+        "nse_symbol": "NESTLEIND",
+        "bse_code": "500790",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 5096.0,
+                "expenditure": 4009.0,
+                "profit": 647.0,
+                "operating_profit": 1087.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 5644.0,
+                "expenditure": 4417.0,
+                "profit": 743.0,
+                "operating_profit": 1227.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 5667.0,
+                "expenditure": 4486.0,
+                "profit": 998.0,
+                "operating_profit": 1181.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 6748.0,
+                "expenditure": 4979.0,
+                "profit": 1111.0,
+                "operating_profit": 1768.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 6378.0,
+                "expenditure": 4856.0,
+                "profit": 959.0,
+                "operating_profit": 1522.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/nestle-india-ltd/nestleind/500790/brsr"
+    },
+    {
+        "s_no": 4,
+        "name": "Varun Beverages",
+        "url": "https://www.screener.in/company/VBL/consolidated/",
+        "cmp_rs": 443.15,
+        "pe": 44.25,
+        "market_cap_cr": 149893.93,
+        "div_yield_pct": 0.33,
+        "net_profit_qtr_cr": 1525.36,
+        "qtr_profit_var_pct": 15.47,
+        "sales_qtr_cr": 8451.23,
+        "qtr_sales_var_pct": 20.43,
+        "roce_pct": 19.71,
+        "full_name": "Varun Beverages Ltd",
+        "nse_symbol": "VBL",
+        "bse_code": "540180",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 7017.0,
+                "expenditure": 5020.0,
+                "profit": 1325.0,
+                "operating_profit": 1998.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 4897.0,
+                "expenditure": 3751.0,
+                "profit": 745.0,
+                "operating_profit": 1146.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 4204.0,
+                "expenditure": 3568.0,
+                "profit": 260.0,
+                "operating_profit": 637.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 6574.0,
+                "expenditure": 5049.0,
+                "profit": 879.0,
+                "operating_profit": 1525.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 8451.0,
+                "expenditure": 6112.0,
+                "profit": 1525.0,
+                "operating_profit": 2339.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/varun-beverages-ltd/vbl/540180/brsr"
+    },
+    {
+        "s_no": 5,
+        "name": "Britannia Inds.",
+        "url": "https://www.screener.in/company/BRITANNIA/consolidated/",
+        "cmp_rs": 5376.4,
+        "pe": 51.13,
+        "market_cap_cr": 129500.41,
+        "div_yield_pct": 1.67,
+        "net_profit_qtr_cr": 679.68,
+        "qtr_profit_var_pct": 21.14,
+        "sales_qtr_cr": 4718.92,
+        "qtr_sales_var_pct": 6.47,
+        "roce_pct": 56.0,
+        "full_name": "Britannia Industries Ltd",
+        "nse_symbol": "BRITANNIA",
+        "bse_code": "500825",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 4432.0,
+                "expenditure": 3632.0,
+                "profit": 559.0,
+                "operating_profit": 801.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 4622.0,
+                "expenditure": 3870.0,
+                "profit": 520.0,
+                "operating_profit": 752.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 4841.0,
+                "expenditure": 3889.0,
+                "profit": 655.0,
+                "operating_profit": 951.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 4970.0,
+                "expenditure": 3992.0,
+                "profit": 682.0,
+                "operating_profit": 977.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 4719.0,
+                "expenditure": 3885.0,
+                "profit": 680.0,
+                "operating_profit": 834.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/britannia-industries-ltd/britannia/500825/brsr"
+    },
+    {
+        "s_no": 6,
+        "name": "Marico",
+        "url": "https://www.screener.in/company/MARICO/consolidated/",
+        "cmp_rs": 874.75,
+        "pe": 64.79,
+        "market_cap_cr": 113576.37,
+        "div_yield_pct": 0.45,
+        "net_profit_qtr_cr": 408.0,
+        "qtr_profit_var_pct": 13.99,
+        "sales_qtr_cr": 3333.0,
+        "qtr_sales_var_pct": 22.09,
+        "roce_pct": 47.05,
+        "full_name": "Marico Ltd",
+        "nse_symbol": "MARICO",
+        "bse_code": "531642",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 2730.0,
+                "expenditure": 2272.0,
+                "profit": 345.0,
+                "operating_profit": 458.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3259.0,
+                "expenditure": 2604.0,
+                "profit": 513.0,
+                "operating_profit": 655.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3482.0,
+                "expenditure": 2922.0,
+                "profit": 432.0,
+                "operating_profit": 560.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 3537.0,
+                "expenditure": 2945.0,
+                "profit": 460.0,
+                "operating_profit": 592.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 3333.0,
+                "expenditure": 2812.0,
+                "profit": 408.0,
+                "operating_profit": 521.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/marico-ltd/marico/531642/brsr"
+    },
+    {
+        "s_no": 7,
+        "name": "United Spirits",
+        "url": "https://www.screener.in/company/UNITDSPR/consolidated/",
+        "cmp_rs": 1518.2,
+        "pe": 59.55,
+        "market_cap_cr": 110426.39,
+        "div_yield_pct": 1.11,
+        "net_profit_qtr_cr": 463.0,
+        "qtr_profit_var_pct": -20.54,
+        "sales_qtr_cr": 2708.0,
+        "qtr_sales_var_pct": -10.36,
+        "roce_pct": 26.39,
+        "full_name": "United Spirits Ltd",
+        "nse_symbol": "UNITDSPR",
+        "bse_code": "532432",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3021.0,
+                "expenditure": 2383.0,
+                "profit": 417.0,
+                "operating_profit": 638.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3173.0,
+                "expenditure": 2514.0,
+                "profit": 464.0,
+                "operating_profit": 659.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 3691.0,
+                "expenditure": 3077.0,
+                "profit": 418.0,
+                "operating_profit": 614.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 3054.0,
+                "expenditure": 2461.0,
+                "profit": 539.0,
+                "operating_profit": 593.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 2708.0,
+                "expenditure": 2279.0,
+                "profit": 463.0,
+                "operating_profit": 429.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/united-spirits-ltd/unitdspr/532432/brsr"
+    },
+    {
+        "s_no": 8,
+        "name": "Godrej Consumer",
+        "url": "https://www.screener.in/company/GODREJCP/consolidated/",
+        "cmp_rs": 1067.7,
+        "pe": 55.11,
+        "market_cap_cr": 109258.24,
+        "div_yield_pct": 1.89,
+        "net_profit_qtr_cr": 451.77,
+        "qtr_profit_var_pct": 19.47,
+        "sales_qtr_cr": 3900.44,
+        "qtr_sales_var_pct": 10.99,
+        "roce_pct": 18.75,
+        "full_name": "Godrej Consumer Products Ltd",
+        "nse_symbol": "GODREJCP",
+        "bse_code": "532424",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 3514.0,
+                "expenditure": 2755.0,
+                "profit": 412.0,
+                "operating_profit": 759.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3662.0,
+                "expenditure": 2967.0,
+                "profit": 452.0,
+                "operating_profit": 695.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3825.0,
+                "expenditure": 3092.0,
+                "profit": 459.0,
+                "operating_profit": 733.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 3998.0,
+                "expenditure": 3118.0,
+                "profit": 498.0,
+                "operating_profit": 880.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 3900.0,
+                "expenditure": 3059.0,
+                "profit": 452.0,
+                "operating_profit": 841.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/godrej-consumer-products-ltd/godrejcp/532424/brsr"
+    },
+    {
+        "s_no": 9,
+        "name": "Tata Consumer",
+        "url": "https://www.screener.in/company/TATACONSUM/consolidated/",
+        "cmp_rs": 1083.2,
+        "pe": 65.03,
+        "market_cap_cr": 107199.09,
+        "div_yield_pct": 0.91,
+        "net_profit_qtr_cr": 427.19,
+        "qtr_profit_var_pct": 27.78,
+        "sales_qtr_cr": 5348.88,
+        "qtr_sales_var_pct": 11.93,
+        "roce_pct": 9.24,
+        "full_name": "Tata Consumer Products Ltd",
+        "nse_symbol": "TATACONSUM",
+        "bse_code": "500800",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 4779.0,
+                "expenditure": 4172.0,
+                "profit": 332.0,
+                "operating_profit": 607.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 4966.0,
+                "expenditure": 4294.0,
+                "profit": 407.0,
+                "operating_profit": 672.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 5112.0,
+                "expenditure": 4391.0,
+                "profit": 385.0,
+                "operating_profit": 721.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 5434.0,
+                "expenditure": 4641.0,
+                "profit": 424.0,
+                "operating_profit": 792.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 5349.0,
+                "expenditure": 4625.0,
+                "profit": 427.0,
+                "operating_profit": 724.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/tata-consumer-products-ltd/tataconsum/500800/brsr"
+    },
+    {
+        "s_no": 10,
+        "name": "Dabur India",
+        "url": "https://www.screener.in/company/DABUR/consolidated/",
+        "cmp_rs": 421.7,
+        "pe": 37.73,
+        "market_cap_cr": 74807.56,
+        "div_yield_pct": 1.95,
+        "net_profit_qtr_cr": 586.16,
+        "qtr_profit_var_pct": 14.98,
+        "sales_qtr_cr": 3764.39,
+        "qtr_sales_var_pct": 10.57,
+        "roce_pct": 20.28,
+        "full_name": "Dabur India Ltd",
+        "nse_symbol": "DABUR",
+        "bse_code": "500096",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3405.0,
+                "expenditure": 2737.0,
+                "profit": 508.0,
+                "operating_profit": 667.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3191.0,
+                "expenditure": 2603.0,
+                "profit": 445.0,
+                "operating_profit": 588.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 3559.0,
+                "expenditure": 2825.0,
+                "profit": 554.0,
+                "operating_profit": 734.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 3038.0,
+                "expenditure": 2577.0,
+                "profit": 362.0,
+                "operating_profit": 461.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 3764.0,
+                "expenditure": 3024.0,
+                "profit": 586.0,
+                "operating_profit": 741.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/dabur-india-ltd/dabur/500096/brsr"
+    }
+]

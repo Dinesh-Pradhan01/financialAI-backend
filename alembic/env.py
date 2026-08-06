@@ -16,6 +16,8 @@ from app.config import settings
 from app.database.models import Base
 # Import all models so they are registered with Base.metadata
 from app.auth.model import User, Session
+from app.database.models import Person, Merchant, Document, Account, Transaction, ProcessingMetadata
+from app.business.models import GeneralInfo, LeadershipInfo, FinancialInfo, BusinessVerification, BusinessVerificationDocument
 
 config = context.config
 

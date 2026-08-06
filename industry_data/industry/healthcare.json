@@ -1,0 +1,552 @@
+[
+    {
+        "s_no": 1,
+        "name": "Sun Pharma.Inds.",
+        "url": "https://www.screener.in/company/SUNPHARMA/consolidated/",
+        "cmp_rs": 2015.0,
+        "pe": 38.92,
+        "market_cap_cr": 483465.99,
+        "div_yield_pct": 0.79,
+        "net_profit_qtr_cr": 2709.66,
+        "qtr_profit_var_pct": 13.58,
+        "sales_qtr_cr": 14611.79,
+        "qtr_sales_var_pct": 12.76,
+        "roce_pct": 20.53,
+        "full_name": "Sun Pharmaceutical Industries Ltd",
+        "nse_symbol": "SUNPHARMA",
+        "bse_code": "524715",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 12959.0,
+                "expenditure": 9243.0,
+                "profit": 2154.0,
+                "operating_profit": 3716.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 13851.0,
+                "expenditure": 9550.0,
+                "profit": 2293.0,
+                "operating_profit": 4302.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 14478.0,
+                "expenditure": 9951.0,
+                "profit": 3125.0,
+                "operating_profit": 4527.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 15521.0,
+                "expenditure": 10572.0,
+                "profit": 3381.0,
+                "operating_profit": 4948.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 14612.0,
+                "expenditure": 10658.0,
+                "profit": 2710.0,
+                "operating_profit": 3954.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/sun-pharmaceutical-industries-ltd/sunpharma/524715/brsr"
+    },
+    {
+        "s_no": 2,
+        "name": "Divi's Lab.",
+        "url": "https://www.screener.in/company/DIVISLAB/consolidated/",
+        "cmp_rs": 7999.45,
+        "pe": 80.93,
+        "market_cap_cr": 212360.22,
+        "div_yield_pct": 0.37,
+        "net_profit_qtr_cr": 751.0,
+        "qtr_profit_var_pct": 13.44,
+        "sales_qtr_cr": 2831.0,
+        "qtr_sales_var_pct": 9.52,
+        "roce_pct": 21.97,
+        "full_name": "Divis Laboratories Ltd",
+        "nse_symbol": "DIVISLAB",
+        "bse_code": "532488",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 2585.0,
+                "expenditure": 1699.0,
+                "profit": 662.0,
+                "operating_profit": 886.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 2410.0,
+                "expenditure": 1681.0,
+                "profit": 545.0,
+                "operating_profit": 729.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 2715.0,
+                "expenditure": 1827.0,
+                "profit": 689.0,
+                "operating_profit": 888.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 2604.0,
+                "expenditure": 1714.0,
+                "profit": 583.0,
+                "operating_profit": 890.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 2831.0,
+                "expenditure": 1897.0,
+                "profit": 751.0,
+                "operating_profit": 934.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/divis-laboratories-ltd/divislab/532488/brsr"
+    },
+    {
+        "s_no": 3,
+        "name": "Torrent Pharma.",
+        "url": "https://www.screener.in/company/TORNTPHARM/consolidated/",
+        "cmp_rs": 5062.5,
+        "pe": 86.33,
+        "market_cap_cr": 192561.2,
+        "div_yield_pct": 0.77,
+        "net_profit_qtr_cr": 566.0,
+        "qtr_profit_var_pct": 5.79,
+        "sales_qtr_cr": 4921.0,
+        "qtr_sales_var_pct": 54.85,
+        "roce_pct": 15.19,
+        "full_name": "Torrent Pharmaceuticals Ltd",
+        "nse_symbol": "TORNTPHARM",
+        "bse_code": "500420",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3178.0,
+                "expenditure": 2146.0,
+                "profit": 548.0,
+                "operating_profit": 1032.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3302.0,
+                "expenditure": 2219.0,
+                "profit": 591.0,
+                "operating_profit": 1083.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 3303.0,
+                "expenditure": 2215.0,
+                "profit": 635.0,
+                "operating_profit": 1088.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 4197.0,
+                "expenditure": 2841.0,
+                "profit": 364.0,
+                "operating_profit": 1356.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 4921.0,
+                "expenditure": 3257.0,
+                "profit": 566.0,
+                "operating_profit": 1664.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/torrent-pharmaceuticals-ltd/torntpharm/500420/brsr"
+    },
+    {
+        "s_no": 4,
+        "name": "Apollo Hospitals",
+        "url": "https://www.screener.in/company/APOLLOHOSP/consolidated/",
+        "cmp_rs": 8990.05,
+        "pe": 66.13,
+        "market_cap_cr": 129263.11,
+        "div_yield_pct": 0.22,
+        "net_profit_qtr_cr": 551.3,
+        "qtr_profit_var_pct": 35.86,
+        "sales_qtr_cr": 6605.5,
+        "qtr_sales_var_pct": 18.12,
+        "roce_pct": 17.89,
+        "full_name": "Apollo Hospitals Enterprise Ltd",
+        "nse_symbol": "APOLLOHOSP",
+        "bse_code": "508869",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 5592.0,
+                "expenditure": 4822.0,
+                "profit": 414.0,
+                "operating_profit": 770.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 5842.0,
+                "expenditure": 4990.0,
+                "profit": 441.0,
+                "operating_profit": 852.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 6304.0,
+                "expenditure": 5362.0,
+                "profit": 494.0,
+                "operating_profit": 941.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 6477.0,
+                "expenditure": 5512.0,
+                "profit": 516.0,
+                "operating_profit": 965.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 6606.0,
+                "expenditure": 5594.0,
+                "profit": 551.0,
+                "operating_profit": 1011.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/apollo-hospitals-enterprise-ltd/apollohosp/508869/brsr"
+    },
+    {
+        "s_no": 5,
+        "name": "Cipla",
+        "url": "https://www.screener.in/company/CIPLA/consolidated/",
+        "cmp_rs": 1468.1,
+        "pe": 33.13,
+        "market_cap_cr": 118599.74,
+        "div_yield_pct": 0.89,
+        "net_profit_qtr_cr": 785.55,
+        "qtr_profit_var_pct": -39.19,
+        "sales_qtr_cr": 7119.28,
+        "qtr_sales_var_pct": 2.33,
+        "roce_pct": 15.49,
+        "full_name": "Cipla Ltd",
+        "nse_symbol": "CIPLA",
+        "bse_code": "500087",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 6957.0,
+                "expenditure": 5179.0,
+                "profit": 1292.0,
+                "operating_profit": 1778.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 7589.0,
+                "expenditure": 5695.0,
+                "profit": 1353.0,
+                "operating_profit": 1895.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 7074.0,
+                "expenditure": 5819.0,
+                "profit": 674.0,
+                "operating_profit": 1255.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 6541.0,
+                "expenditure": 5586.0,
+                "profit": 543.0,
+                "operating_profit": 955.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 7119.0,
+                "expenditure": 5927.0,
+                "profit": 786.0,
+                "operating_profit": 1192.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/cipla-ltd/cipla/500087/brsr"
+    },
+    {
+        "s_no": 6,
+        "name": "Zydus Lifesci.",
+        "url": "https://www.screener.in/company/ZYDUSLIFE/consolidated/",
+        "cmp_rs": 1124.7,
+        "pe": 20.66,
+        "market_cap_cr": 112189.26,
+        "div_yield_pct": 0.09,
+        "net_profit_qtr_cr": 1341.0,
+        "qtr_profit_var_pct": 21.92,
+        "sales_qtr_cr": 7587.0,
+        "qtr_sales_var_pct": 16.22,
+        "roce_pct": 21.14,
+        "full_name": "Zydus Lifesciences Ltd",
+        "nse_symbol": "ZYDUSLIFE",
+        "bse_code": "532321",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 6528.0,
+                "expenditure": 4402.0,
+                "profit": 1244.0,
+                "operating_profit": 2126.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 6574.0,
+                "expenditure": 4485.0,
+                "profit": 1521.0,
+                "operating_profit": 2088.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 6123.0,
+                "expenditure": 4107.0,
+                "profit": 1239.0,
+                "operating_profit": 2016.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 6864.0,
+                "expenditure": 5048.0,
+                "profit": 1023.0,
+                "operating_profit": 1816.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 7587.0,
+                "expenditure": 5033.0,
+                "profit": 1341.0,
+                "operating_profit": 2554.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/zydus-lifesciences-ltd/zyduslife/532321/brsr"
+    },
+    {
+        "s_no": 7,
+        "name": "Lupin",
+        "url": "https://www.screener.in/company/LUPIN/consolidated/",
+        "cmp_rs": 2421.6,
+        "pe": 19.47,
+        "market_cap_cr": 110723.44,
+        "div_yield_pct": 0.74,
+        "net_profit_qtr_cr": 1468.67,
+        "qtr_profit_var_pct": 101.49,
+        "sales_qtr_cr": 7474.66,
+        "qtr_sales_var_pct": 31.89,
+        "roce_pct": 29.93,
+        "full_name": "Lupin Ltd",
+        "nse_symbol": "LUPIN",
+        "bse_code": "500257",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 5667.0,
+                "expenditure": 4346.0,
+                "profit": 782.0,
+                "operating_profit": 1321.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 6268.0,
+                "expenditure": 4541.0,
+                "profit": 1221.0,
+                "operating_profit": 1727.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 7048.0,
+                "expenditure": 4706.0,
+                "profit": 1485.0,
+                "operating_profit": 2341.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 7168.0,
+                "expenditure": 4906.0,
+                "profit": 1181.0,
+                "operating_profit": 2262.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 7475.0,
+                "expenditure": 4989.0,
+                "profit": 1469.0,
+                "operating_profit": 2486.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/lupin-ltd/lupin/500257/brsr"
+    },
+    {
+        "s_no": 8,
+        "name": "Max Healthcare",
+        "url": "https://www.screener.in/company/MAXHEALTH/consolidated/",
+        "cmp_rs": 1117.1,
+        "pe": 73.28,
+        "market_cap_cr": 108721.08,
+        "div_yield_pct": 0.18,
+        "net_profit_qtr_cr": 342.22,
+        "qtr_profit_var_pct": 7.28,
+        "sales_qtr_cr": 2142.89,
+        "qtr_sales_var_pct": 12.21,
+        "roce_pct": 14.71,
+        "full_name": "Max Healthcare Institute Ltd",
+        "nse_symbol": "MAXHEALTH",
+        "bse_code": "543220",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 1910.0,
+                "expenditure": 1398.0,
+                "profit": 319.0,
+                "operating_profit": 512.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 2028.0,
+                "expenditure": 1505.0,
+                "profit": 308.0,
+                "operating_profit": 523.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 2135.0,
+                "expenditure": 1560.0,
+                "profit": 491.0,
+                "operating_profit": 575.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 2068.0,
+                "expenditure": 1529.0,
+                "profit": 301.0,
+                "operating_profit": 538.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 2143.0,
+                "expenditure": 1536.0,
+                "profit": 342.0,
+                "operating_profit": 606.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/max-healthcare-institute-ltd/maxhealth/543220/brsr"
+    },
+    {
+        "s_no": 9,
+        "name": "Mankind Pharma",
+        "url": "https://www.screener.in/company/MANKIND/consolidated/",
+        "cmp_rs": 2444.1,
+        "pe": 47.34,
+        "market_cap_cr": 100940.36,
+        "div_yield_pct": 0.04,
+        "net_profit_qtr_cr": 574.09,
+        "qtr_profit_var_pct": 29.6,
+        "sales_qtr_cr": 4030.59,
+        "qtr_sales_var_pct": 12.89,
+        "roce_pct": 13.53,
+        "full_name": "Mankind Pharma Ltd",
+        "nse_symbol": "MANKIND",
+        "bse_code": "543904",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3570.0,
+                "expenditure": 2724.0,
+                "profit": 445.0,
+                "operating_profit": 847.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3697.0,
+                "expenditure": 2776.0,
+                "profit": 520.0,
+                "operating_profit": 921.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 3567.0,
+                "expenditure": 2648.0,
+                "profit": 414.0,
+                "operating_profit": 919.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 3443.0,
+                "expenditure": 2513.0,
+                "profit": 559.0,
+                "operating_profit": 930.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 4031.0,
+                "expenditure": 2974.0,
+                "profit": 574.0,
+                "operating_profit": 1056.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/mankind-pharma-ltd/mankind/543904/brsr"
+    },
+    {
+        "s_no": 10,
+        "name": "Laurus Labs",
+        "url": "https://www.screener.in/company/LAURUSLABS/consolidated/",
+        "cmp_rs": 1819.45,
+        "pe": 89.91,
+        "market_cap_cr": 98307.1,
+        "div_yield_pct": 0.11,
+        "net_profit_qtr_cr": 362.07,
+        "qtr_profit_var_pct": 125.49,
+        "sales_qtr_cr": 2026.31,
+        "qtr_sales_var_pct": 29.1,
+        "roce_pct": 17.76,
+        "full_name": "Laurus Labs Ltd",
+        "nse_symbol": "LAURUSLABS",
+        "bse_code": "540222",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 1570.0,
+                "expenditure": 1187.0,
+                "profit": 162.0,
+                "operating_profit": 382.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 1653.0,
+                "expenditure": 1250.0,
+                "profit": 194.0,
+                "operating_profit": 403.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 1778.0,
+                "expenditure": 1298.0,
+                "profit": 252.0,
+                "operating_profit": 480.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 1812.0,
+                "expenditure": 1299.0,
+                "profit": 282.0,
+                "operating_profit": 512.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 2026.0,
+                "expenditure": 1388.0,
+                "profit": 362.0,
+                "operating_profit": 638.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/laurus-labs-ltd/lauruslabs/540222/brsr"
+    }
+]

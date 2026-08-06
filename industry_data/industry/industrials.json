@@ -1,0 +1,516 @@
+[
+    {
+        "s_no": 1,
+        "name": "Larsen & Toubro",
+        "url": "https://www.screener.in/company/LT/consolidated/",
+        "cmp_rs": 3930.05,
+        "pe": 30.72,
+        "market_cap_cr": 540722.2,
+        "div_yield_pct": 0.97,
+        "net_profit_qtr_cr": 4988.03,
+        "qtr_profit_var_pct": 13.98,
+        "sales_qtr_cr": 67941.74,
+        "qtr_sales_var_pct": 6.69,
+        "roce_pct": 14.57,
+        "full_name": "Larsen & Toubro Ltd",
+        "nse_symbol": "LT",
+        "bse_code": "500510",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 63679.0,
+                "expenditure": 55655.0,
+                "profit": 4318.0,
+                "operating_profit": 8024.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 67984.0,
+                "expenditure": 59470.0,
+                "profit": 4678.0,
+                "operating_profit": 8513.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 71450.0,
+                "expenditure": 62259.0,
+                "profit": 3825.0,
+                "operating_profit": 9190.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 82762.0,
+                "expenditure": 72343.0,
+                "profit": 6133.0,
+                "operating_profit": 10419.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 67942.0,
+                "expenditure": 59793.0,
+                "profit": 4988.0,
+                "operating_profit": 8149.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/larsen--toubro-ltd/lt/500510/brsr"
+    },
+    {
+        "s_no": 2,
+        "name": "Hind.Aeronautics",
+        "url": "https://www.screener.in/company/HAL/consolidated/",
+        "cmp_rs": 4645.0,
+        "pe": 34.09,
+        "market_cap_cr": 310645.93,
+        "div_yield_pct": 0.98,
+        "net_profit_qtr_cr": 4196.04,
+        "qtr_profit_var_pct": 5.52,
+        "sales_qtr_cr": 13942.4,
+        "qtr_sales_var_pct": 1.77,
+        "roce_pct": 31.96,
+        "full_name": "Hindustan Aeronautics Ltd",
+        "nse_symbol": "HAL",
+        "bse_code": "541154",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 13700.0,
+                "expenditure": 8405.0,
+                "profit": 3977.0,
+                "operating_profit": 5295.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 4819.0,
+                "expenditure": 3537.0,
+                "profit": 1384.0,
+                "operating_profit": 1282.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 6629.0,
+                "expenditure": 5071.0,
+                "profit": 1669.0,
+                "operating_profit": 1558.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 7699.0,
+                "expenditure": 5828.0,
+                "profit": 1867.0,
+                "operating_profit": 1871.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 13942.0,
+                "expenditure": 8884.0,
+                "profit": 4196.0,
+                "operating_profit": 5059.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/hindustan-aeronautics-ltd/hal/541154/brsr"
+    },
+    {
+        "s_no": 3,
+        "name": "Bharat Electron",
+        "url": "https://www.screener.in/company/BEL/consolidated/",
+        "cmp_rs": 387.0,
+        "pe": 46.02,
+        "market_cap_cr": 282888.47,
+        "div_yield_pct": 0.62,
+        "net_profit_qtr_cr": 1054.53,
+        "qtr_profit_var_pct": 8.7,
+        "sales_qtr_cr": 5546.98,
+        "qtr_sales_var_pct": 24.94,
+        "roce_pct": 36.53,
+        "full_name": "Bharat Electronics Ltd",
+        "nse_symbol": "BEL",
+        "bse_code": "500049",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 4440.0,
+                "expenditure": 3201.0,
+                "profit": 969.0,
+                "operating_profit": 1238.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 5792.0,
+                "expenditure": 4090.0,
+                "profit": 1287.0,
+                "operating_profit": 1702.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 7154.0,
+                "expenditure": 5027.0,
+                "profit": 1580.0,
+                "operating_profit": 2127.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 10224.0,
+                "expenditure": 7243.0,
+                "profit": 2226.0,
+                "operating_profit": 2982.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 5547.0,
+                "expenditure": 4159.0,
+                "profit": 1055.0,
+                "operating_profit": 1388.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/bharat-electronics-ltd/bel/500049/brsr"
+    },
+    {
+        "s_no": 4,
+        "name": "Tata Motors",
+        "url": "https://www.screener.in/company/TMCV/consolidated/",
+        "cmp_rs": 431.85,
+        "pe": 40.19,
+        "market_cap_cr": 159037.38,
+        "div_yield_pct": 0.95,
+        "net_profit_qtr_cr": 1793.0,
+        "qtr_profit_var_pct": 34.91,
+        "sales_qtr_cr": 26098.0,
+        "qtr_sales_var_pct": 19.37,
+        "roce_pct": 35.9,
+        "full_name": "Tata Motors Ltd",
+        "nse_symbol": "TMCV",
+        "bse_code": "544569",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 21863.0,
+                "expenditure": 19432.0,
+                "profit": 1340.0,
+                "operating_profit": 2431.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 17324.0,
+                "expenditure": 15248.0,
+                "profit": 1397.0,
+                "operating_profit": 2076.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 18585.0,
+                "expenditure": 16553.0,
+                "profit": -867.0,
+                "operating_profit": 2032.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 21847.0,
+                "expenditure": 19260.0,
+                "profit": 705.0,
+                "operating_profit": 2587.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 26098.0,
+                "expenditure": 22771.0,
+                "profit": 1793.0,
+                "operating_profit": 3327.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/tata-motors-ltd/tmcv/544569/brsr"
+    },
+    {
+        "s_no": 5,
+        "name": "A B B",
+        "url": "https://www.screener.in/company/ABB/consolidated/",
+        "cmp_rs": 7438.4,
+        "pe": 103.51,
+        "market_cap_cr": 157625.94,
+        "div_yield_pct": 0.54,
+        "net_profit_qtr_cr": 1783.65,
+        "qtr_profit_var_pct": -25.23,
+        "sales_qtr_cr": 3184.06,
+        "qtr_sales_var_pct": 5.78,
+        "roce_pct": 29.93,
+        "full_name": "ABB India Ltd",
+        "nse_symbol": "ABB",
+        "bse_code": "500002",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 3010.0,
+                "expenditure": 2450.0,
+                "profit": 475.0,
+                "operating_profit": 560.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3175.0,
+                "expenditure": 2761.0,
+                "profit": 352.0,
+                "operating_profit": 414.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3311.0,
+                "expenditure": 2810.0,
+                "profit": 409.0,
+                "operating_profit": 500.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 3423.0,
+                "expenditure": 2896.0,
+                "profit": 433.0,
+                "operating_profit": 527.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 3184.0,
+                "expenditure": 2776.0,
+                "profit": 1784.0,
+                "operating_profit": 408.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/abb-india-ltd/abb/500002/brsr"
+    },
+    {
+        "s_no": 6,
+        "name": "Cummins India",
+        "url": "https://www.screener.in/company/CUMMINSIND/consolidated/",
+        "cmp_rs": 5539.0,
+        "pe": 63.33,
+        "market_cap_cr": 153541.04,
+        "div_yield_pct": 1.2,
+        "net_profit_qtr_cr": 649.46,
+        "qtr_profit_var_pct": 18.0,
+        "sales_qtr_cr": 3011.18,
+        "qtr_sales_var_pct": 21.89,
+        "roce_pct": 39.5,
+        "full_name": "Cummins India Ltd",
+        "nse_symbol": "CUMMINSIND",
+        "bse_code": "500480",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 2470.0,
+                "expenditure": 1945.0,
+                "profit": 530.0,
+                "operating_profit": 525.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 2907.0,
+                "expenditure": 2283.0,
+                "profit": 604.0,
+                "operating_profit": 624.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3170.0,
+                "expenditure": 2475.0,
+                "profit": 622.0,
+                "operating_profit": 695.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 3055.0,
+                "expenditure": 2420.0,
+                "profit": 486.0,
+                "operating_profit": 634.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 3011.0,
+                "expenditure": 2369.0,
+                "profit": 649.0,
+                "operating_profit": 642.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/cummins-india-ltd/cumminsind/500480/brsr"
+    },
+    {
+        "s_no": 7,
+        "name": "Hitachi Energy",
+        "url": "https://www.screener.in/company/POWERINDIA/consolidated/",
+        "cmp_rs": 32345.0,
+        "pe": 140.25,
+        "market_cap_cr": 144169.29,
+        "div_yield_pct": 0.03,
+        "net_profit_qtr_cr": 330.46,
+        "qtr_profit_var_pct": 79.71,
+        "sales_qtr_cr": 2754.05,
+        "qtr_sales_var_pct": 46.21,
+        "roce_pct": 29.02,
+        "full_name": "Hitachi Energy India Ltd",
+        "nse_symbol": "POWERINDIA",
+        "bse_code": "543187",
+        "quarterly_financials": [],
+        "bse_url": "https://www.bseindia.com/stock-share-price/hitachi-energy-india-ltd/powerindia/543187/brsr"
+    },
+    {
+        "s_no": 8,
+        "name": "B H E L",
+        "url": "https://www.screener.in/company/BHEL/consolidated/",
+        "cmp_rs": 408.05,
+        "pe": 58.4,
+        "market_cap_cr": 142085.61,
+        "div_yield_pct": 0.35,
+        "net_profit_qtr_cr": 376.71,
+        "qtr_profit_var_pct": 182.7,
+        "sales_qtr_cr": 7697.72,
+        "qtr_sales_var_pct": 40.29,
+        "roce_pct": 9.14,
+        "full_name": "Bharat Heavy Electricals Ltd",
+        "nse_symbol": "BHEL",
+        "bse_code": "500103",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 5487.0,
+                "expenditure": 6024.0,
+                "profit": -456.0,
+                "operating_profit": -537.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 7512.0,
+                "expenditure": 6931.0,
+                "profit": 375.0,
+                "operating_profit": 581.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 8473.0,
+                "expenditure": 7928.0,
+                "profit": 390.0,
+                "operating_profit": 545.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 12310.0,
+                "expenditure": 10557.0,
+                "profit": 1290.0,
+                "operating_profit": 1753.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 7698.0,
+                "expenditure": 7194.0,
+                "profit": 377.0,
+                "operating_profit": 504.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/bharat-heavy-electricals-ltd/bhel/500103/brsr"
+    },
+    {
+        "s_no": 9,
+        "name": "Polycab India",
+        "url": "https://www.screener.in/company/POLYCAB/consolidated/",
+        "cmp_rs": 9095.0,
+        "pe": 47.86,
+        "market_cap_cr": 137017.95,
+        "div_yield_pct": 0.53,
+        "net_profit_qtr_cr": 796.66,
+        "qtr_profit_var_pct": 32.46,
+        "sales_qtr_cr": 8209.73,
+        "qtr_sales_var_pct": 39.01,
+        "roce_pct": 33.21,
+        "full_name": "Polycab India Ltd",
+        "nse_symbol": "POLYCAB",
+        "bse_code": "542652",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 5906.0,
+                "expenditure": 5048.0,
+                "profit": 600.0,
+                "operating_profit": 858.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 6477.0,
+                "expenditure": 5456.0,
+                "profit": 693.0,
+                "operating_profit": 1021.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 7636.0,
+                "expenditure": 6670.0,
+                "profit": 630.0,
+                "operating_profit": 966.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 8864.0,
+                "expenditure": 7703.0,
+                "profit": 786.0,
+                "operating_profit": 1161.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 8210.0,
+                "expenditure": 7074.0,
+                "profit": 797.0,
+                "operating_profit": 1136.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/polycab-india-ltd/polycab/542652/brsr"
+    },
+    {
+        "s_no": 10,
+        "name": "CG Power & Ind",
+        "url": "https://www.screener.in/company/CGPOWER/consolidated/",
+        "cmp_rs": 868.95,
+        "pe": 107.55,
+        "market_cap_cr": 136860.81,
+        "div_yield_pct": 0.16,
+        "net_profit_qtr_cr": 308.28,
+        "qtr_profit_var_pct": 16.26,
+        "sales_qtr_cr": 3280.81,
+        "qtr_sales_var_pct": 13.99,
+        "roce_pct": 26.71,
+        "full_name": "CG Power & Industrial Solutions Ltd",
+        "nse_symbol": "CGPOWER",
+        "bse_code": "500093",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 2878.0,
+                "expenditure": 2497.0,
+                "profit": 267.0,
+                "operating_profit": 381.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 2923.0,
+                "expenditure": 2546.0,
+                "profit": 284.0,
+                "operating_profit": 377.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 3175.0,
+                "expenditure": 2778.0,
+                "profit": 284.0,
+                "operating_profit": 397.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 3442.0,
+                "expenditure": 2975.0,
+                "profit": 363.0,
+                "operating_profit": 466.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 3281.0,
+                "expenditure": 2884.0,
+                "profit": 308.0,
+                "operating_profit": 397.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/cg-power--industrial-solutions-ltd/cgpower/500093/brsr"
+    }
+]

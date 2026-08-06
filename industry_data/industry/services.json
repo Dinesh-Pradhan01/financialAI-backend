@@ -1,0 +1,552 @@
+[
+    {
+        "s_no": 1,
+        "name": "Adani Ports",
+        "url": "https://www.screener.in/company/ADANIPORTS/consolidated/",
+        "cmp_rs": 1672.05,
+        "pe": 29.02,
+        "market_cap_cr": 385233.49,
+        "div_yield_pct": 0.45,
+        "net_profit_qtr_cr": 3649.5,
+        "qtr_profit_var_pct": 9.23,
+        "sales_qtr_cr": 10820.8,
+        "qtr_sales_var_pct": 18.57,
+        "roce_pct": 14.12,
+        "full_name": "Adani Ports & Special Economic Zone Ltd",
+        "nse_symbol": "ADANIPORTS",
+        "bse_code": "532921",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 9126.0,
+                "expenditure": 3631.0,
+                "profit": 3311.0,
+                "operating_profit": 5495.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 9167.0,
+                "expenditure": 3827.0,
+                "profit": 3120.0,
+                "operating_profit": 5340.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 9705.0,
+                "expenditure": 3919.0,
+                "profit": 3043.0,
+                "operating_profit": 5786.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 10738.0,
+                "expenditure": 4718.0,
+                "profit": 3308.0,
+                "operating_profit": 6020.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 10821.0,
+                "expenditure": 4568.0,
+                "profit": 3650.0,
+                "operating_profit": 6253.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/adani-ports--special-economic-zone-ltd/adaniports/532921/brsr"
+    },
+    {
+        "s_no": 2,
+        "name": "Interglobe Aviat",
+        "url": "https://www.screener.in/company/INDIGO/consolidated/",
+        "cmp_rs": 5244.2,
+        "pe": null,
+        "market_cap_cr": 202775.7,
+        "div_yield_pct": 0.19,
+        "net_profit_qtr_cr": -238.0,
+        "qtr_profit_var_pct": -110.92,
+        "sales_qtr_cr": 24584.1,
+        "qtr_sales_var_pct": 19.94,
+        "roce_pct": 5.24,
+        "full_name": "Interglobe Aviation Ltd",
+        "nse_symbol": "INDIGO",
+        "bse_code": "539448",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 20496.0,
+                "expenditure": 15270.0,
+                "profit": 2176.0,
+                "operating_profit": 5226.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 18555.0,
+                "expenditure": 17976.0,
+                "profit": -2582.0,
+                "operating_profit": 580.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 23472.0,
+                "expenditure": 18104.0,
+                "profit": 549.0,
+                "operating_profit": 5367.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 22438.0,
+                "expenditure": 21628.0,
+                "profit": -2537.0,
+                "operating_profit": 810.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 24584.0,
+                "expenditure": 21317.0,
+                "profit": -238.0,
+                "operating_profit": 3267.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/interglobe-aviation-ltd/indigo/539448/brsr"
+    },
+    {
+        "s_no": 3,
+        "name": "GMR Airports",
+        "url": "https://www.screener.in/company/GMRAIRPORT/consolidated/",
+        "cmp_rs": 104.45,
+        "pe": 530.27,
+        "market_cap_cr": 110288.48,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 400.49,
+        "qtr_profit_var_pct": 203.18,
+        "sales_qtr_cr": 3938.16,
+        "qtr_sales_var_pct": 37.54,
+        "roce_pct": 11.65,
+        "full_name": "GMR Airports Ltd",
+        "nse_symbol": "GMRAIRPORT",
+        "bse_code": "532754",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 2863.0,
+                "expenditure": 1854.0,
+                "profit": -253.0,
+                "operating_profit": 1009.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3205.0,
+                "expenditure": 2041.0,
+                "profit": -137.0,
+                "operating_profit": 1165.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3670.0,
+                "expenditure": 2223.0,
+                "profit": 35.0,
+                "operating_profit": 1447.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 3994.0,
+                "expenditure": 2293.0,
+                "profit": 174.0,
+                "operating_profit": 1701.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 3938.0,
+                "expenditure": 2493.0,
+                "profit": 400.0,
+                "operating_profit": 1445.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/gmr-airports-ltd/gmrairport/532754/brsr"
+    },
+    {
+        "s_no": 4,
+        "name": "JSW Infrast",
+        "url": "https://www.screener.in/company/JSWINFRA/consolidated/",
+        "cmp_rs": 319.05,
+        "pe": 47.98,
+        "market_cap_cr": 74338.7,
+        "div_yield_pct": 0.28,
+        "net_profit_qtr_cr": 357.6,
+        "qtr_profit_var_pct": -9.89,
+        "sales_qtr_cr": 1444.83,
+        "qtr_sales_var_pct": 18.06,
+        "roce_pct": 13.69,
+        "full_name": "JSW Infrastructure Ltd",
+        "nse_symbol": "JSWINFRA",
+        "bse_code": "543994",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 1224.0,
+                "expenditure": 643.0,
+                "profit": 390.0,
+                "operating_profit": 581.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 1266.0,
+                "expenditure": 656.0,
+                "profit": 369.0,
+                "operating_profit": 610.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 1350.0,
+                "expenditure": 706.0,
+                "profit": 365.0,
+                "operating_profit": 644.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 1522.0,
+                "expenditure": 753.0,
+                "profit": 424.0,
+                "operating_profit": 769.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 1445.0,
+                "expenditure": 771.0,
+                "profit": 358.0,
+                "operating_profit": 674.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/jsw-infrastructure-ltd/jswinfra/543994/brsr"
+    },
+    {
+        "s_no": 5,
+        "name": "Container Corpn.",
+        "url": "https://www.screener.in/company/CONCOR/consolidated/",
+        "cmp_rs": 526.35,
+        "pe": 32.35,
+        "market_cap_cr": 40087.81,
+        "div_yield_pct": 1.44,
+        "net_profit_qtr_cr": 268.9,
+        "qtr_profit_var_pct": 0.08,
+        "sales_qtr_cr": 2159.76,
+        "qtr_sales_var_pct": 0.28,
+        "roce_pct": 12.41,
+        "full_name": "Container Corporation Of India Ltd",
+        "nse_symbol": "CONCOR",
+        "bse_code": "531344",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 2154.0,
+                "expenditure": 1721.0,
+                "profit": 267.0,
+                "operating_profit": 433.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 2355.0,
+                "expenditure": 1779.0,
+                "profit": 380.0,
+                "operating_profit": 576.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 2308.0,
+                "expenditure": 1793.0,
+                "profit": 335.0,
+                "operating_profit": 514.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 2263.0,
+                "expenditure": 1836.0,
+                "profit": 264.0,
+                "operating_profit": 427.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 2160.0,
+                "expenditure": 1715.0,
+                "profit": 269.0,
+                "operating_profit": 444.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/container-corporation-of-india-ltd/concor/531344/brsr"
+    },
+    {
+        "s_no": 6,
+        "name": "Delhivery",
+        "url": "https://www.screener.in/company/DELHIVERY/consolidated/",
+        "cmp_rs": 467.3,
+        "pe": 196.12,
+        "market_cap_cr": 35003.28,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 72.4,
+        "qtr_profit_var_pct": -2.29,
+        "sales_qtr_cr": 2850.0,
+        "qtr_sales_var_pct": 30.04,
+        "roce_pct": 2.82,
+        "full_name": "Delhivery Ltd",
+        "nse_symbol": "DELHIVERY",
+        "bse_code": "543529",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 2192.0,
+                "expenditure": 2072.0,
+                "profit": 73.0,
+                "operating_profit": 119.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 2294.0,
+                "expenditure": 2153.0,
+                "profit": 91.0,
+                "operating_profit": 141.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 2559.0,
+                "expenditure": 2491.0,
+                "profit": -50.0,
+                "operating_profit": 68.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 2805.0,
+                "expenditure": 2596.0,
+                "profit": 40.0,
+                "operating_profit": 209.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 2850.0,
+                "expenditure": 2636.0,
+                "profit": 72.0,
+                "operating_profit": 214.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/delhivery-ltd/delhivery/543529/brsr"
+    },
+    {
+        "s_no": 7,
+        "name": "National High",
+        "url": "https://www.screener.in/company/NHIT/consolidated/",
+        "cmp_rs": 172.0,
+        "pe": 48.6,
+        "market_cap_cr": 33313.83,
+        "div_yield_pct": 8.71,
+        "net_profit_qtr_cr": 204.55,
+        "qtr_profit_var_pct": 45.58,
+        "sales_qtr_cr": 1145.46,
+        "qtr_sales_var_pct": 77.05,
+        "roce_pct": 4.42,
+        "full_name": "National Highways Infra Trust",
+        "nse_symbol": "NHIT",
+        "bse_code": "543385",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 647.0,
+                "expenditure": 90.0,
+                "profit": 141.0,
+                "operating_profit": 557.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 1023.0,
+                "expenditure": 189.0,
+                "profit": 121.0,
+                "operating_profit": 833.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 1002.0,
+                "expenditure": 202.0,
+                "profit": 112.0,
+                "operating_profit": 800.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 1104.0,
+                "expenditure": 178.0,
+                "profit": 247.0,
+                "operating_profit": 927.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 1145.0,
+                "expenditure": 259.0,
+                "profit": 205.0,
+                "operating_profit": 886.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/national-highways-infra-trust/nhit/543385/brsr"
+    },
+    {
+        "s_no": 8,
+        "name": "Redington",
+        "url": "https://www.screener.in/company/REDINGTON/consolidated/",
+        "cmp_rs": 325.8,
+        "pe": 14.16,
+        "market_cap_cr": 25470.19,
+        "div_yield_pct": 1.84,
+        "net_profit_qtr_cr": 453.49,
+        "qtr_profit_var_pct": 76.55,
+        "sales_qtr_cr": 34922.47,
+        "qtr_sales_var_pct": 34.57,
+        "roce_pct": 18.39,
+        "full_name": "Redington Ltd",
+        "nse_symbol": "REDINGTON",
+        "bse_code": "532805",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 25952.0,
+                "expenditure": 25552.0,
+                "profit": 233.0,
+                "operating_profit": 400.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 29076.0,
+                "expenditure": 28487.0,
+                "profit": 350.0,
+                "operating_profit": 589.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 30922.0,
+                "expenditure": 30296.0,
+                "profit": 413.0,
+                "operating_profit": 626.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 33213.0,
+                "expenditure": 32599.0,
+                "profit": 288.0,
+                "operating_profit": 614.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 34922.0,
+                "expenditure": 34215.0,
+                "profit": 453.0,
+                "operating_profit": 708.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/redington-ltd/redington/532805/brsr"
+    },
+    {
+        "s_no": 9,
+        "name": "Firstsour.Solu.",
+        "url": "https://www.screener.in/company/FSL/consolidated/",
+        "cmp_rs": 301.45,
+        "pe": 28.48,
+        "market_cap_cr": 21313.38,
+        "div_yield_pct": 1.79,
+        "net_profit_qtr_cr": 205.24,
+        "qtr_profit_var_pct": 27.72,
+        "sales_qtr_cr": 2583.45,
+        "qtr_sales_var_pct": 19.52,
+        "roce_pct": 16.8,
+        "full_name": "Firstsource Solutions Ltd",
+        "nse_symbol": "FSL",
+        "bse_code": "532809",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 2161.0,
+                "expenditure": 1829.0,
+                "profit": 161.0,
+                "operating_profit": 333.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 2218.0,
+                "expenditure": 1871.0,
+                "profit": 169.0,
+                "operating_profit": 347.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 2312.0,
+                "expenditure": 1936.0,
+                "profit": 180.0,
+                "operating_profit": 376.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 2443.0,
+                "expenditure": 2040.0,
+                "profit": 120.0,
+                "operating_profit": 403.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 2583.0,
+                "expenditure": 2153.0,
+                "profit": 205.0,
+                "operating_profit": 430.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/firstsource-solutions-ltd/fsl/532809/brsr"
+    },
+    {
+        "s_no": 10,
+        "name": "Cube Highways",
+        "url": "https://www.screener.in/company/CUBEINVIT/consolidated/",
+        "cmp_rs": 156.91,
+        "pe": 139.86,
+        "market_cap_cr": 20548.99,
+        "div_yield_pct": 8.79,
+        "net_profit_qtr_cr": 134.99,
+        "qtr_profit_var_pct": 318.54,
+        "sales_qtr_cr": 1162.16,
+        "qtr_sales_var_pct": 37.37,
+        "roce_pct": 6.44,
+        "full_name": "Cube Highways Trust",
+        "nse_symbol": "CUBEINVIT",
+        "bse_code": "543899",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 846.0,
+                "expenditure": 306.0,
+                "profit": -62.0,
+                "operating_profit": 540.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 944.0,
+                "expenditure": 272.0,
+                "profit": 0.0,
+                "operating_profit": 672.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 1052.0,
+                "expenditure": 281.0,
+                "profit": 40.0,
+                "operating_profit": 770.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 1081.0,
+                "expenditure": 310.0,
+                "profit": 41.0,
+                "operating_profit": 771.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 1162.0,
+                "expenditure": 261.0,
+                "profit": 135.0,
+                "operating_profit": 901.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/cube-highways-trust/cubeinvit/543899/brsr"
+    }
+]

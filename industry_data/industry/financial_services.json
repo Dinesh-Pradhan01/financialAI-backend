@@ -1,0 +1,516 @@
+[
+    {
+        "s_no": 1,
+        "name": "HDFC Bank",
+        "url": "https://www.screener.in/company/HDFCBANK/consolidated/",
+        "cmp_rs": 750.4,
+        "pe": 14.64,
+        "market_cap_cr": 1156001.91,
+        "div_yield_pct": 1.72,
+        "net_profit_qtr_cr": 20382.69,
+        "qtr_profit_var_pct": 18.37,
+        "sales_qtr_cr": 90575.33,
+        "qtr_sales_var_pct": 3.67,
+        "roce_pct": 7.02,
+        "full_name": "HDFC Bank Ltd",
+        "nse_symbol": "HDFCBANK",
+        "bse_code": "500180",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": null,
+                "expenditure": 64497.0,
+                "profit": 17090.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": null,
+                "expenditure": 45161.0,
+                "profit": 20364.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": null,
+                "expenditure": 54145.0,
+                "profit": 20691.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": null,
+                "expenditure": 44028.0,
+                "profit": 21074.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": null,
+                "expenditure": 58292.0,
+                "profit": 20383.0,
+                "operating_profit": null
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/hdfc-bank-ltd/hdfcbank/500180/brsr"
+    },
+    {
+        "s_no": 2,
+        "name": "ICICI Bank",
+        "url": "https://www.screener.in/company/ICICIBANK/consolidated/",
+        "cmp_rs": 1434.7,
+        "pe": 18.35,
+        "market_cap_cr": 1029483.63,
+        "div_yield_pct": 0.84,
+        "net_profit_qtr_cr": 16276.22,
+        "qtr_profit_var_pct": 13.88,
+        "sales_qtr_cr": 52240.85,
+        "qtr_sales_var_pct": 6.44,
+        "roce_pct": 7.18,
+        "full_name": "ICICI Bank Ltd",
+        "nse_symbol": "ICICIBANK",
+        "bse_code": "532174",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": null,
+                "expenditure": 31991.0,
+                "profit": 14456.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": null,
+                "expenditure": 35065.0,
+                "profit": 14318.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": null,
+                "expenditure": 37154.0,
+                "profit": 13481.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": null,
+                "expenditure": 41823.0,
+                "profit": 15681.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": null,
+                "expenditure": 35318.0,
+                "profit": 16276.0,
+                "operating_profit": null
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/icici-bank-ltd/icicibank/532174/brsr"
+    },
+    {
+        "s_no": 3,
+        "name": "SBI",
+        "url": "https://www.screener.in/company/SBIN/consolidated/",
+        "cmp_rs": 1024.5,
+        "pe": 11.37,
+        "market_cap_cr": 945676.85,
+        "div_yield_pct": 1.68,
+        "net_profit_qtr_cr": 20507.98,
+        "qtr_profit_var_pct": 0.22,
+        "sales_qtr_cr": 131080.12,
+        "qtr_sales_var_pct": 3.34,
+        "roce_pct": 6.13,
+        "full_name": "State Bank of India",
+        "nse_symbol": "SBIN",
+        "bse_code": "500112",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": null,
+                "expenditure": 74438.0,
+                "profit": 20379.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": null,
+                "expenditure": 59496.0,
+                "profit": 22121.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": null,
+                "expenditure": 72265.0,
+                "profit": 21861.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": null,
+                "expenditure": 76799.0,
+                "profit": 22176.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": null,
+                "expenditure": 75050.0,
+                "profit": 20508.0,
+                "operating_profit": null
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/state-bank-of-india/sbin/500112/brsr"
+    },
+    {
+        "s_no": 4,
+        "name": "Bajaj Finance",
+        "url": "https://www.screener.in/company/BAJFINANCE/consolidated/",
+        "cmp_rs": 1133.1,
+        "pe": 34.44,
+        "market_cap_cr": 705462.89,
+        "div_yield_pct": 0.49,
+        "net_profit_qtr_cr": 6080.6,
+        "qtr_profit_var_pct": 27.37,
+        "sales_qtr_cr": 23165.45,
+        "qtr_sales_var_pct": 18.65,
+        "roce_pct": 10.87,
+        "full_name": "Bajaj Finance Ltd",
+        "nse_symbol": "BAJFINANCE",
+        "bse_code": "500034",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": null,
+                "expenditure": 5992.0,
+                "profit": 4765.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": null,
+                "expenditure": 6307.0,
+                "profit": 4948.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": null,
+                "expenditure": 7737.0,
+                "profit": 4066.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": null,
+                "expenditure": 6553.0,
+                "profit": 5553.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": null,
+                "expenditure": 6793.0,
+                "profit": 6081.0,
+                "operating_profit": null
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/bajaj-finance-ltd/bajfinance/500034/brsr"
+    },
+    {
+        "s_no": 5,
+        "name": "Life Insurance",
+        "url": "https://www.screener.in/company/LICI/consolidated/",
+        "cmp_rs": 422.25,
+        "pe": 9.3,
+        "market_cap_cr": 534146.06,
+        "div_yield_pct": 2.35,
+        "net_profit_qtr_cr": 23467.18,
+        "qtr_profit_var_pct": 23.26,
+        "sales_qtr_cr": 276743.77,
+        "qtr_sales_var_pct": 13.82,
+        "roce_pct": 35.14,
+        "full_name": "Life Insurance Corporation of India",
+        "nse_symbol": "LICI",
+        "bse_code": "543526",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 243134.0,
+                "expenditure": 221621.0,
+                "profit": 19039.0,
+                "operating_profit": 21514.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 224671.0,
+                "expenditure": 214198.0,
+                "profit": 10955.0,
+                "operating_profit": 10474.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 241524.0,
+                "expenditure": 232032.0,
+                "profit": 10096.0,
+                "operating_profit": 9492.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 235954.0,
+                "expenditure": 223588.0,
+                "profit": 12908.0,
+                "operating_profit": 12366.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 276744.0,
+                "expenditure": 265521.0,
+                "profit": 23467.0,
+                "operating_profit": 11222.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/life-insurance-corporation-of-india/lici/543526/brsr"
+    },
+    {
+        "s_no": 6,
+        "name": "Kotak Mah. Bank",
+        "url": "https://www.screener.in/company/KOTAKBANK/consolidated/",
+        "cmp_rs": 389.35,
+        "pe": 19.32,
+        "market_cap_cr": 387300.84,
+        "div_yield_pct": 0.17,
+        "net_profit_qtr_cr": 5480.46,
+        "qtr_profit_var_pct": 22.55,
+        "sales_qtr_cr": 18354.57,
+        "qtr_sales_var_pct": 6.41,
+        "roce_pct": 6.98,
+        "full_name": "Kotak Mahindra Bank Ltd",
+        "nse_symbol": "KOTAKBANK",
+        "bse_code": "500247",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": null,
+                "expenditure": 13123.0,
+                "profit": 4472.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": null,
+                "expenditure": 11606.0,
+                "profit": 4468.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": null,
+                "expenditure": 13933.0,
+                "profit": 4924.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": null,
+                "expenditure": 13656.0,
+                "profit": 5423.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": null,
+                "expenditure": 14857.0,
+                "profit": 5480.0,
+                "operating_profit": null
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/kotak-mahindra-bank-ltd/kotakbank/500247/brsr"
+    },
+    {
+        "s_no": 7,
+        "name": "Axis Bank",
+        "url": "https://www.screener.in/company/AXISBANK/consolidated/",
+        "cmp_rs": 1228.0,
+        "pe": 13.84,
+        "market_cap_cr": 382075.57,
+        "div_yield_pct": 0.08,
+        "net_profit_qtr_cr": 7670.37,
+        "qtr_profit_var_pct": 22.24,
+        "sales_qtr_cr": 35541.96,
+        "qtr_sales_var_pct": 9.87,
+        "roce_pct": 6.24,
+        "full_name": "Axis Bank Ltd",
+        "nse_symbol": "AXISBANK",
+        "bse_code": "532215",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": null,
+                "expenditure": 13983.0,
+                "profit": 6279.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": null,
+                "expenditure": 14302.0,
+                "profit": 5567.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": null,
+                "expenditure": 12743.0,
+                "profit": 7060.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": null,
+                "expenditure": 14816.0,
+                "profit": 7642.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": null,
+                "expenditure": 12837.0,
+                "profit": 7670.0,
+                "operating_profit": null
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/axis-bank-ltd/axisbank/532215/brsr"
+    },
+    {
+        "s_no": 8,
+        "name": "Bajaj Finserv",
+        "url": "https://www.screener.in/company/BAJAJFINSV/consolidated/",
+        "cmp_rs": 1997.8,
+        "pe": 32.18,
+        "market_cap_cr": 319757.88,
+        "div_yield_pct": 0.08,
+        "net_profit_qtr_cr": 5226.26,
+        "qtr_profit_var_pct": 5.05,
+        "sales_qtr_cr": 38493.79,
+        "qtr_sales_var_pct": 5.19,
+        "roce_pct": 10.58,
+        "full_name": "Bajaj Finserv Ltd",
+        "nse_symbol": "BAJAJFINSV",
+        "bse_code": "532978",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 36595.0,
+                "expenditure": 23868.0,
+                "profit": 4756.0,
+                "operating_profit": 12728.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 35439.0,
+                "expenditure": 21124.0,
+                "profit": 5329.0,
+                "operating_profit": 14315.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 37403.0,
+                "expenditure": 23352.0,
+                "profit": 4746.0,
+                "operating_profit": 14050.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 39708.0,
+                "expenditure": 25842.0,
+                "profit": 4368.0,
+                "operating_profit": 13866.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 38494.0,
+                "expenditure": 23983.0,
+                "profit": 5226.0,
+                "operating_profit": 14511.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/bajaj-finserv-ltd/bajajfinsv/532978/brsr"
+    },
+    {
+        "s_no": 9,
+        "name": "Shriram Finance",
+        "url": "https://www.screener.in/company/SHRIRAMFIN/consolidated/",
+        "cmp_rs": 1041.55,
+        "pe": 21.7,
+        "market_cap_cr": 245071.33,
+        "div_yield_pct": 1.04,
+        "net_profit_qtr_cr": 3452.77,
+        "qtr_profit_var_pct": 59.89,
+        "sales_qtr_cr": 13400.43,
+        "qtr_sales_var_pct": 16.16,
+        "roce_pct": 11.49,
+        "full_name": "Shriram Finance Ltd",
+        "nse_symbol": "SHRIRAMFIN",
+        "bse_code": "511218",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": null,
+                "expenditure": 3062.0,
+                "profit": 2159.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": null,
+                "expenditure": 3109.0,
+                "profit": 2314.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": null,
+                "expenditure": 3397.0,
+                "profit": 2530.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": null,
+                "expenditure": 3104.0,
+                "profit": 3021.0,
+                "operating_profit": null
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": null,
+                "expenditure": 3406.0,
+                "profit": 3453.0,
+                "operating_profit": null
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/shriram-finance-ltd/shriramfin/511218/brsr"
+    },
+    {
+        "s_no": 10,
+        "name": "SBI Life Insuran",
+        "url": "https://www.screener.in/company/SBILIFE/consolidated/",
+        "cmp_rs": 1881.75,
+        "pe": 72.58,
+        "market_cap_cr": 188788.66,
+        "div_yield_pct": 0.14,
+        "net_profit_qtr_cr": 724.93,
+        "qtr_profit_var_pct": 21.97,
+        "sales_qtr_cr": 46336.78,
+        "qtr_sales_var_pct": 18.82,
+        "roce_pct": 14.95,
+        "full_name": "SBI Life Insurance Company Ltd",
+        "nse_symbol": "SBILIFE",
+        "bse_code": "540719",
+        "quarterly_financials": [],
+        "bse_url": "https://www.bseindia.com/stock-share-price/sbi-life-insurance-company-ltd/sbilife/540719/brsr"
+    }
+]

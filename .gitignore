@@ -36,3 +36,6 @@ Thumbs.db
 
 db_schema_*.md
 0.*
+
+# Local yfinance cache
+industry_data/yf_cache/

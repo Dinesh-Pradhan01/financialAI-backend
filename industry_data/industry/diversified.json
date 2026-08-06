@@ -1,0 +1,479 @@
+[
+    {
+        "s_no": 1,
+        "name": "Godrej Industrie",
+        "url": "https://www.screener.in/company/GODREJIND/consolidated/",
+        "cmp_rs": 1314.4,
+        "pe": 44.84,
+        "market_cap_cr": 44275.7,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 840.92,
+        "qtr_profit_var_pct": 143.11,
+        "sales_qtr_cr": 7693.72,
+        "qtr_sales_var_pct": 33.12,
+        "roce_pct": 8.17,
+        "full_name": "Godrej Industries Ltd",
+        "nse_symbol": "GODREJIND",
+        "bse_code": "500164",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 5780.0,
+                "expenditure": 5186.0,
+                "profit": 416.0,
+                "operating_profit": 593.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 4460.0,
+                "expenditure": 4063.0,
+                "profit": 725.0,
+                "operating_profit": 397.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 5032.0,
+                "expenditure": 4898.0,
+                "profit": 493.0,
+                "operating_profit": 134.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 5051.0,
+                "expenditure": 4507.0,
+                "profit": 353.0,
+                "operating_profit": 544.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 7694.0,
+                "expenditure": 6527.0,
+                "profit": 841.0,
+                "operating_profit": 1167.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/godrej-industries-ltd/godrejind/500164/brsr"
+    },
+    {
+        "s_no": 2,
+        "name": "3M India",
+        "url": "https://www.screener.in/company/3MINDIA/consolidated/",
+        "cmp_rs": 35286.45,
+        "pe": 73.31,
+        "market_cap_cr": 39767.82,
+        "div_yield_pct": 0.46,
+        "net_profit_qtr_cr": 215.34,
+        "qtr_profit_var_pct": 159.73,
+        "sales_qtr_cr": 1399.24,
+        "qtr_sales_var_pct": 16.78,
+        "roce_pct": 50.05,
+        "full_name": "3M India Ltd",
+        "nse_symbol": "3MINDIA",
+        "bse_code": "523395",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2023",
+                "revenue": 1050.0,
+                "expenditure": 877.0,
+                "profit": 129.0,
+                "operating_profit": 173.0
+            },
+            {
+                "quarter": "Sep 2023",
+                "revenue": 1040.0,
+                "expenditure": 847.0,
+                "profit": 146.0,
+                "operating_profit": 192.0
+            },
+            {
+                "quarter": "Dec 2023",
+                "revenue": 1006.0,
+                "expenditure": 827.0,
+                "profit": 135.0,
+                "operating_profit": 179.0
+            },
+            {
+                "quarter": "Mar 2024",
+                "revenue": 1095.0,
+                "expenditure": 880.0,
+                "profit": 173.0,
+                "operating_profit": 214.0
+            },
+            {
+                "quarter": "Jun 2024",
+                "revenue": 1047.0,
+                "expenditure": 841.0,
+                "profit": 157.0,
+                "operating_profit": 205.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/3m-india-ltd/3mindia/523395/brsr"
+    },
+    {
+        "s_no": 3,
+        "name": "DCM Shriram",
+        "url": "https://www.screener.in/company/DCMSHRIRAM/consolidated/",
+        "cmp_rs": 1039.45,
+        "pe": 11.8,
+        "market_cap_cr": 16209.41,
+        "div_yield_pct": 1.1,
+        "net_profit_qtr_cr": 693.44,
+        "qtr_profit_var_pct": 445.4,
+        "sales_qtr_cr": 3564.24,
+        "qtr_sales_var_pct": 9.27,
+        "roce_pct": 11.51,
+        "full_name": "DCM Shriram Ltd",
+        "nse_symbol": "DCMSHRIRAM",
+        "bse_code": "523367",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3262.0,
+                "expenditure": 2958.0,
+                "profit": 114.0,
+                "operating_profit": 304.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3272.0,
+                "expenditure": 2963.0,
+                "profit": 159.0,
+                "operating_profit": 309.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 3811.0,
+                "expenditure": 3280.0,
+                "profit": 213.0,
+                "operating_profit": 532.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 3193.0,
+                "expenditure": 2840.0,
+                "profit": 371.0,
+                "operating_profit": 353.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 3564.0,
+                "expenditure": 3228.0,
+                "profit": 693.0,
+                "operating_profit": 337.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/dcm-shriram-ltd/dcmshriram/523367/brsr"
+    },
+    {
+        "s_no": 4,
+        "name": "Balmer Lawrie",
+        "url": "https://www.screener.in/company/BALMLAWRIE/consolidated/",
+        "cmp_rs": 176.25,
+        "pe": 10.91,
+        "market_cap_cr": 3013.95,
+        "div_yield_pct": 4.83,
+        "net_profit_qtr_cr": 82.8,
+        "qtr_profit_var_pct": 12.47,
+        "sales_qtr_cr": 743.91,
+        "qtr_sales_var_pct": 22.32,
+        "roce_pct": 14.6,
+        "full_name": "Balmer Lawrie & Company Ltd",
+        "nse_symbol": "BALMLAWRIE",
+        "bse_code": "523319",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 608.0,
+                "expenditure": 514.0,
+                "profit": 74.0,
+                "operating_profit": 95.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 681.0,
+                "expenditure": 597.0,
+                "profit": 67.0,
+                "operating_profit": 83.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 635.0,
+                "expenditure": 568.0,
+                "profit": 55.0,
+                "operating_profit": 67.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 657.0,
+                "expenditure": 571.0,
+                "profit": 65.0,
+                "operating_profit": 86.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 744.0,
+                "expenditure": 630.0,
+                "profit": 83.0,
+                "operating_profit": 114.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/balmer-lawrie--company-ltd/balmlawrie/523319/brsr"
+    },
+    {
+        "s_no": 5,
+        "name": "TTK Healthcare",
+        "url": "https://www.screener.in/company/TTKHLTCARE/consolidated/",
+        "cmp_rs": 1002.0,
+        "pe": 20.62,
+        "market_cap_cr": 1415.86,
+        "div_yield_pct": 0.99,
+        "net_profit_qtr_cr": 21.76,
+        "qtr_profit_var_pct": -6.44,
+        "sales_qtr_cr": 217.98,
+        "qtr_sales_var_pct": 14.51,
+        "roce_pct": 8.04,
+        "full_name": "TTK Healthcare Ltd",
+        "nse_symbol": "TTKHLTCARE",
+        "bse_code": "507747",
+        "quarterly_financials": [],
+        "bse_url": "https://www.bseindia.com/stock-share-price/ttk-healthcare-ltd/ttkhltcare/507747/brsr"
+    },
+    {
+        "s_no": 6,
+        "name": "Empire Inds.",
+        "url": "https://www.screener.in/company/509525/consolidated/",
+        "cmp_rs": 1062.0,
+        "pe": 12.28,
+        "market_cap_cr": 637.2,
+        "div_yield_pct": 2.36,
+        "net_profit_qtr_cr": 18.95,
+        "qtr_profit_var_pct": 331.53,
+        "sales_qtr_cr": 195.37,
+        "qtr_sales_var_pct": 4.82,
+        "roce_pct": 17.98,
+        "full_name": "Empire Industries Ltd",
+        "nse_symbol": null,
+        "bse_code": "509525",
+        "quarterly_financials": [],
+        "bse_url": "https://www.bseindia.com/stock-share-price/empire-industries-ltd/scrip/509525/brsr"
+    },
+    {
+        "s_no": 7,
+        "name": "Maheshwari Logi.",
+        "url": "https://www.screener.in/company/MAHESHWARI/consolidated/",
+        "cmp_rs": 73.0,
+        "pe": 12.83,
+        "market_cap_cr": 216.06,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 5.26,
+        "qtr_profit_var_pct": -39.46,
+        "sales_qtr_cr": 293.92,
+        "qtr_sales_var_pct": 13.47,
+        "roce_pct": 12.17,
+        "full_name": "Maheshwari Logistics Ltd",
+        "nse_symbol": "MAHESHWARI",
+        "bse_code": null,
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 259.03,
+                "expenditure": 240.26,
+                "profit": 8.22,
+                "operating_profit": 18.77
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 268.14,
+                "expenditure": 250.36,
+                "profit": 4.34,
+                "operating_profit": 17.78
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 275.11,
+                "expenditure": 258.5,
+                "profit": 3.99,
+                "operating_profit": 16.61
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 272.84,
+                "expenditure": 254.99,
+                "profit": 3.52,
+                "operating_profit": 17.85
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 293.92,
+                "expenditure": 275.73,
+                "profit": 5.26,
+                "operating_profit": 18.19
+            }
+        ]
+    },
+    {
+        "s_no": 8,
+        "name": "Panth Infinity",
+        "url": "https://www.screener.in/company/539143/consolidated/",
+        "cmp_rs": 10.1,
+        "pe": 1.44,
+        "market_cap_cr": 55.72,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 18.73,
+        "qtr_profit_var_pct": 12386.67,
+        "sales_qtr_cr": 59.85,
+        "qtr_sales_var_pct": 294.01,
+        "roce_pct": null,
+        "full_name": "Panth Infinity Ltd",
+        "nse_symbol": null,
+        "bse_code": "539143",
+        "quarterly_financials": [
+            {
+                "quarter": "Dec 2024",
+                "revenue": 13.0,
+                "expenditure": 12.0,
+                "profit": 1.0,
+                "operating_profit": 2.0
+            },
+            {
+                "quarter": "Mar 2025",
+                "revenue": 15.0,
+                "expenditure": 15.0,
+                "profit": 0.0,
+                "operating_profit": 0.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 146.0,
+                "expenditure": 138.0,
+                "profit": 8.0,
+                "operating_profit": 8.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 43.0,
+                "expenditure": 34.0,
+                "profit": 9.0,
+                "operating_profit": 9.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 60.0,
+                "expenditure": 38.0,
+                "profit": 19.0,
+                "operating_profit": 22.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/panth-infinity-ltd/scrip/539143/brsr"
+    },
+    {
+        "s_no": 9,
+        "name": "Krypton Industri",
+        "url": "https://www.screener.in/company/523550/consolidated/",
+        "cmp_rs": 37.0,
+        "pe": 20.61,
+        "market_cap_cr": 54.39,
+        "div_yield_pct": 2.7,
+        "net_profit_qtr_cr": 0.77,
+        "qtr_profit_var_pct": 450.0,
+        "sales_qtr_cr": 16.14,
+        "qtr_sales_var_pct": 14.79,
+        "roce_pct": 11.22,
+        "full_name": "Krypton Industries Ltd",
+        "nse_symbol": null,
+        "bse_code": "523550",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 13.08,
+                "expenditure": 11.65,
+                "profit": -0.83,
+                "operating_profit": 1.43
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 10.87,
+                "expenditure": 9.47,
+                "profit": 0.55,
+                "operating_profit": 1.4
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 12.02,
+                "expenditure": 10.4,
+                "profit": 0.6,
+                "operating_profit": 1.62
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 12.59,
+                "expenditure": 10.86,
+                "profit": 0.71,
+                "operating_profit": 1.73
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 16.14,
+                "expenditure": 14.12,
+                "profit": 0.76,
+                "operating_profit": 2.02
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/krypton-industries-ltd/scrip/523550/brsr"
+    },
+    {
+        "s_no": 10,
+        "name": "Galactico Corpo.",
+        "url": "https://www.screener.in/company/542802/consolidated/",
+        "cmp_rs": 1.92,
+        "pe": 22.27,
+        "market_cap_cr": 35.2,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 0.43,
+        "qtr_profit_var_pct": 7.5,
+        "sales_qtr_cr": 5.37,
+        "qtr_sales_var_pct": -37.92,
+        "roce_pct": 6.26,
+        "full_name": "Galactico Corporate Services Ltd",
+        "nse_symbol": null,
+        "bse_code": "542802",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 8.65,
+                "expenditure": 8.8,
+                "profit": 0.4,
+                "operating_profit": -0.15
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 6.43,
+                "expenditure": 5.74,
+                "profit": 0.55,
+                "operating_profit": 0.69
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 8.88,
+                "expenditure": 8.05,
+                "profit": 0.43,
+                "operating_profit": 0.83
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 6.37,
+                "expenditure": 5.77,
+                "profit": 0.23,
+                "operating_profit": 0.6
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 5.37,
+                "expenditure": 5.31,
+                "profit": 0.43,
+                "operating_profit": 0.06
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/galactico-corporate-services-ltd/scrip/542802/brsr"
+    }
+]

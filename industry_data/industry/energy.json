@@ -1,0 +1,552 @@
+[
+    {
+        "s_no": 1,
+        "name": "Reliance Industries",
+        "url": "https://www.screener.in/company/RELIANCE/consolidated/",
+        "cmp_rs": 1298.8,
+        "pe": 23.5,
+        "market_cap_cr": 1757605.6,
+        "div_yield_pct": 0.46,
+        "net_profit_qtr_cr": 23196.0,
+        "qtr_profit_var_pct": 2.02,
+        "sales_qtr_cr": 309468.0,
+        "qtr_sales_var_pct": 27.02,
+        "roce_pct": 10.26,
+        "full_name": "Reliance Industries Ltd",
+        "nse_symbol": "RELIANCE",
+        "bse_code": "500325",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 243632.0,
+                "expenditure": 200727.0,
+                "profit": 30783.0,
+                "operating_profit": 42905.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 254623.0,
+                "expenditure": 208738.0,
+                "profit": 22092.0,
+                "operating_profit": 45885.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 264905.0,
+                "expenditure": 218887.0,
+                "profit": 22290.0,
+                "operating_profit": 46018.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 294059.0,
+                "expenditure": 249918.0,
+                "profit": 20589.0,
+                "operating_profit": 44141.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 309468.0,
+                "expenditure": 261951.0,
+                "profit": 23196.0,
+                "operating_profit": 47517.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/reliance-industries-ltd/reliance/500325/brsr"
+    },
+    {
+        "s_no": 2,
+        "name": "O N G C",
+        "url": "https://www.screener.in/company/ONGC/consolidated/",
+        "cmp_rs": 240.45,
+        "pe": 7.14,
+        "market_cap_cr": 302492.71,
+        "div_yield_pct": 5.12,
+        "net_profit_qtr_cr": 13677.87,
+        "qtr_profit_var_pct": 47.8,
+        "sales_qtr_cr": 173805.19,
+        "qtr_sales_var_pct": 3.61,
+        "roce_pct": 14.15,
+        "full_name": "Oil & Natural Gas Corpn Ltd",
+        "nse_symbol": "ONGC",
+        "bse_code": "500312",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 167749.0,
+                "expenditure": 145983.0,
+                "profit": 8965.0,
+                "operating_profit": 21766.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 163108.0,
+                "expenditure": 137429.0,
+                "profit": 11554.0,
+                "operating_profit": 25679.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 157911.0,
+                "expenditure": 131390.0,
+                "profit": 12615.0,
+                "operating_profit": 26521.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 167423.0,
+                "expenditure": 142088.0,
+                "profit": 11946.0,
+                "operating_profit": 25335.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 173805.0,
+                "expenditure": 148449.0,
+                "profit": 13678.0,
+                "operating_profit": 25356.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/oil--natural-gas-corpn-ltd/ongc/500312/brsr"
+    },
+    {
+        "s_no": 3,
+        "name": "Coal India",
+        "url": "https://www.screener.in/company/COALINDIA/consolidated/",
+        "cmp_rs": 412.9,
+        "pe": 8.13,
+        "market_cap_cr": 254459.04,
+        "div_yield_pct": 5.14,
+        "net_profit_qtr_cr": 8849.81,
+        "qtr_profit_var_pct": 0.63,
+        "sales_qtr_cr": 46254.8,
+        "qtr_sales_var_pct": 7.77,
+        "roce_pct": 35.34,
+        "full_name": "Coal India Ltd",
+        "nse_symbol": "COALINDIA",
+        "bse_code": "533278",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 42919.0,
+                "expenditure": 30331.0,
+                "profit": 8788.0,
+                "operating_profit": 12588.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 30187.0,
+                "expenditure": 23471.0,
+                "profit": 4263.0,
+                "operating_profit": 6716.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 34924.0,
+                "expenditure": 25593.0,
+                "profit": 7166.0,
+                "operating_profit": 9331.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 46490.0,
+                "expenditure": 33817.0,
+                "profit": 10908.0,
+                "operating_profit": 12673.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 46255.0,
+                "expenditure": 34186.0,
+                "profit": 8850.0,
+                "operating_profit": 12069.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/coal-india-ltd/coalindia/533278/brsr"
+    },
+    {
+        "s_no": 4,
+        "name": "I O C L",
+        "url": "https://www.screener.in/company/IOC/consolidated/",
+        "cmp_rs": 140.0,
+        "pe": 4.66,
+        "market_cap_cr": 197697.36,
+        "div_yield_pct": 5.09,
+        "net_profit_qtr_cr": 15176.08,
+        "qtr_profit_var_pct": 77.99,
+        "sales_qtr_cr": 208289.26,
+        "qtr_sales_var_pct": 6.67,
+        "roce_pct": 18.78,
+        "full_name": "Indian Oil Corporation Ltd",
+        "nse_symbol": "IOC",
+        "bse_code": "530965",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 195270.0,
+                "expenditure": 180241.0,
+                "profit": 8368.0,
+                "operating_profit": 15029.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 192341.0,
+                "expenditure": 179073.0,
+                "profit": 6808.0,
+                "operating_profit": 13267.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 178628.0,
+                "expenditure": 162383.0,
+                "profit": 8191.0,
+                "operating_profit": 16245.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 205157.0,
+                "expenditure": 182412.0,
+                "profit": 13502.0,
+                "operating_profit": 22745.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 208289.0,
+                "expenditure": 183485.0,
+                "profit": 15176.0,
+                "operating_profit": 24804.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/indian-oil-corporation-ltd/ioc/530965/brsr"
+    },
+    {
+        "s_no": 5,
+        "name": "B P C L",
+        "url": "https://www.screener.in/company/BPCL/consolidated/",
+        "cmp_rs": 318.05,
+        "pe": 8.92,
+        "market_cap_cr": 137986.11,
+        "div_yield_pct": 5.52,
+        "net_profit_qtr_cr": -1872.7,
+        "qtr_profit_var_pct": -154.52,
+        "sales_qtr_cr": 151277.03,
+        "qtr_sales_var_pct": 34.41,
+        "roce_pct": 25.69,
+        "full_name": "Bharat Petroleum Corporation Ltd",
+        "nse_symbol": "BPCL",
+        "bse_code": "500547",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 112551.0,
+                "expenditure": 102874.0,
+                "profit": 6839.0,
+                "operating_profit": 9678.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 104946.0,
+                "expenditure": 95185.0,
+                "profit": 6191.0,
+                "operating_profit": 9761.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 119029.0,
+                "expenditure": 107343.0,
+                "profit": 7188.0,
+                "operating_profit": 11687.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 118701.0,
+                "expenditure": 109067.0,
+                "profit": 5625.0,
+                "operating_profit": 9634.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 151277.0,
+                "expenditure": 155332.0,
+                "profit": -1873.0,
+                "operating_profit": -4055.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/bharat-petroleum-corporation-ltd/bpcl/500547/brsr"
+    },
+    {
+        "s_no": 6,
+        "name": "GAIL (India)",
+        "url": "https://www.screener.in/company/GAIL/consolidated/",
+        "cmp_rs": 176.5,
+        "pe": 15.29,
+        "market_cap_cr": 116050.54,
+        "div_yield_pct": 4.25,
+        "net_profit_qtr_cr": 1481.46,
+        "qtr_profit_var_pct": -40.41,
+        "sales_qtr_cr": 35576.55,
+        "qtr_sales_var_pct": -2.37,
+        "roce_pct": 9.68,
+        "full_name": "GAIL (India) Ltd",
+        "nse_symbol": "GAIL",
+        "bse_code": "532155",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 36440.0,
+                "expenditure": 32914.0,
+                "profit": 2506.0,
+                "operating_profit": 3526.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 35311.0,
+                "expenditure": 31642.0,
+                "profit": 2382.0,
+                "operating_profit": 3669.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 35537.0,
+                "expenditure": 32077.0,
+                "profit": 1989.0,
+                "operating_profit": 3460.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 35173.0,
+                "expenditure": 32246.0,
+                "profit": 1729.0,
+                "operating_profit": 2927.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 35577.0,
+                "expenditure": 34123.0,
+                "profit": 1481.0,
+                "operating_profit": 1453.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/gail-india-ltd/gail/532155/brsr"
+    },
+    {
+        "s_no": 7,
+        "name": "H P C L",
+        "url": "https://www.screener.in/company/HINDPETRO/consolidated/",
+        "cmp_rs": 389.2,
+        "pe": 49.6,
+        "market_cap_cr": 82814.85,
+        "div_yield_pct": 6.21,
+        "net_profit_qtr_cr": -12264.67,
+        "qtr_profit_var_pct": -398.34,
+        "sales_qtr_cr": 140584.25,
+        "qtr_sales_var_pct": 26.85,
+        "roce_pct": 22.23,
+        "full_name": "Hindustan Petroleum Corporation Ltd",
+        "nse_symbol": "HINDPETRO",
+        "bse_code": "500104",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 110825.0,
+                "expenditure": 103365.0,
+                "profit": 4111.0,
+                "operating_profit": 7461.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 100856.0,
+                "expenditure": 94003.0,
+                "profit": 3859.0,
+                "operating_profit": 6852.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 115153.0,
+                "expenditure": 108155.0,
+                "profit": 4011.0,
+                "operating_profit": 6998.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 114937.0,
+                "expenditure": 105726.0,
+                "profit": 6065.0,
+                "operating_profit": 9211.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 140584.0,
+                "expenditure": 156707.0,
+                "profit": -12265.0,
+                "operating_profit": -16122.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/hindustan-petroleum-corporation-ltd/hindpetro/500104/brsr"
+    },
+    {
+        "s_no": 8,
+        "name": "Oil India",
+        "url": "https://www.screener.in/company/OIL/consolidated/",
+        "cmp_rs": 456.2,
+        "pe": 11.23,
+        "market_cap_cr": 74205.85,
+        "div_yield_pct": 2.54,
+        "net_profit_qtr_cr": 2424.46,
+        "qtr_profit_var_pct": 60.26,
+        "sales_qtr_cr": 9293.27,
+        "qtr_sales_var_pct": 5.51,
+        "roce_pct": 11.56,
+        "full_name": "Oil India Ltd",
+        "nse_symbol": "OIL",
+        "bse_code": "533106",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 8808.0,
+                "expenditure": 6220.0,
+                "profit": 1497.0,
+                "operating_profit": 2588.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 7929.0,
+                "expenditure": 5578.0,
+                "profit": 2047.0,
+                "operating_profit": 2351.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 8394.0,
+                "expenditure": 6091.0,
+                "profit": 1644.0,
+                "operating_profit": 2303.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 8330.0,
+                "expenditure": 6043.0,
+                "profit": 1436.0,
+                "operating_profit": 2287.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 9293.0,
+                "expenditure": 6012.0,
+                "profit": 2424.0,
+                "operating_profit": 3281.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/oil-india-ltd/oil/533106/brsr"
+    },
+    {
+        "s_no": 9,
+        "name": "Adani Total Gas",
+        "url": "https://www.screener.in/company/ATGL/consolidated/",
+        "cmp_rs": 652.55,
+        "pe": 118.11,
+        "market_cap_cr": 71768.12,
+        "div_yield_pct": 0.04,
+        "net_profit_qtr_cr": 133.03,
+        "qtr_profit_var_pct": -17.97,
+        "sales_qtr_cr": 1743.48,
+        "qtr_sales_var_pct": 27.1,
+        "roce_pct": 15.09,
+        "full_name": "Adani Total Gas Ltd",
+        "nse_symbol": "ATGL",
+        "bse_code": "542066",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 1379.0,
+                "expenditure": 1085.0,
+                "profit": 165.0,
+                "operating_profit": 293.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 1451.0,
+                "expenditure": 1156.0,
+                "profit": 163.0,
+                "operating_profit": 295.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 1507.0,
+                "expenditure": 1202.0,
+                "profit": 159.0,
+                "operating_profit": 305.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 1557.0,
+                "expenditure": 1256.0,
+                "profit": 168.0,
+                "operating_profit": 301.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 1754.0,
+                "expenditure": 1483.0,
+                "profit": 142.0,
+                "operating_profit": 270.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/adani-total-gas-ltd/atgl/542066/brsr"
+    },
+    {
+        "s_no": 10,
+        "name": "Aegis Logistics",
+        "url": "https://www.screener.in/company/AEGISLOG/consolidated/",
+        "cmp_rs": 1228.95,
+        "pe": 49.61,
+        "market_cap_cr": 43136.15,
+        "div_yield_pct": 0.71,
+        "net_profit_qtr_cr": 454.62,
+        "qtr_profit_var_pct": 45.69,
+        "sales_qtr_cr": 2594.39,
+        "qtr_sales_var_pct": 52.16,
+        "roce_pct": 13.33,
+        "full_name": "Aegis Logistics Ltd",
+        "nse_symbol": "AEGISLOG",
+        "bse_code": "500003",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 1705.0,
+                "expenditure": 1296.0,
+                "profit": 318.0,
+                "operating_profit": 409.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 1719.0,
+                "expenditure": 1479.0,
+                "profit": 175.0,
+                "operating_profit": 240.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 2294.0,
+                "expenditure": 2003.0,
+                "profit": 244.0,
+                "operating_profit": 291.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 1725.0,
+                "expenditure": 1428.0,
+                "profit": 233.0,
+                "operating_profit": 297.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 2594.0,
+                "expenditure": 1970.0,
+                "profit": 455.0,
+                "operating_profit": 624.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/aegis-logistics-ltd/aegislog/500003/brsr"
+    }
+]

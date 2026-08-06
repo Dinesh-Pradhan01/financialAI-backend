@@ -1,0 +1,552 @@
+[
+    {
+        "s_no": 1,
+        "name": "Adani Power",
+        "url": "https://www.screener.in/company/ADANIPOWER/consolidated/",
+        "cmp_rs": 209.9,
+        "pe": 28.41,
+        "market_cap_cr": 404785.73,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 4866.6,
+        "qtr_profit_var_pct": 41.98,
+        "sales_qtr_cr": 18901.89,
+        "qtr_sales_var_pct": 33.97,
+        "roce_pct": 17.22,
+        "full_name": "Adani Power Ltd",
+        "nse_symbol": "ADANIPOWER",
+        "bse_code": "533096",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 14109.0,
+                "expenditure": 8424.0,
+                "profit": 3305.0,
+                "operating_profit": 5685.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 13457.0,
+                "expenditure": 8307.0,
+                "profit": 2906.0,
+                "operating_profit": 5150.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 12451.0,
+                "expenditure": 8213.0,
+                "profit": 2488.0,
+                "operating_profit": 4238.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 14223.0,
+                "expenditure": 9491.0,
+                "profit": 4271.0,
+                "operating_profit": 4732.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 18902.0,
+                "expenditure": 10953.0,
+                "profit": 4867.0,
+                "operating_profit": 7949.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/adani-power-ltd/adanipower/533096/brsr"
+    },
+    {
+        "s_no": 2,
+        "name": "NTPC",
+        "url": "https://www.screener.in/company/NTPC/consolidated/",
+        "cmp_rs": 344.7,
+        "pe": 12.09,
+        "market_cap_cr": 334244.04,
+        "div_yield_pct": 2.41,
+        "net_profit_qtr_cr": 6896.44,
+        "qtr_profit_var_pct": 11.82,
+        "sales_qtr_cr": 50740.96,
+        "qtr_sales_var_pct": 7.81,
+        "roce_pct": 8.33,
+        "full_name": "NTPC Ltd",
+        "nse_symbol": "NTPC",
+        "bse_code": "532555",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 47064.0,
+                "expenditure": 34485.0,
+                "profit": 6108.0,
+                "operating_profit": 12579.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 44786.0,
+                "expenditure": 31970.0,
+                "profit": 5225.0,
+                "operating_profit": 12816.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 45846.0,
+                "expenditure": 31276.0,
+                "profit": 5597.0,
+                "operating_profit": 14570.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 49686.0,
+                "expenditure": 41181.0,
+                "profit": 10615.0,
+                "operating_profit": 8505.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 50741.0,
+                "expenditure": 34510.0,
+                "profit": 6896.0,
+                "operating_profit": 16231.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/ntpc-ltd/ntpc/532555/brsr"
+    },
+    {
+        "s_no": 3,
+        "name": "Power Grid Corpn",
+        "url": "https://www.screener.in/company/POWERGRID/consolidated/",
+        "cmp_rs": 283.95,
+        "pe": 16.6,
+        "market_cap_cr": 264090.59,
+        "div_yield_pct": 3.15,
+        "net_profit_qtr_cr": 4546.33,
+        "qtr_profit_var_pct": 9.74,
+        "sales_qtr_cr": 11665.61,
+        "qtr_sales_var_pct": -4.97,
+        "roce_pct": 9.74,
+        "full_name": "Power Grid Corporation of India Ltd",
+        "nse_symbol": "POWERGRID",
+        "bse_code": "532898",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 12275.0,
+                "expenditure": 2081.0,
+                "profit": 4143.0,
+                "operating_profit": 10194.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 11196.0,
+                "expenditure": 2094.0,
+                "profit": 3631.0,
+                "operating_profit": 9102.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 11476.0,
+                "expenditure": 2421.0,
+                "profit": 3566.0,
+                "operating_profit": 9055.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 12395.0,
+                "expenditure": 1788.0,
+                "profit": 4185.0,
+                "operating_profit": 10607.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 11666.0,
+                "expenditure": 6363.0,
+                "profit": 4546.0,
+                "operating_profit": 5303.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/power-grid-corporation-of-india-ltd/powergrid/532898/brsr"
+    },
+    {
+        "s_no": 4,
+        "name": "Adani Green",
+        "url": "https://www.screener.in/company/ADANIGREEN/consolidated/",
+        "cmp_rs": 1356.3,
+        "pe": 115.24,
+        "market_cap_cr": 223406.5,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 983.0,
+        "qtr_profit_var_pct": 16.89,
+        "sales_qtr_cr": 4431.0,
+        "qtr_sales_var_pct": 16.61,
+        "roce_pct": 7.39,
+        "full_name": "Adani Green Energy Ltd",
+        "nse_symbol": "ADANIGREEN",
+        "bse_code": "541450",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3800.0,
+                "expenditure": 758.0,
+                "profit": 824.0,
+                "operating_profit": 3042.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3008.0,
+                "expenditure": 405.0,
+                "profit": 644.0,
+                "operating_profit": 2603.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 2618.0,
+                "expenditure": 377.0,
+                "profit": 5.0,
+                "operating_profit": 2241.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 3502.0,
+                "expenditure": 620.0,
+                "profit": 514.0,
+                "operating_profit": 2882.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 4431.0,
+                "expenditure": 446.0,
+                "profit": 983.0,
+                "operating_profit": 3985.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/adani-green-energy-ltd/adanigreen/541450/brsr"
+    },
+    {
+        "s_no": 5,
+        "name": "Adani Energy Sol",
+        "url": "https://www.screener.in/company/ADANIENSOL/consolidated/",
+        "cmp_rs": 1645.65,
+        "pe": 67.76,
+        "market_cap_cr": 197689.1,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 1236.56,
+        "qtr_profit_var_pct": 124.22,
+        "sales_qtr_cr": 9711.08,
+        "qtr_sales_var_pct": 42.41,
+        "roce_pct": 9.65,
+        "full_name": "Adani Energy Solutions Ltd",
+        "nse_symbol": "ADANIENSOL",
+        "bse_code": "539254",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 6819.0,
+                "expenditure": 5009.0,
+                "profit": 539.0,
+                "operating_profit": 1811.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 6596.0,
+                "expenditure": 4640.0,
+                "profit": 557.0,
+                "operating_profit": 1955.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 6730.0,
+                "expenditure": 4734.0,
+                "profit": 574.0,
+                "operating_profit": 1995.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 7443.0,
+                "expenditure": 5298.0,
+                "profit": 723.0,
+                "operating_profit": 2145.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 9711.0,
+                "expenditure": 6703.0,
+                "profit": 1237.0,
+                "operating_profit": 3008.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/adani-energy-solutions-ltd/adaniensol/539254/brsr"
+    },
+    {
+        "s_no": 6,
+        "name": "Tata Power Co.",
+        "url": "https://www.screener.in/company/TATAPOWER/consolidated/",
+        "cmp_rs": 379.2,
+        "pe": 31.01,
+        "market_cap_cr": 121167.32,
+        "div_yield_pct": 0.66,
+        "net_profit_qtr_cr": 1400.86,
+        "qtr_profit_var_pct": 10.95,
+        "sales_qtr_cr": 19051.26,
+        "qtr_sales_var_pct": 5.63,
+        "roce_pct": 10.53,
+        "full_name": "Tata Power Company Ltd",
+        "nse_symbol": "TATAPOWER",
+        "bse_code": "500400",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 18035.0,
+                "expenditure": 14470.0,
+                "profit": 1262.0,
+                "operating_profit": 3565.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 15545.0,
+                "expenditure": 12243.0,
+                "profit": 1245.0,
+                "operating_profit": 3302.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 13948.0,
+                "expenditure": 10894.0,
+                "profit": 1194.0,
+                "operating_profit": 3055.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 14900.0,
+                "expenditure": 12301.0,
+                "profit": 1416.0,
+                "operating_profit": 2599.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 19051.0,
+                "expenditure": 15191.0,
+                "profit": 1401.0,
+                "operating_profit": 3860.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/tata-power-company-ltd/tatapower/500400/brsr"
+    },
+    {
+        "s_no": 7,
+        "name": "JSW Energy",
+        "url": "https://www.screener.in/company/JSWENERGY/consolidated/",
+        "cmp_rs": 556.95,
+        "pe": 50.92,
+        "market_cap_cr": 102115.86,
+        "div_yield_pct": 0.37,
+        "net_profit_qtr_cr": 532.7,
+        "qtr_profit_var_pct": -36.62,
+        "sales_qtr_cr": 5207.13,
+        "qtr_sales_var_pct": 1.24,
+        "roce_pct": 8.16,
+        "full_name": "JSW Energy Ltd",
+        "nse_symbol": "JSWENERGY",
+        "bse_code": "533148",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 5143.0,
+                "expenditure": 2355.0,
+                "profit": 836.0,
+                "operating_profit": 2789.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 5177.0,
+                "expenditure": 2181.0,
+                "profit": 824.0,
+                "operating_profit": 2996.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 4082.0,
+                "expenditure": 2052.0,
+                "profit": 529.0,
+                "operating_profit": 2030.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 4499.0,
+                "expenditure": 2249.0,
+                "profit": 574.0,
+                "operating_profit": 2250.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 5207.0,
+                "expenditure": 2334.0,
+                "profit": 533.0,
+                "operating_profit": 2873.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/jsw-energy-ltd/jswenergy/533148/brsr"
+    },
+    {
+        "s_no": 8,
+        "name": "NHPC Ltd",
+        "url": "https://www.screener.in/company/NHPC/consolidated/",
+        "cmp_rs": 78.31,
+        "pe": 20.9,
+        "market_cap_cr": 78662.66,
+        "div_yield_pct": 2.44,
+        "net_profit_qtr_cr": 1549.42,
+        "qtr_profit_var_pct": 71.05,
+        "sales_qtr_cr": 2815.53,
+        "qtr_sales_var_pct": 19.96,
+        "roce_pct": 5.73,
+        "full_name": "NHPC Ltd",
+        "nse_symbol": "NHPC",
+        "bse_code": "533098",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 2347.0,
+                "expenditure": 1142.0,
+                "profit": 920.0,
+                "operating_profit": 1205.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3214.0,
+                "expenditure": 1412.0,
+                "profit": 1131.0,
+                "operating_profit": 1802.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3365.0,
+                "expenditure": 1338.0,
+                "profit": 1219.0,
+                "operating_profit": 2027.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 2221.0,
+                "expenditure": 2009.0,
+                "profit": 321.0,
+                "operating_profit": 212.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 2816.0,
+                "expenditure": 2179.0,
+                "profit": 1549.0,
+                "operating_profit": 637.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/nhpc-ltd/nhpc/533098/brsr"
+    },
+    {
+        "s_no": 9,
+        "name": "NTPC Green Ene.",
+        "url": "https://www.screener.in/company/NTPCGREEN/consolidated/",
+        "cmp_rs": 90.64,
+        "pe": 125.82,
+        "market_cap_cr": 76376.26,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 304.84,
+        "qtr_profit_var_pct": 38.26,
+        "sales_qtr_cr": 1106.86,
+        "qtr_sales_var_pct": 62.72,
+        "roce_pct": 3.53,
+        "full_name": "NTPC Green Energy Ltd",
+        "nse_symbol": "NTPCGREEN",
+        "bse_code": "544289",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 680.0,
+                "expenditure": 77.0,
+                "profit": 220.0,
+                "operating_profit": 604.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 612.0,
+                "expenditure": 83.0,
+                "profit": 86.0,
+                "operating_profit": 530.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 653.0,
+                "expenditure": 118.0,
+                "profit": 17.0,
+                "operating_profit": 535.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 913.0,
+                "expenditure": 138.0,
+                "profit": 197.0,
+                "operating_profit": 774.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 1107.0,
+                "expenditure": 118.0,
+                "profit": 305.0,
+                "operating_profit": 989.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/ntpc-green-energy-ltd/ntpcgreen/544289/brsr"
+    },
+    {
+        "s_no": 10,
+        "name": "Torrent Power",
+        "url": "https://www.screener.in/company/TORNTPOWER/consolidated/",
+        "cmp_rs": 1413.5,
+        "pe": 31.13,
+        "market_cap_cr": 71226.79,
+        "div_yield_pct": 1.4,
+        "net_profit_qtr_cr": 331.49,
+        "qtr_profit_var_pct": -69.97,
+        "sales_qtr_cr": 6406.07,
+        "qtr_sales_var_pct": -0.78,
+        "roce_pct": 13.66,
+        "full_name": "Torrent Power Ltd",
+        "nse_symbol": "TORNTPOWER",
+        "bse_code": "532779",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 6456.0,
+                "expenditure": 5326.0,
+                "profit": 1077.0,
+                "operating_profit": 1130.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 7906.0,
+                "expenditure": 6423.0,
+                "profit": 742.0,
+                "operating_profit": 1483.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 7876.0,
+                "expenditure": 6370.0,
+                "profit": 742.0,
+                "operating_profit": 1506.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 6778.0,
+                "expenditure": 5375.0,
+                "profit": 655.0,
+                "operating_profit": 1403.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 6406.0,
+                "expenditure": 5257.0,
+                "profit": 331.0,
+                "operating_profit": 1149.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/torrent-power-ltd/torntpower/532779/brsr"
+    }
+]

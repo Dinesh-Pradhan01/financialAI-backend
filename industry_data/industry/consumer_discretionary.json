@@ -1,0 +1,552 @@
+[
+    {
+        "s_no": 1,
+        "name": "Maruti Suzuki",
+        "url": "https://www.screener.in/company/MARUTI/consolidated/",
+        "cmp_rs": 14175.0,
+        "pe": 30.4,
+        "market_cap_cr": 445665.65,
+        "div_yield_pct": 0.99,
+        "net_profit_qtr_cr": 3659.0,
+        "qtr_profit_var_pct": -6.45,
+        "sales_qtr_cr": 52462.5,
+        "qtr_sales_var_pct": 28.21,
+        "roce_pct": 19.02,
+        "full_name": "Maruti Suzuki India Ltd",
+        "nse_symbol": "MARUTI",
+        "bse_code": "532500",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 40920.0,
+                "expenditure": 36076.0,
+                "profit": 3911.0,
+                "operating_profit": 4844.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 38605.0,
+                "expenditure": 33983.0,
+                "profit": 3792.0,
+                "operating_profit": 4623.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 42344.0,
+                "expenditure": 37258.0,
+                "profit": 3349.0,
+                "operating_profit": 5086.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 49904.0,
+                "expenditure": 44331.0,
+                "profit": 3879.0,
+                "operating_profit": 5573.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 52462.0,
+                "expenditure": 46304.0,
+                "profit": 3659.0,
+                "operating_profit": 6158.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/maruti-suzuki-india-ltd/maruti/532500/brsr"
+    },
+    {
+        "s_no": 2,
+        "name": "Titan Company",
+        "url": "https://www.screener.in/company/TITAN/consolidated/",
+        "cmp_rs": 4856.0,
+        "pe": 83.66,
+        "market_cap_cr": 431108.96,
+        "div_yield_pct": 0.31,
+        "net_profit_qtr_cr": 1179.0,
+        "qtr_profit_var_pct": 31.0,
+        "sales_qtr_cr": 26920.0,
+        "qtr_sales_var_pct": 80.48,
+        "roce_pct": 20.54,
+        "full_name": "Titan Company Ltd",
+        "nse_symbol": "TITAN",
+        "bse_code": "500114",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 14916.0,
+                "expenditure": 13379.0,
+                "profit": 871.0,
+                "operating_profit": 1537.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 16523.0,
+                "expenditure": 14693.0,
+                "profit": 1091.0,
+                "operating_profit": 1830.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 18725.0,
+                "expenditure": 16850.0,
+                "profit": 1120.0,
+                "operating_profit": 1875.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 25416.0,
+                "expenditure": 22703.0,
+                "profit": 1684.0,
+                "operating_profit": 2713.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 26920.0,
+                "expenditure": 24982.0,
+                "profit": 1179.0,
+                "operating_profit": 1938.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/titan-company-ltd/titan/500114/brsr"
+    },
+    {
+        "s_no": 3,
+        "name": "M & M",
+        "url": "https://www.screener.in/company/M&M/consolidated/",
+        "cmp_rs": 3411.0,
+        "pe": 22.1,
+        "market_cap_cr": 424167.6,
+        "div_yield_pct": 0.98,
+        "net_profit_qtr_cr": 5997.56,
+        "qtr_profit_var_pct": 33.8,
+        "sales_qtr_cr": 58187.57,
+        "qtr_sales_var_pct": 27.8,
+        "roce_pct": 15.1,
+        "full_name": "Mahindra & Mahindra Ltd",
+        "nse_symbol": "M&M",
+        "bse_code": "500520",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 45529.0,
+                "expenditure": 37117.0,
+                "profit": 4377.0,
+                "operating_profit": 8412.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 46106.0,
+                "expenditure": 37166.0,
+                "profit": 3964.0,
+                "operating_profit": 8940.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 52100.0,
+                "expenditure": 41939.0,
+                "profit": 5021.0,
+                "operating_profit": 10160.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 54982.0,
+                "expenditure": 44855.0,
+                "profit": 5260.0,
+                "operating_profit": 10127.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 58188.0,
+                "expenditure": 47360.0,
+                "profit": 5998.0,
+                "operating_profit": 10827.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/mahindra--mahindra-ltd/mm/500520/brsr"
+    },
+    {
+        "s_no": 4,
+        "name": "Bajaj Auto",
+        "url": "https://www.screener.in/company/BAJAJ-AUTO/consolidated/",
+        "cmp_rs": 11521.5,
+        "pe": 26.88,
+        "market_cap_cr": 316615.23,
+        "div_yield_pct": 1.32,
+        "net_profit_qtr_cr": 3188.75,
+        "qtr_profit_var_pct": 45.93,
+        "sales_qtr_cr": 21688.83,
+        "qtr_sales_var_pct": 65.14,
+        "roce_pct": 28.24,
+        "full_name": "Bajaj Auto Ltd",
+        "nse_symbol": "BAJAJ-AUTO",
+        "bse_code": "532977",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 13133.0,
+                "expenditure": 10340.0,
+                "profit": 2210.0,
+                "operating_profit": 2793.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 15735.0,
+                "expenditure": 12906.0,
+                "profit": 2122.0,
+                "operating_profit": 2829.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 16204.0,
+                "expenditure": 12475.0,
+                "profit": 2750.0,
+                "operating_profit": 3730.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 17832.0,
+                "expenditure": 14757.0,
+                "profit": 3492.0,
+                "operating_profit": 3075.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 21689.0,
+                "expenditure": 17161.0,
+                "profit": 3189.0,
+                "operating_profit": 4528.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/bajaj-auto-ltd/bajaj-auto/532977/brsr"
+    },
+    {
+        "s_no": 5,
+        "name": "Eternal",
+        "url": "https://www.screener.in/company/ETERNAL/consolidated/",
+        "cmp_rs": 306.6,
+        "pe": 683.27,
+        "market_cap_cr": 295879.73,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 92.0,
+        "qtr_profit_var_pct": 268.0,
+        "sales_qtr_cr": 20211.0,
+        "qtr_sales_var_pct": 182.0,
+        "roce_pct": 2.97,
+        "full_name": "Eternal Ltd",
+        "nse_symbol": "ETERNAL",
+        "bse_code": "543320",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 7167.0,
+                "expenditure": 7052.0,
+                "profit": 25.0,
+                "operating_profit": 115.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 13590.0,
+                "expenditure": 13351.0,
+                "profit": 65.0,
+                "operating_profit": 239.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 16315.0,
+                "expenditure": 15947.0,
+                "profit": 102.0,
+                "operating_profit": 368.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 17292.0,
+                "expenditure": 16806.0,
+                "profit": 174.0,
+                "operating_profit": 486.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 20211.0,
+                "expenditure": 19617.0,
+                "profit": 92.0,
+                "operating_profit": 594.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/eternal-ltd/eternal/543320/brsr"
+    },
+    {
+        "s_no": 6,
+        "name": "Asian Paints",
+        "url": "https://www.screener.in/company/ASIANPAINT/consolidated/",
+        "cmp_rs": 2753.95,
+        "pe": 54.1,
+        "market_cap_cr": 264158.29,
+        "div_yield_pct": 0.99,
+        "net_profit_qtr_cr": 1559.45,
+        "qtr_profit_var_pct": 39.96,
+        "sales_qtr_cr": 10541.94,
+        "qtr_sales_var_pct": 17.94,
+        "roce_pct": 26.34,
+        "full_name": "Asian Paints Ltd",
+        "nse_symbol": "ASIANPAINT",
+        "bse_code": "500820",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 8939.0,
+                "expenditure": 7314.0,
+                "profit": 1117.0,
+                "operating_profit": 1625.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 8531.0,
+                "expenditure": 7028.0,
+                "profit": 1018.0,
+                "operating_profit": 1503.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 8867.0,
+                "expenditure": 7086.0,
+                "profit": 1074.0,
+                "operating_profit": 1781.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 9247.0,
+                "expenditure": 7460.0,
+                "profit": 1185.0,
+                "operating_profit": 1787.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 10542.0,
+                "expenditure": 8373.0,
+                "profit": 1559.0,
+                "operating_profit": 2169.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/asian-paints-ltd/asianpaint/500820/brsr"
+    },
+    {
+        "s_no": 7,
+        "name": "Avenue Super.",
+        "url": "https://www.screener.in/company/DMART/consolidated/",
+        "cmp_rs": 3914.7,
+        "pe": 83.47,
+        "market_cap_cr": 255334.7,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 860.44,
+        "qtr_profit_var_pct": 11.34,
+        "sales_qtr_cr": 18794.53,
+        "qtr_sales_var_pct": 14.88,
+        "roce_pct": 17.18,
+        "full_name": "Avenue Supermarts Ltd",
+        "nse_symbol": "DMART",
+        "bse_code": "540376",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 16360.0,
+                "expenditure": 15061.0,
+                "profit": 773.0,
+                "operating_profit": 1299.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 16676.0,
+                "expenditure": 15463.0,
+                "profit": 685.0,
+                "operating_profit": 1214.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 18101.0,
+                "expenditure": 16638.0,
+                "profit": 856.0,
+                "operating_profit": 1463.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 17684.0,
+                "expenditure": 16473.0,
+                "profit": 656.0,
+                "operating_profit": 1211.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 18795.0,
+                "expenditure": 17295.0,
+                "profit": 860.0,
+                "operating_profit": 1499.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/avenue-supermarts-ltd/dmart/540376/brsr"
+    },
+    {
+        "s_no": 8,
+        "name": "Eicher Motors",
+        "url": "https://www.screener.in/company/EICHERMOT/consolidated/",
+        "cmp_rs": 7860.0,
+        "pe": 37.12,
+        "market_cap_cr": 215755.08,
+        "div_yield_pct": 1.04,
+        "net_profit_qtr_cr": 1462.51,
+        "qtr_profit_var_pct": 21.35,
+        "sales_qtr_cr": 6632.42,
+        "qtr_sales_var_pct": 31.55,
+        "roce_pct": 30.53,
+        "full_name": "Eicher Motors Ltd",
+        "nse_symbol": "EICHERMOT",
+        "bse_code": "505200",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 5042.0,
+                "expenditure": 3839.0,
+                "profit": 1205.0,
+                "operating_profit": 1203.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 6172.0,
+                "expenditure": 4660.0,
+                "profit": 1369.0,
+                "operating_profit": 1512.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 6114.0,
+                "expenditure": 4557.0,
+                "profit": 1421.0,
+                "operating_profit": 1557.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 6080.0,
+                "expenditure": 4566.0,
+                "profit": 1520.0,
+                "operating_profit": 1514.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 6632.0,
+                "expenditure": 5042.0,
+                "profit": 1463.0,
+                "operating_profit": 1591.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/eicher-motors-ltd/eichermot/505200/brsr"
+    },
+    {
+        "s_no": 9,
+        "name": "TVS Motor Co.",
+        "url": "https://www.screener.in/company/TVSMOTOR/consolidated/",
+        "cmp_rs": 4291.5,
+        "pe": 58.91,
+        "market_cap_cr": 203883.64,
+        "div_yield_pct": 0.29,
+        "net_profit_qtr_cr": 1057.61,
+        "qtr_profit_var_pct": 67.11,
+        "sales_qtr_cr": 16295.52,
+        "qtr_sales_var_pct": 33.46,
+        "roce_pct": 17.37,
+        "full_name": "TVS Motor Company Ltd",
+        "nse_symbol": "TVSMOTOR",
+        "bse_code": "532343",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 12210.0,
+                "expenditure": 10407.0,
+                "profit": 643.0,
+                "operating_profit": 1803.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 14051.0,
+                "expenditure": 11941.0,
+                "profit": 833.0,
+                "operating_profit": 2110.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 14756.0,
+                "expenditure": 12488.0,
+                "profit": 891.0,
+                "operating_profit": 2267.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 15053.0,
+                "expenditure": 12881.0,
+                "profit": 820.0,
+                "operating_profit": 2172.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 16296.0,
+                "expenditure": 13952.0,
+                "profit": 1058.0,
+                "operating_profit": 2343.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/tvs-motor-company-ltd/tvsmotor/532343/brsr"
+    },
+    {
+        "s_no": 10,
+        "name": "Hyundai Motor I",
+        "url": "https://www.screener.in/company/HYUNDAI/consolidated/",
+        "cmp_rs": 2189.5,
+        "pe": 35.93,
+        "market_cap_cr": 177905.84,
+        "div_yield_pct": 0.96,
+        "net_profit_qtr_cr": 888.62,
+        "qtr_profit_var_pct": -35.1,
+        "sales_qtr_cr": 16334.63,
+        "qtr_sales_var_pct": -0.48,
+        "roce_pct": 38.42,
+        "full_name": "Hyundai Motor India Ltd",
+        "nse_symbol": "HYUNDAI",
+        "bse_code": "544274",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 16413.0,
+                "expenditure": 14228.0,
+                "profit": 1369.0,
+                "operating_profit": 2185.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 17461.0,
+                "expenditure": 15032.0,
+                "profit": 1572.0,
+                "operating_profit": 2429.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 17973.0,
+                "expenditure": 15955.0,
+                "profit": 1234.0,
+                "operating_profit": 2018.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 18916.0,
+                "expenditure": 16950.0,
+                "profit": 1256.0,
+                "operating_profit": 1966.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 16335.0,
+                "expenditure": 14823.0,
+                "profit": 889.0,
+                "operating_profit": 1512.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/hyundai-motor-india-ltd/hyundai/544274/brsr"
+    }
+]

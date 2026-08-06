@@ -1,0 +1,538 @@
+[
+    {
+        "s_no": 1,
+        "name": "Adani Enterp.",
+        "url": "https://www.screener.in/company/ADANIENT/consolidated/",
+        "cmp_rs": 3023.0,
+        "pe": 172.36,
+        "market_cap_cr": 409137.21,
+        "div_yield_pct": 0.04,
+        "net_profit_qtr_cr": -1461.54,
+        "qtr_profit_var_pct": -35.82,
+        "sales_qtr_cr": 32923.98,
+        "qtr_sales_var_pct": 49.92,
+        "roce_pct": 5.8,
+        "full_name": "Adani Enterprises Ltd",
+        "nse_symbol": "ADANIENT",
+        "bse_code": "512599",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 21961.0,
+                "expenditure": 18651.0,
+                "profit": 976.0,
+                "operating_profit": 3310.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 21249.0,
+                "expenditure": 17942.0,
+                "profit": 3414.0,
+                "operating_profit": 3307.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 24820.0,
+                "expenditure": 21178.0,
+                "profit": 5727.0,
+                "operating_profit": 3642.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 32439.0,
+                "expenditure": 28709.0,
+                "profit": -167.0,
+                "operating_profit": 3731.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 32924.0,
+                "expenditure": 27905.0,
+                "profit": -1462.0,
+                "operating_profit": 5019.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/adani-enterprises-ltd/adanient/512599/brsr"
+    },
+    {
+        "s_no": 2,
+        "name": "UltraTech Cem.",
+        "url": "https://www.screener.in/company/ULTRACEMCO/consolidated/",
+        "cmp_rs": 11973.15,
+        "pe": 40.9,
+        "market_cap_cr": 352823.78,
+        "div_yield_pct": 1.99,
+        "net_profit_qtr_cr": 2603.72,
+        "qtr_profit_var_pct": 15.75,
+        "sales_qtr_cr": 24648.2,
+        "qtr_sales_var_pct": 15.85,
+        "roce_pct": 12.66,
+        "full_name": "UltraTech Cement Ltd",
+        "nse_symbol": "ULTRACEMCO",
+        "bse_code": "532538",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 21275.0,
+                "expenditure": 16869.0,
+                "profit": 2221.0,
+                "operating_profit": 4406.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 19607.0,
+                "expenditure": 16518.0,
+                "profit": 1238.0,
+                "operating_profit": 3089.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 21830.0,
+                "expenditure": 17919.0,
+                "profit": 1729.0,
+                "operating_profit": 3911.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 25799.0,
+                "expenditure": 20201.0,
+                "profit": 3000.0,
+                "operating_profit": 5599.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 24648.0,
+                "expenditure": 19633.0,
+                "profit": 2604.0,
+                "operating_profit": 5015.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/ultratech-cement-ltd/ultracemco/532538/brsr"
+    },
+    {
+        "s_no": 3,
+        "name": "JSW Steel",
+        "url": "https://www.screener.in/company/JSWSTEEL/consolidated/",
+        "cmp_rs": 1268.35,
+        "pe": 25.75,
+        "market_cap_cr": 310169.14,
+        "div_yield_pct": 0.56,
+        "net_profit_qtr_cr": 4696.0,
+        "qtr_profit_var_pct": 112.96,
+        "sales_qtr_cr": 47364.0,
+        "qtr_sales_var_pct": 9.77,
+        "roce_pct": 10.96,
+        "full_name": "JSW Steel Ltd",
+        "nse_symbol": "JSWSTEEL",
+        "bse_code": "500228",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 43147.0,
+                "expenditure": 35671.0,
+                "profit": 2209.0,
+                "operating_profit": 7476.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 45152.0,
+                "expenditure": 38125.0,
+                "profit": 1646.0,
+                "operating_profit": 7027.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 45991.0,
+                "expenditure": 39612.0,
+                "profit": 2410.0,
+                "operating_profit": 6379.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 51180.0,
+                "expenditure": 42716.0,
+                "profit": 19243.0,
+                "operating_profit": 8464.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 47364.0,
+                "expenditure": 38079.0,
+                "profit": 4696.0,
+                "operating_profit": 9285.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/jsw-steel-ltd/jswsteel/500228/brsr"
+    },
+    {
+        "s_no": 4,
+        "name": "Tata Steel",
+        "url": "https://www.screener.in/company/TATASTEEL/consolidated/",
+        "cmp_rs": 187.15,
+        "pe": 19.69,
+        "market_cap_cr": 233629.26,
+        "div_yield_pct": 2.13,
+        "net_profit_qtr_cr": 2385.24,
+        "qtr_profit_var_pct": 16.77,
+        "sales_qtr_cr": 60794.29,
+        "qtr_sales_var_pct": 14.32,
+        "roce_pct": 12.52,
+        "full_name": "Tata Steel Ltd",
+        "nse_symbol": "TATASTEEL",
+        "bse_code": "500470",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 53178.0,
+                "expenditure": 45751.0,
+                "profit": 2007.0,
+                "operating_profit": 7428.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 58689.0,
+                "expenditure": 49793.0,
+                "profit": 3183.0,
+                "operating_profit": 8897.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 57002.0,
+                "expenditure": 48803.0,
+                "profit": 2730.0,
+                "operating_profit": 8200.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 63270.0,
+                "expenditure": 53441.0,
+                "profit": 2965.0,
+                "operating_profit": 9829.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 60794.0,
+                "expenditure": 51530.0,
+                "profit": 2385.0,
+                "operating_profit": 9264.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/tata-steel-ltd/tatasteel/500470/brsr"
+    },
+    {
+        "s_no": 5,
+        "name": "Hindustan Zinc",
+        "url": "https://www.screener.in/company/HINDZINC/consolidated/",
+        "cmp_rs": 541.3,
+        "pe": 13.55,
+        "market_cap_cr": 228716.48,
+        "div_yield_pct": 2.03,
+        "net_profit_qtr_cr": 5425.0,
+        "qtr_profit_var_pct": 146.14,
+        "sales_qtr_cr": 13687.0,
+        "qtr_sales_var_pct": 77.22,
+        "roce_pct": 69.25,
+        "full_name": "Hindustan Zinc Ltd",
+        "nse_symbol": "HINDZINC",
+        "bse_code": "500188",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 7771.0,
+                "expenditure": 3912.0,
+                "profit": 2234.0,
+                "operating_profit": 3859.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 8549.0,
+                "expenditure": 4104.0,
+                "profit": 2649.0,
+                "operating_profit": 4445.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 10980.0,
+                "expenditure": 4926.0,
+                "profit": 3916.0,
+                "operating_profit": 6054.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 13544.0,
+                "expenditure": 5838.0,
+                "profit": 5033.0,
+                "operating_profit": 7706.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 13747.0,
+                "expenditure": 5697.0,
+                "profit": 5469.0,
+                "operating_profit": 8050.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/hindustan-zinc-ltd/hindzinc/500188/brsr"
+    },
+    {
+        "s_no": 6,
+        "name": "Hindalco Inds.",
+        "url": "https://www.screener.in/company/HINDALCO/consolidated/",
+        "cmp_rs": 982.75,
+        "pe": 13.06,
+        "market_cap_cr": 220846.14,
+        "div_yield_pct": 0.52,
+        "net_profit_qtr_cr": 2597.0,
+        "qtr_profit_var_pct": -22.12,
+        "sales_qtr_cr": 78133.0,
+        "qtr_sales_var_pct": 20.41,
+        "roce_pct": 13.21,
+        "full_name": "Hindalco Industries Ltd",
+        "nse_symbol": "HINDALCO",
+        "bse_code": "500440",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 64890.0,
+                "expenditure": 56054.0,
+                "profit": 5284.0,
+                "operating_profit": 8836.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 64232.0,
+                "expenditure": 56326.0,
+                "profit": 4004.0,
+                "operating_profit": 7906.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 66058.0,
+                "expenditure": 57092.0,
+                "profit": 4741.0,
+                "operating_profit": 8966.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 66521.0,
+                "expenditure": 58530.0,
+                "profit": 2049.0,
+                "operating_profit": 7991.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 78133.0,
+                "expenditure": 68119.0,
+                "profit": 2597.0,
+                "operating_profit": 10014.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/hindalco-industries-ltd/hindalco/500440/brsr"
+    },
+    {
+        "s_no": 7,
+        "name": "Grasim Inds",
+        "url": "https://www.screener.in/company/GRASIM/consolidated/",
+        "cmp_rs": 3122.9,
+        "pe": 42.46,
+        "market_cap_cr": 212522.29,
+        "div_yield_pct": 0.32,
+        "net_profit_qtr_cr": 3802.23,
+        "qtr_profit_var_pct": 30.85,
+        "sales_qtr_cr": 51101.11,
+        "qtr_sales_var_pct": 15.44,
+        "roce_pct": 8.01,
+        "full_name": "Grasim Industries Ltd",
+        "nse_symbol": "GRASIM",
+        "bse_code": "500300",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 44267.0,
+                "expenditure": 35517.0,
+                "profit": 2973.0,
+                "operating_profit": 8750.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 40118.0,
+                "expenditure": 31296.0,
+                "profit": 2767.0,
+                "operating_profit": 8822.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 39900.0,
+                "expenditure": 32228.0,
+                "profit": 1498.0,
+                "operating_profit": 7671.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 44312.0,
+                "expenditure": 35442.0,
+                "profit": 2233.0,
+                "operating_profit": 8870.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 51101.0,
+                "expenditure": 40225.0,
+                "profit": 3802.0,
+                "operating_profit": 10876.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/grasim-industries-ltd/grasim/500300/brsr"
+    },
+    {
+        "s_no": 8,
+        "name": "Vedanta Aluminium Metal",
+        "url": "https://www.screener.in/company/VAML/consolidated/",
+        "cmp_rs": 458.0,
+        "pe": 11.25,
+        "market_cap_cr": 179095.8,
+        "div_yield_pct": 1.75,
+        "net_profit_qtr_cr": 6597.0,
+        "qtr_profit_var_pct": 216.06,
+        "sales_qtr_cr": 21393.0,
+        "qtr_sales_var_pct": 45.99,
+        "roce_pct": null,
+        "full_name": "Vedanta Aluminium Metal Ltd",
+        "nse_symbol": "VAML",
+        "bse_code": "544780",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 14654.0,
+                "expenditure": 10268.0,
+                "profit": 2162.0,
+                "operating_profit": 4386.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 19124.0,
+                "expenditure": 10772.0,
+                "profit": 4958.0,
+                "operating_profit": 8352.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 21393.0,
+                "expenditure": 11094.0,
+                "profit": 6597.0,
+                "operating_profit": 10299.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/vedanta-aluminium-metal-ltd/vaml/544780/brsr"
+    },
+    {
+        "s_no": 9,
+        "name": "Solar Industries",
+        "url": "https://www.screener.in/company/SOLARINDS/consolidated/",
+        "cmp_rs": 18395.8,
+        "pe": 95.44,
+        "market_cap_cr": 166463.67,
+        "div_yield_pct": 0.06,
+        "net_profit_qtr_cr": 556.03,
+        "qtr_profit_var_pct": 69.95,
+        "sales_qtr_cr": 3052.75,
+        "qtr_sales_var_pct": 40.9,
+        "roce_pct": 38.08,
+        "full_name": "Solar Industries India Ltd",
+        "nse_symbol": "SOLARINDS",
+        "bse_code": "532725",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 2167.0,
+                "expenditure": 1629.0,
+                "profit": 346.0,
+                "operating_profit": 537.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 2154.0,
+                "expenditure": 1620.0,
+                "profit": 353.0,
+                "operating_profit": 535.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 2082.0,
+                "expenditure": 1530.0,
+                "profit": 361.0,
+                "operating_profit": 552.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 2548.0,
+                "expenditure": 1840.0,
+                "profit": 467.0,
+                "operating_profit": 708.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 3053.0,
+                "expenditure": 2227.0,
+                "profit": 556.0,
+                "operating_profit": 826.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/solar-industries-india-ltd/solarinds/532725/brsr"
+    },
+    {
+        "s_no": 10,
+        "name": "Pidilite Inds.",
+        "url": "https://www.screener.in/company/PIDILITIND/consolidated/",
+        "cmp_rs": 1618.0,
+        "pe": 66.91,
+        "market_cap_cr": 164678.45,
+        "div_yield_pct": 0.71,
+        "net_profit_qtr_cr": 584.15,
+        "qtr_profit_var_pct": 32.82,
+        "sales_qtr_cr": 3583.38,
+        "qtr_sales_var_pct": 14.08,
+        "roce_pct": 31.02,
+        "full_name": "Pidilite Industries Ltd",
+        "nse_symbol": "PIDILITIND",
+        "bse_code": "500331",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 3141.0,
+                "expenditure": 2509.0,
+                "profit": 428.0,
+                "operating_profit": 632.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 3753.0,
+                "expenditure": 2812.0,
+                "profit": 678.0,
+                "operating_profit": 941.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 3554.0,
+                "expenditure": 2704.0,
+                "profit": 585.0,
+                "operating_profit": 850.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 3710.0,
+                "expenditure": 2816.0,
+                "profit": 624.0,
+                "operating_profit": 894.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 3583.0,
+                "expenditure": 2753.0,
+                "profit": 584.0,
+                "operating_profit": 831.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/pidilite-industries-ltd/pidilitind/500331/brsr"
+    }
+]

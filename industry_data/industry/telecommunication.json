@@ -1,0 +1,516 @@
+[
+    {
+        "s_no": 1,
+        "name": "Bharti Airtel",
+        "url": "https://www.screener.in/company/BHARTIARTL/consolidated/",
+        "cmp_rs": 1960.75,
+        "pe": 45.96,
+        "market_cap_cr": 1223515.98,
+        "div_yield_pct": 1.23,
+        "net_profit_qtr_cr": 9247.4,
+        "qtr_profit_var_pct": -16.49,
+        "sales_qtr_cr": 55383.2,
+        "qtr_sales_var_pct": 15.68,
+        "roce_pct": 17.56,
+        "full_name": "Bharti Airtel Ltd",
+        "nse_symbol": "BHARTIARTL",
+        "bse_code": "532454",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 47876.0,
+                "expenditure": 20867.0,
+                "profit": 12476.0,
+                "operating_profit": 27009.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 49463.0,
+                "expenditure": 21624.0,
+                "profit": 7422.0,
+                "operating_profit": 27839.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 52145.0,
+                "expenditure": 22584.0,
+                "profit": 8651.0,
+                "operating_profit": 29561.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 53982.0,
+                "expenditure": 23199.0,
+                "profit": 8503.0,
+                "operating_profit": 30783.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 55383.0,
+                "expenditure": 23892.0,
+                "profit": 9247.0,
+                "operating_profit": 31492.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/bharti-airtel-ltd/bhartiartl/532454/brsr"
+    },
+    {
+        "s_no": 2,
+        "name": "Vodafone Idea",
+        "url": "https://www.screener.in/company/IDEA/consolidated/",
+        "cmp_rs": 12.94,
+        "pe": null,
+        "market_cap_cr": 140195.9,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 51970.0,
+        "qtr_profit_var_pct": 23.08,
+        "sales_qtr_cr": 11332.0,
+        "qtr_sales_var_pct": 2.88,
+        "roce_pct": -1.6,
+        "full_name": "Vodafone Idea Ltd",
+        "nse_symbol": "IDEA",
+        "bse_code": "532822",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 11015.0,
+                "expenditure": 6356.0,
+                "profit": -7167.0,
+                "operating_profit": 4659.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 11022.0,
+                "expenditure": 6410.0,
+                "profit": -6608.0,
+                "operating_profit": 4612.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 11195.0,
+                "expenditure": 6511.0,
+                "profit": -5524.0,
+                "operating_profit": 4684.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 11323.0,
+                "expenditure": 6506.0,
+                "profit": -5286.0,
+                "operating_profit": 4817.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 11332.0,
+                "expenditure": 6443.0,
+                "profit": 51970.0,
+                "operating_profit": 4889.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/vodafone-idea-ltd/idea/532822/brsr"
+    },
+    {
+        "s_no": 3,
+        "name": "Indus Towers",
+        "url": "https://www.screener.in/company/INDUSTOWER/consolidated/",
+        "cmp_rs": 387.55,
+        "pe": 14.34,
+        "market_cap_cr": 102241.97,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 1745.8,
+        "qtr_profit_var_pct": 0.52,
+        "sales_qtr_cr": 8431.1,
+        "qtr_sales_var_pct": 4.64,
+        "roce_pct": 19.49,
+        "full_name": "Indus Towers Ltd",
+        "nse_symbol": "INDUSTOWER",
+        "bse_code": "534816",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 8058.0,
+                "expenditure": 3668.0,
+                "profit": 1737.0,
+                "operating_profit": 4390.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 8188.0,
+                "expenditure": 3616.0,
+                "profit": 1839.0,
+                "operating_profit": 4572.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 8146.0,
+                "expenditure": 3678.0,
+                "profit": 1776.0,
+                "operating_profit": 4468.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 8101.0,
+                "expenditure": 3677.0,
+                "profit": 1793.0,
+                "operating_profit": 4424.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 8431.0,
+                "expenditure": 3953.0,
+                "profit": 1746.0,
+                "operating_profit": 4478.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/indus-towers-ltd/industower/534816/brsr"
+    },
+    {
+        "s_no": 4,
+        "name": "Bharti Hexacom",
+        "url": "https://www.screener.in/company/BHARTIHEXA/consolidated/",
+        "cmp_rs": 1616.2,
+        "pe": 47.53,
+        "market_cap_cr": 80810.0,
+        "div_yield_pct": 1.13,
+        "net_profit_qtr_cr": 446.7,
+        "qtr_profit_var_pct": -1.09,
+        "sales_qtr_cr": 2413.7,
+        "qtr_sales_var_pct": 5.45,
+        "roce_pct": 21.37,
+        "full_name": "Bharti Hexacom Ltd",
+        "nse_symbol": "BHARTIHEXA",
+        "bse_code": "544162",
+        "quarterly_financials": [],
+        "bse_url": "https://www.bseindia.com/stock-share-price/bharti-hexacom-ltd/bhartihexa/544162/brsr"
+    },
+    {
+        "s_no": 5,
+        "name": "Altius Telecom",
+        "url": "https://www.screener.in/company/543225/consolidated/",
+        "cmp_rs": 171.05,
+        "pe": 48.68,
+        "market_cap_cr": 52125.78,
+        "div_yield_pct": 9.2,
+        "net_profit_qtr_cr": 309.8,
+        "qtr_profit_var_pct": 85.4,
+        "sales_qtr_cr": 6021.2,
+        "qtr_sales_var_pct": 1.38,
+        "roce_pct": 8.6,
+        "full_name": "Altius Telecom Infrastructure Trust",
+        "nse_symbol": null,
+        "bse_code": "543225",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 5939.0,
+                "expenditure": 3514.0,
+                "profit": 167.0,
+                "operating_profit": 2426.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 6030.0,
+                "expenditure": 3573.0,
+                "profit": 227.0,
+                "operating_profit": 2457.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 6080.0,
+                "expenditure": 3596.0,
+                "profit": 280.0,
+                "operating_profit": 2484.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 6034.0,
+                "expenditure": 3542.0,
+                "profit": 290.0,
+                "operating_profit": 2492.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 6021.0,
+                "expenditure": 3503.0,
+                "profit": 310.0,
+                "operating_profit": 2518.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/altius-telecom-infrastructure-trust/scrip/543225/brsr"
+    },
+    {
+        "s_no": 6,
+        "name": "Tata Comm",
+        "url": "https://www.screener.in/company/TATACOMM/consolidated/",
+        "cmp_rs": 1772.4,
+        "pe": 48.51,
+        "market_cap_cr": 50516.36,
+        "div_yield_pct": 0.98,
+        "net_profit_qtr_cr": 129.72,
+        "qtr_profit_var_pct": -25.37,
+        "sales_qtr_cr": 6582.82,
+        "qtr_sales_var_pct": 10.45,
+        "roce_pct": 14.63,
+        "full_name": "Tata Communications Ltd",
+        "nse_symbol": "TATACOMM",
+        "bse_code": "500483",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 5960.0,
+                "expenditure": 4823.0,
+                "profit": 190.0,
+                "operating_profit": 1137.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 6100.0,
+                "expenditure": 4926.0,
+                "profit": 183.0,
+                "operating_profit": 1174.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 6189.0,
+                "expenditure": 4961.0,
+                "profit": 364.0,
+                "operating_profit": 1228.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 6554.0,
+                "expenditure": 5270.0,
+                "profit": 259.0,
+                "operating_profit": 1284.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 6583.0,
+                "expenditure": 5353.0,
+                "profit": 130.0,
+                "operating_profit": 1230.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/tata-communications-ltd/tatacomm/500483/brsr"
+    },
+    {
+        "s_no": 7,
+        "name": "HFCL",
+        "url": "https://www.screener.in/company/HFCL/consolidated/",
+        "cmp_rs": 194.05,
+        "pe": 51.89,
+        "market_cap_cr": 29701.41,
+        "div_yield_pct": 0.05,
+        "net_profit_qtr_cr": 245.64,
+        "qtr_profit_var_pct": 809.06,
+        "sales_qtr_cr": 1914.98,
+        "qtr_sales_var_pct": 119.85,
+        "roce_pct": 10.86,
+        "full_name": "HFCL Ltd",
+        "nse_symbol": "HFCL",
+        "bse_code": "500183",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 871.0,
+                "expenditure": 843.0,
+                "profit": -29.0,
+                "operating_profit": 28.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 1043.0,
+                "expenditure": 853.0,
+                "profit": 72.0,
+                "operating_profit": 190.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 1211.0,
+                "expenditure": 983.0,
+                "profit": 102.0,
+                "operating_profit": 228.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 1824.0,
+                "expenditure": 1510.0,
+                "profit": 184.0,
+                "operating_profit": 314.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 1915.0,
+                "expenditure": 1501.0,
+                "profit": 246.0,
+                "operating_profit": 414.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/hfcl-ltd/hfcl/500183/brsr"
+    },
+    {
+        "s_no": 8,
+        "name": "Sterlite Tech.",
+        "url": "https://www.screener.in/company/STLTECH/consolidated/",
+        "cmp_rs": 556.5,
+        "pe": 121.07,
+        "market_cap_cr": 28599.16,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 197.0,
+        "qtr_profit_var_pct": 1870.0,
+        "sales_qtr_cr": 1910.0,
+        "qtr_sales_var_pct": 87.44,
+        "roce_pct": 7.65,
+        "full_name": "Sterlite Technologies Ltd",
+        "nse_symbol": "STLTECH",
+        "bse_code": "532374",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 1019.0,
+                "expenditure": 887.0,
+                "profit": 10.0,
+                "operating_profit": 132.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 1034.0,
+                "expenditure": 905.0,
+                "profit": 4.0,
+                "operating_profit": 129.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 1257.0,
+                "expenditure": 1137.0,
+                "profit": -17.0,
+                "operating_profit": 120.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 1441.0,
+                "expenditure": 1246.0,
+                "profit": 59.0,
+                "operating_profit": 195.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 1910.0,
+                "expenditure": 1525.0,
+                "profit": 197.0,
+                "operating_profit": 385.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/sterlite-technologies-ltd/stltech/532374/brsr"
+    },
+    {
+        "s_no": 9,
+        "name": "ITI",
+        "url": "https://www.screener.in/company/ITI/consolidated/",
+        "cmp_rs": 275.5,
+        "pe": null,
+        "market_cap_cr": 26535.04,
+        "div_yield_pct": 0.0,
+        "net_profit_qtr_cr": 435.91,
+        "qtr_profit_var_pct": 65.61,
+        "sales_qtr_cr": 627.65,
+        "qtr_sales_var_pct": -39.98,
+        "roce_pct": 1.43,
+        "full_name": "ITI Ltd",
+        "nse_symbol": "ITI",
+        "bse_code": "523610",
+        "quarterly_financials": [
+            {
+                "quarter": "Mar 2025",
+                "revenue": 1046.0,
+                "expenditure": 1074.0,
+                "profit": -4.0,
+                "operating_profit": -28.0
+            },
+            {
+                "quarter": "Jun 2025",
+                "revenue": 498.0,
+                "expenditure": 506.0,
+                "profit": -64.0,
+                "operating_profit": -8.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 543.0,
+                "expenditure": 545.0,
+                "profit": -54.0,
+                "operating_profit": -1.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 515.0,
+                "expenditure": 489.0,
+                "profit": -25.0,
+                "operating_profit": 25.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 628.0,
+                "expenditure": 601.0,
+                "profit": 436.0,
+                "operating_profit": 27.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/iti-ltd/iti/523610/brsr"
+    },
+    {
+        "s_no": 10,
+        "name": "Tejas Networks",
+        "url": "https://www.screener.in/company/TEJASNET/consolidated/",
+        "cmp_rs": 519.15,
+        "pe": null,
+        "market_cap_cr": 9239.53,
+        "div_yield_pct": 0.48,
+        "net_profit_qtr_cr": -202.24,
+        "qtr_profit_var_pct": -4.32,
+        "sales_qtr_cr": 402.16,
+        "qtr_sales_var_pct": 99.11,
+        "roce_pct": -14.64,
+        "full_name": "Tejas Networks Ltd",
+        "nse_symbol": "TEJASNET",
+        "bse_code": "540595",
+        "quarterly_financials": [
+            {
+                "quarter": "Jun 2025",
+                "revenue": 202.0,
+                "expenditure": 338.0,
+                "profit": -194.0,
+                "operating_profit": -136.0
+            },
+            {
+                "quarter": "Sep 2025",
+                "revenue": 262.0,
+                "expenditure": 556.0,
+                "profit": -307.0,
+                "operating_profit": -294.0
+            },
+            {
+                "quarter": "Dec 2025",
+                "revenue": 307.0,
+                "expenditure": 441.0,
+                "profit": -197.0,
+                "operating_profit": -134.0
+            },
+            {
+                "quarter": "Mar 2026",
+                "revenue": 333.0,
+                "expenditure": 451.0,
+                "profit": -211.0,
+                "operating_profit": -118.0
+            },
+            {
+                "quarter": "Jun 2026",
+                "revenue": 402.0,
+                "expenditure": 503.0,
+                "profit": -202.0,
+                "operating_profit": -100.0
+            }
+        ],
+        "bse_url": "https://www.bseindia.com/stock-share-price/tejas-networks-ltd/tejasnet/540595/brsr"
+    }
+]
