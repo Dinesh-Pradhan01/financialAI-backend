@@ -27,6 +27,9 @@ from sqlalchemy.dialects.postgresql import UUID
 class UserRole(str, Enum):
     USER = "user"
     ADMIN = "admin"
+    CEO = "ceo"
+    CFO = "cfo"
+    HR = "hr"
 
 
 # ---------------------------------------------------------------------------
@@ -56,6 +59,9 @@ class User(TimestampMixin, Base):
     )
     business_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True), ForeignKey("general_info.id"), nullable=True
+    )
+    invited_by_user_id: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
     
     sessions: Mapped[list["Session"]] = relationship(

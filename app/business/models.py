@@ -72,6 +72,14 @@ class LeadershipInfo(TimestampMixin, Base):
     primary_product_service: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     business_description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
+    cfo_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    cfo_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    cfo_additional_info: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    hr_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    hr_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    hr_additional_info: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
     business: Mapped["GeneralInfo"] = relationship("GeneralInfo", back_populates="leadership_info")
 
 

@@ -69,6 +69,18 @@ async def get_or_create_user(
             await db.flush()
             logger.info("Updated email info for user %s", firebase_id)
             
+        # Check if they have a pending invite and accept it (update role & business)
+        from app.business.invite_model import TeamInvite
+        invite_stmt = select(TeamInvite).where(TeamInvite.email == email, TeamInvite.status == "pending")
+        invite_res = await db.execute(invite_stmt)
+        invite = invite_res.scalar_one_or_none()
+        if invite:
+            existing.role = invite.role
+            existing.business_id = invite.business_id
+            invite.status = "accepted"
+            await db.flush()
+            logger.info("Accepted invite for existing user %s and updated role to %s", firebase_id, invite.role)
+            
         # Backwards compatibility migration: Create & link a Person if person_id is null
         if existing.person_id is None:
             from sqlalchemy.exc import IntegrityError
@@ -132,13 +144,28 @@ async def get_or_create_user(
     # 2. Create the new User and link to Person
     try:
         async with db.begin_nested():
+            # Check if this email was invited to a team
+            from app.business.invite_model import TeamInvite
+            invite_stmt = select(TeamInvite).where(TeamInvite.email == email, TeamInvite.status == "pending")
+            invite_res = await db.execute(invite_stmt)
+            invite = invite_res.scalar_one_or_none()
+
+            role = UserRole.USER.value
+            business_id = person.business_id
+
+            if invite:
+                role = invite.role
+                business_id = invite.business_id
+                person.business_id = business_id
+                invite.status = "accepted"
+
             user = User(
                 firebase_id=firebase_id,
                 email=email,
                 email_verified=email_verified,
                 person_id=person.id,
-                business_id=person.business_id,
-                role=UserRole.USER.value,
+                business_id=business_id,
+                role=role,
                 is_active=True,
                 created_at=now,
                 updated_at=now,

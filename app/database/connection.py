@@ -52,6 +52,7 @@ class PostgreSQLConnectionManager:
         """Creates tables dynamically in the PostgreSQL database if they don't exist."""
         from app.database.models import Base
         import app.business.models  # Register business models with Base.metadata
+        import app.business.invite_model  # Register invite models
         if self.engine is None:
             raise RuntimeError("Database engine not initialized. Please call connect() first.")
         try:
@@ -107,6 +108,28 @@ class PostgreSQLConnectionManager:
                     await conn.execute(text("ALTER TABLE persons ADD COLUMN business_id UUID REFERENCES general_info(id) ON DELETE SET NULL;"))
                 if not await column_exists("users", "business_id"):
                     await conn.execute(text("ALTER TABLE users ADD COLUMN business_id UUID REFERENCES general_info(id) ON DELETE SET NULL;"))
+                if not await column_exists("users", "invited_by_user_id"):
+                    await conn.execute(text("ALTER TABLE users ADD COLUMN invited_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;"))
+                if not await column_exists("team_invites", "additional_info"):
+                    # Table might not exist yet if it's the very first run, but create_all runs above so it should exist
+                    try:
+                        await conn.execute(text("ALTER TABLE team_invites ADD COLUMN additional_info VARCHAR(1000);"))
+                    except Exception:
+                        pass
+                
+                # New LeadershipInfo columns for CFO and HR
+                if not await column_exists("leadership_info", "cfo_name"):
+                    await conn.execute(text("ALTER TABLE leadership_info ADD COLUMN cfo_name VARCHAR(255);"))
+                if not await column_exists("leadership_info", "cfo_email"):
+                    await conn.execute(text("ALTER TABLE leadership_info ADD COLUMN cfo_email VARCHAR(255);"))
+                if not await column_exists("leadership_info", "cfo_additional_info"):
+                    await conn.execute(text("ALTER TABLE leadership_info ADD COLUMN cfo_additional_info TEXT;"))
+                if not await column_exists("leadership_info", "hr_name"):
+                    await conn.execute(text("ALTER TABLE leadership_info ADD COLUMN hr_name VARCHAR(255);"))
+                if not await column_exists("leadership_info", "hr_email"):
+                    await conn.execute(text("ALTER TABLE leadership_info ADD COLUMN hr_email VARCHAR(255);"))
+                if not await column_exists("leadership_info", "hr_additional_info"):
+                    await conn.execute(text("ALTER TABLE leadership_info ADD COLUMN hr_additional_info TEXT;"))
 
                 # Alter users.person_id type from INTEGER to UUID and configure foreign key safely
                 result = await conn.execute(text(

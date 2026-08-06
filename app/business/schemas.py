@@ -61,6 +61,12 @@ class LeadershipInfoResponseSchema(BaseModel):
     business_model: Optional[str] = None
     primary_product_service: Optional[str] = None
     business_description: Optional[str] = None
+    cfo_name: Optional[str] = None
+    cfo_email: Optional[str] = None
+    cfo_additional_info: Optional[str] = None
+    hr_name: Optional[str] = None
+    hr_email: Optional[str] = None
+    hr_additional_info: Optional[str] = None
 
 
 class FinancialInfoSaveSchema(BaseModel):
@@ -87,6 +93,28 @@ class DocumentResponseSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class TeamInviteSaveSchema(BaseModel):
+    ceo_name: Optional[str] = None
+    ceo_additional_info: Optional[str] = None
+    cfo_name: str
+    cfo_email: EmailStr
+    cfo_additional_info: Optional[str] = None
+    hr_name: str
+    hr_email: EmailStr
+    hr_additional_info: Optional[str] = None
+
+class TeamInviteResponseSchema(BaseModel):
+    id: uuid.UUID
+    role: str
+    full_name: str
+    email: str
+    status: str
+    additional_info: Optional[str] = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 class BusinessOnboardingFullResponse(BaseModel):
     business_id: Optional[uuid.UUID] = None
     current_step: int = 1
@@ -97,3 +125,5 @@ class BusinessOnboardingFullResponse(BaseModel):
     financial_info: Optional[FinancialInfoSaveSchema] = None
     verification_status: str = "pending"
     documents: List[DocumentResponseSchema] = Field(default_factory=list)
+    team_invites: List[TeamInviteResponseSchema] = Field(default_factory=list)
+
