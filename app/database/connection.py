@@ -68,10 +68,10 @@ class PostgreSQLConnectionManager:
                     ))
                     return res.fetchone() is not None
 
-                if not await column_exists("documents", "person_id"):
-                    await conn.execute(text("ALTER TABLE documents ADD COLUMN person_id UUID REFERENCES persons(id) ON DELETE CASCADE;"))
-                if not await column_exists("accounts", "person_id"):
-                    await conn.execute(text("ALTER TABLE accounts ADD COLUMN person_id UUID REFERENCES persons(id) ON DELETE CASCADE;"))
+                if not await column_exists("documents", "business_id"):
+                    await conn.execute(text("ALTER TABLE documents ADD COLUMN business_id UUID REFERENCES general_info(id) ON DELETE CASCADE;"))
+                if not await column_exists("accounts", "business_id"):
+                    await conn.execute(text("ALTER TABLE accounts ADD COLUMN business_id UUID REFERENCES general_info(id) ON DELETE CASCADE;"))
                 if not await column_exists("accounts", "account_type"):
                     await conn.execute(text("ALTER TABLE accounts ADD COLUMN account_type VARCHAR(50) DEFAULT 'savings';"))
                 if not await column_exists("transactions", "merchant_id"):
@@ -79,33 +79,6 @@ class PostgreSQLConnectionManager:
                 if not await column_exists("transactions", "classification"):
                     await conn.execute(text("ALTER TABLE transactions ADD COLUMN classification VARCHAR(50) DEFAULT 'expense';"))
 
-                # New onboarding columns on persons table
-                if not await column_exists("persons", "phone"):
-                    await conn.execute(text("ALTER TABLE persons ADD COLUMN phone VARCHAR(20);"))
-                if not await column_exists("persons", "date_of_birth"):
-                    await conn.execute(text("ALTER TABLE persons ADD COLUMN date_of_birth TIMESTAMP;"))
-                if not await column_exists("persons", "gender"):
-                    await conn.execute(text("ALTER TABLE persons ADD COLUMN gender VARCHAR(20);"))
-                if not await column_exists("persons", "address"):
-                    await conn.execute(text("ALTER TABLE persons ADD COLUMN address VARCHAR(500);"))
-                if not await column_exists("persons", "city"):
-                    await conn.execute(text("ALTER TABLE persons ADD COLUMN city VARCHAR(100);"))
-                if not await column_exists("persons", "state"):
-                    await conn.execute(text("ALTER TABLE persons ADD COLUMN state VARCHAR(100);"))
-                if not await column_exists("persons", "pincode"):
-                    await conn.execute(text("ALTER TABLE persons ADD COLUMN pincode VARCHAR(10);"))
-                if not await column_exists("persons", "pan_number"):
-                    await conn.execute(text("ALTER TABLE persons ADD COLUMN pan_number VARCHAR(10);"))
-                if not await column_exists("persons", "occupation"):
-                    await conn.execute(text("ALTER TABLE persons ADD COLUMN occupation VARCHAR(100);"))
-                if not await column_exists("persons", "bank_count"):
-                    await conn.execute(text("ALTER TABLE persons ADD COLUMN bank_count INTEGER;"))
-                if not await column_exists("persons", "primary_bank"):
-                    await conn.execute(text("ALTER TABLE persons ADD COLUMN primary_bank VARCHAR(100);"))
-                if not await column_exists("persons", "profile_completed"):
-                    await conn.execute(text("ALTER TABLE persons ADD COLUMN profile_completed BOOLEAN DEFAULT FALSE NOT NULL;"))
-                if not await column_exists("persons", "business_id"):
-                    await conn.execute(text("ALTER TABLE persons ADD COLUMN business_id UUID REFERENCES general_info(id) ON DELETE SET NULL;"))
                 if not await column_exists("users", "business_id"):
                     await conn.execute(text("ALTER TABLE users ADD COLUMN business_id UUID REFERENCES general_info(id) ON DELETE SET NULL;"))
                 if not await column_exists("users", "invited_by_user_id"):
@@ -117,32 +90,15 @@ class PostgreSQLConnectionManager:
                     except Exception:
                         pass
                 
-                # New LeadershipInfo columns for CFO and HR
-                if not await column_exists("leadership_info", "cfo_name"):
-                    await conn.execute(text("ALTER TABLE leadership_info ADD COLUMN cfo_name VARCHAR(255);"))
-                if not await column_exists("leadership_info", "cfo_email"):
-                    await conn.execute(text("ALTER TABLE leadership_info ADD COLUMN cfo_email VARCHAR(255);"))
-                if not await column_exists("leadership_info", "cfo_additional_info"):
-                    await conn.execute(text("ALTER TABLE leadership_info ADD COLUMN cfo_additional_info TEXT;"))
-                if not await column_exists("leadership_info", "hr_name"):
-                    await conn.execute(text("ALTER TABLE leadership_info ADD COLUMN hr_name VARCHAR(255);"))
-                if not await column_exists("leadership_info", "hr_email"):
-                    await conn.execute(text("ALTER TABLE leadership_info ADD COLUMN hr_email VARCHAR(255);"))
-                if not await column_exists("leadership_info", "hr_additional_info"):
-                    await conn.execute(text("ALTER TABLE leadership_info ADD COLUMN hr_additional_info TEXT;"))
+                # LeadershipInfo schema updates
+                if not await column_exists("leadership_info", "founder_ceo_designation"):
+                    await conn.execute(text("ALTER TABLE leadership_info ADD COLUMN founder_ceo_designation VARCHAR(100);"))
 
-                # Alter users.person_id type from INTEGER to UUID and configure foreign key safely
-                result = await conn.execute(text(
-                    "SELECT data_type FROM information_schema.columns "
-                    "WHERE table_name = 'users' AND column_name = 'person_id';"
-                ))
-                row = result.fetchone()
-                if row and row[0] != 'uuid':
-                    logger.info("Migrating users.person_id from INTEGER to UUID...")
-                    await conn.execute(text("ALTER TABLE users ALTER COLUMN person_id TYPE UUID USING person_id::text::uuid;"))
-                    await conn.execute(text("ALTER TABLE users DROP CONSTRAINT IF EXISTS fk_users_person_id;"))
-                    await conn.execute(text("ALTER TABLE users ADD CONSTRAINT fk_users_person_id FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE SET NULL;"))
-                    logger.info("users.person_id column successfully migrated to UUID.")
+                # Drop columns removed from LeadershipInfo
+                for col in ["primary_contact_person", "designation", "years_in_business", "cfo_additional_info", "hr_additional_info"]:
+                    if await column_exists("leadership_info", col):
+                        await conn.execute(text(f"ALTER TABLE leadership_info DROP COLUMN {col};"))
+
             logger.info("Database tables and migrations verified/created successfully.")
         except Exception as e:
             logger.error(f"Error creating database tables and running migrations: {e}")
@@ -172,6 +128,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise e
         finally:
             await session.close()
+
 async def init_db() -> None:
     """Initialize database connection manager and verify tables/migrations."""
     db_manager.connect()

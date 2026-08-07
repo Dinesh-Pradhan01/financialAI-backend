@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import get_current_session_user
 from app.auth.model import User
 from app.database.connection import get_db
-from app.database.models import Person
+
 import pypdf
 from app.ai.llm import gemini_service
 from app.business.models import (
@@ -67,7 +67,7 @@ def calculate_completion_percentage(
 
     # Step 2: Business Info (20%)
     if info:
-        step2_fields = [info.primary_contact_person, info.founder_ceo_name, info.business_model, info.primary_product_service]
+        step2_fields = [info.founder_ceo_name, info.business_model, info.primary_product_service]
         step2_filled = sum(1 for f in step2_fields if f)
         score += (step2_filled / len(step2_fields)) * 20.0
 
@@ -95,14 +95,7 @@ async def get_or_fetch_user_business(
         if gen:
             return gen
 
-    if user.person_id:
-        res = await db.execute(select(GeneralInfo).where(GeneralInfo.person_id == user.person_id))
-        gen = res.scalar_one_or_none()
-        if gen:
-            # Link to user
-            user.business_id = gen.id
-            await db.flush()
-            return gen
+
 
     return None
 
@@ -161,20 +154,26 @@ async def build_full_onboarding_response(
 
     info_schema = LeadershipInfoResponseSchema(
         founder_ceo_name=info.founder_ceo_name,
-        primary_contact_person=info.primary_contact_person,
-        designation=info.designation,
-        years_in_business=info.years_in_business,
+        founder_ceo_email=info.founder_ceo_email,
+        founder_ceo_phone=info.founder_ceo_phone,
+        founder_ceo_designation=info.founder_ceo_designation,
         number_of_employees=info.number_of_employees,
         number_of_branches=info.number_of_branches,
         business_model=info.business_model,
         primary_product_service=info.primary_product_service,
         business_description=info.business_description,
+        
         cfo_name=info.cfo_name,
         cfo_email=info.cfo_email,
-        cfo_additional_info=info.cfo_additional_info,
+        cfo_phone=info.cfo_phone,
+        cfo_designation=info.cfo_designation,
+        invite_cfo=info.invite_cfo,
+        
         hr_name=info.hr_name,
         hr_email=info.hr_email,
-        hr_additional_info=info.hr_additional_info,
+        hr_phone=info.hr_phone,
+        hr_designation=info.hr_designation,
+        invite_hr=info.invite_hr,
     ) if info else None
 
     fin_schema = FinancialInfoSaveSchema(
@@ -232,7 +231,7 @@ async def save_step1_general_info(
     if not gen:
         gen = GeneralInfo(
             id=uuid.uuid4(),
-            person_id=current_user.person_id,
+
             company_name=payload.company_name.strip(),
             business_category=payload.business_category,
             business_type=payload.business_type,
@@ -255,11 +254,7 @@ async def save_step1_general_info(
         await db.flush()
 
         current_user.business_id = gen.id
-        if current_user.person_id:
-            person_res = await db.execute(select(Person).where(Person.id == current_user.person_id))
-            person = person_res.scalar_one_or_none()
-            if person:
-                person.business_id = gen.id
+
     else:
         gen.company_name = payload.company_name.strip()
         gen.business_category = payload.business_category
@@ -283,9 +278,9 @@ async def save_step1_general_info(
     return await build_full_onboarding_response(gen, db)
 
 
-@router.post("/step/2", response_model=BusinessOnboardingFullResponse, summary="Save Step 2 Team Members")
+@router.post("/step/2", response_model=BusinessOnboardingFullResponse, summary="Save Step 2 Leadership & Organization")
 async def save_step2_team_members(
-    payload: TeamInviteSaveSchema,
+    payload: LeadershipInfoSaveSchema,
     current_user: User = Depends(get_current_session_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -296,38 +291,63 @@ async def save_step2_team_members(
             detail="Please complete Step 1 (General Information) first."
         )
 
-    # Save CEO Info to LeadershipInfo
+    # Save Leadership Info
     info_res = await db.execute(select(LeadershipInfo).where(LeadershipInfo.business_id == gen.id))
     info = info_res.scalar_one_or_none()
     if not info:
         info = LeadershipInfo(
             business_id=gen.id,
-            founder_ceo_name=payload.ceo_name,
-            primary_contact_person=payload.ceo_name or "CEO",
-            business_description=payload.ceo_additional_info,
+            founder_ceo_name=payload.founder_ceo_name,
+            founder_ceo_email=payload.founder_ceo_email,
+            founder_ceo_phone=payload.founder_ceo_phone,
+            founder_ceo_designation=payload.founder_ceo_designation,
+            number_of_employees=payload.number_of_employees,
+            number_of_branches=payload.number_of_branches,
+            business_model=payload.business_model,
+            primary_product_service=payload.primary_product_service,
+            business_description=payload.business_description,
+            
             cfo_name=payload.cfo_name,
             cfo_email=payload.cfo_email,
-            cfo_additional_info=payload.cfo_additional_info,
+            cfo_phone=payload.cfo_phone,
+            cfo_designation=payload.cfo_designation,
+            invite_cfo=payload.invite_cfo,
+            
             hr_name=payload.hr_name,
             hr_email=payload.hr_email,
-            hr_additional_info=payload.hr_additional_info
+            hr_phone=payload.hr_phone,
+            hr_designation=payload.hr_designation,
+            invite_hr=payload.invite_hr,
         )
         db.add(info)
     else:
-        info.founder_ceo_name = payload.ceo_name
-        info.primary_contact_person = payload.ceo_name or info.primary_contact_person
-        info.business_description = payload.ceo_additional_info
+        info.founder_ceo_name = payload.founder_ceo_name
+        info.founder_ceo_email = payload.founder_ceo_email
+        info.founder_ceo_phone = payload.founder_ceo_phone
+        info.founder_ceo_designation = payload.founder_ceo_designation
+        info.number_of_employees = payload.number_of_employees
+        info.number_of_branches = payload.number_of_branches
+        info.business_model = payload.business_model
+        info.primary_product_service = payload.primary_product_service
+        info.business_description = payload.business_description
+        
         info.cfo_name = payload.cfo_name
         info.cfo_email = payload.cfo_email
-        info.cfo_additional_info = payload.cfo_additional_info
+        info.cfo_phone = payload.cfo_phone
+        info.cfo_designation = payload.cfo_designation
+        info.invite_cfo = payload.invite_cfo
+        
         info.hr_name = payload.hr_name
         info.hr_email = payload.hr_email
-        info.hr_additional_info = payload.hr_additional_info
+        info.hr_phone = payload.hr_phone
+        info.hr_designation = payload.hr_designation
+        info.invite_hr = payload.invite_hr
 
-    roles_to_invite = [
-        ("cfo", payload.cfo_name, payload.cfo_email, payload.cfo_additional_info),
-        ("hr", payload.hr_name, payload.hr_email, payload.hr_additional_info)
-    ]
+    roles_to_invite = []
+    if payload.invite_cfo and payload.cfo_email and payload.cfo_name:
+        roles_to_invite.append(("cfo", payload.cfo_name, payload.cfo_email, None))
+    if payload.invite_hr and payload.hr_email and payload.hr_name:
+        roles_to_invite.append(("hr", payload.hr_name, payload.hr_email, None))
 
     for role, name, email, add_info in roles_to_invite:
         # Check if invite exists
@@ -460,7 +480,7 @@ async def upload_verification_document(
         # Create skeleton profile since document upload is now Step 1
         gen = GeneralInfo(
             id=uuid.uuid4(),
-            person_id=current_user.person_id,
+
             company_name="",
             business_category="Others",
             business_type="Private Limited",
@@ -477,11 +497,7 @@ async def upload_verification_document(
         await db.flush()
         
         current_user.business_id = gen.id
-        if current_user.person_id:
-            person_res = await db.execute(select(Person).where(Person.id == current_user.person_id))
-            person = person_res.scalar_one_or_none()
-            if person:
-                person.business_id = gen.id
+
 
     # Directory for this business
     biz_dir = os.path.join(UPLOAD_DIR, str(gen.id))
@@ -637,12 +653,7 @@ async def complete_business_onboarding(
     else:
         ver.verification_status = "completed"
 
-    if current_user.person_id:
-        person_res = await db.execute(select(Person).where(Person.id == current_user.person_id))
-        person = person_res.scalar_one_or_none()
-        if person:
-            person.profile_completed = True
-            person.business_id = gen.id
+
 
     if current_user.role == "user":
         current_user.role = "ceo"

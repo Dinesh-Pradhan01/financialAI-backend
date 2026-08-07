@@ -42,31 +42,49 @@ class GeneralInfoResponseSchema(BaseModel):
 
 class LeadershipInfoSaveSchema(BaseModel):
     founder_ceo_name: Optional[str] = None
-    primary_contact_person: str = Field(..., min_length=2)
-    designation: Optional[str] = None
-    years_in_business: Optional[str] = None
+    founder_ceo_email: Optional[str] = None
+    founder_ceo_phone: Optional[str] = None
+    founder_ceo_designation: Optional[str] = None
     number_of_employees: Optional[str] = None
     number_of_branches: Optional[str] = None
     business_model: Optional[str] = None
     primary_product_service: Optional[str] = None
     business_description: Optional[str] = None
+    
+    cfo_name: Optional[str] = None
+    cfo_email: Optional[str] = None
+    cfo_phone: Optional[str] = None
+    cfo_designation: Optional[str] = None
+    invite_cfo: Optional[bool] = False
+    
+    hr_name: Optional[str] = None
+    hr_email: Optional[str] = None
+    hr_phone: Optional[str] = None
+    hr_designation: Optional[str] = None
+    invite_hr: Optional[bool] = False
 
 class LeadershipInfoResponseSchema(BaseModel):
     founder_ceo_name: Optional[str] = None
-    primary_contact_person: str
-    designation: Optional[str] = None
-    years_in_business: Optional[str] = None
+    founder_ceo_email: Optional[str] = None
+    founder_ceo_phone: Optional[str] = None
+    founder_ceo_designation: Optional[str] = None
     number_of_employees: Optional[str] = None
     number_of_branches: Optional[str] = None
     business_model: Optional[str] = None
     primary_product_service: Optional[str] = None
     business_description: Optional[str] = None
+    
     cfo_name: Optional[str] = None
     cfo_email: Optional[str] = None
-    cfo_additional_info: Optional[str] = None
+    cfo_phone: Optional[str] = None
+    cfo_designation: Optional[str] = None
+    invite_cfo: Optional[bool] = False
+    
     hr_name: Optional[str] = None
     hr_email: Optional[str] = None
-    hr_additional_info: Optional[str] = None
+    hr_phone: Optional[str] = None
+    hr_designation: Optional[str] = None
+    invite_hr: Optional[bool] = False
 
 
 class FinancialInfoSaveSchema(BaseModel):
@@ -95,13 +113,10 @@ class DocumentResponseSchema(BaseModel):
 
 class TeamInviteSaveSchema(BaseModel):
     ceo_name: Optional[str] = None
-    ceo_additional_info: Optional[str] = None
     cfo_name: str
     cfo_email: EmailStr
-    cfo_additional_info: Optional[str] = None
     hr_name: str
     hr_email: EmailStr
-    hr_additional_info: Optional[str] = None
 
 class TeamInviteResponseSchema(BaseModel):
     id: uuid.UUID

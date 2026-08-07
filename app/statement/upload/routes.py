@@ -11,6 +11,7 @@ from sqlalchemy import delete
 from app.database.connection import get_db
 from app.database.repository import BaseRepository
 from app.database.models import Account, ProcessingMetadata, Transaction
+from app.business.models import GeneralInfo
 from app.statement.review.validator import StatementValidator
 from app.storage.file_manager import file_manager
 from app.statement.service import StatementProcessingService
@@ -30,7 +31,7 @@ router = APIRouter(prefix="/api/statements", tags=["Statements"])
 async def upload_single_statement(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    person_id: Optional[str] = Query(None, description="The user/person ID associating this statement"),
+    business_id: Optional[str] = Query(None, description="The business ID associating this statement"),
     current_user: User = Depends(get_current_session_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -67,35 +68,30 @@ async def upload_single_statement(
     file_size = len(content)
     await file.seek(0)
     
-    # 3b. Setup / Verify Person record association (with role boundaries)
-    person_repo = BaseRepository(db, "persons")
+    # 3b. Setup / Verify Business record association (with role boundaries)
+    business_repo = BaseRepository(db, "general_info")
     
-    if current_user.role == "admin" and person_id:
+    if current_user.role == "admin" and business_id:
         try:
-            person_uuid = uuid.UUID(person_id)
+            business_uuid = uuid.UUID(business_id)
         except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid person_id UUID format.")
-        person = await person_repo.get_by_id(str(person_uuid))
-        if not person:
-            await person_repo.create({
-                "id": person_uuid,
-                "email": f"user_{person_id[:8]}@example.com",
-                "full_name": f"User {person_id[:8]}",
-                "created_at": datetime.utcnow()
-            })
+            raise HTTPException(status_code=400, detail="Invalid business_id UUID format.")
+        business = await business_repo.get_by_id(str(business_uuid))
+        if not business:
+            raise HTTPException(status_code=400, detail="Business profile not found for this business_id.")
     else:
-        if not current_user.person_id:
+        if not current_user.business_id:
             raise HTTPException(
                 status_code=400,
-                detail="No person profile associated with the current user."
+                detail="No business profile associated with the current user."
             )
-        person_uuid = current_user.person_id
+        business_uuid = current_user.business_id
 
-    person_id_str = str(person_uuid)
+    business_id_str = str(business_uuid)
     
     # 4. Save document record in database
     doc_data = {
-        "person_id": person_uuid,
+        "business_id": business_uuid,
         "filename": file.filename,
         "original_name": file.filename,
         "hash_md5": md5_hash,
@@ -123,7 +119,7 @@ async def upload_single_statement(
         StatementProcessingService.process_statement_task,
         doc_id,
         file_path,
-        person_id_str
+        business_id_str
     )
     
     # Fetch database record to return initial state (PENDING)
@@ -134,7 +130,7 @@ async def upload_single_statement(
 async def upload_bulk_statements(
     background_tasks: BackgroundTasks,
     files: List[UploadFile] = File(...),
-    person_id: Optional[str] = Query(None, description="The user/person ID associating these statements"),
+    business_id: Optional[str] = Query(None, description="The business ID associating these statements"),
     current_user: User = Depends(get_current_session_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -142,31 +138,26 @@ async def upload_bulk_statements(
     Uploads multiple PDF statements.
     Processes each document asynchronously, returning success and failure logs.
     """
-    # Setup / Verify Person record association (with role boundaries)
-    person_repo = BaseRepository(db, "persons")
+    # Setup / Verify Business record association (with role boundaries)
+    business_repo = BaseRepository(db, "general_info")
     
-    if current_user.role == "admin" and person_id:
+    if current_user.role == "admin" and business_id:
         try:
-            person_uuid = uuid.UUID(person_id)
+            business_uuid = uuid.UUID(business_id)
         except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid person_id UUID format.")
-        person = await person_repo.get_by_id(str(person_uuid))
-        if not person:
-            await person_repo.create({
-                "id": person_uuid,
-                "email": f"user_{person_id[:8]}@example.com",
-                "full_name": f"User {person_id[:8]}",
-                "created_at": datetime.utcnow()
-            })
+            raise HTTPException(status_code=400, detail="Invalid business_id UUID format.")
+        business = await business_repo.get_by_id(str(business_uuid))
+        if not business:
+            raise HTTPException(status_code=400, detail="Business profile not found for this business_id.")
     else:
-        if not current_user.person_id:
+        if not current_user.business_id:
             raise HTTPException(
                 status_code=400,
-                detail="No person profile associated with the current user."
+                detail="No business profile associated with the current user."
             )
-        person_uuid = current_user.person_id
+        business_uuid = current_user.business_id
 
-    person_id_str = str(person_uuid)
+    business_id_str = str(business_uuid)
     uploaded = []
     errors = []
     document_repo = BaseRepository(db, "documents")
@@ -190,7 +181,7 @@ async def upload_bulk_statements(
             await file.seek(0)
             
             doc_data = {
-                "person_id": person_uuid,
+                "business_id": business_uuid,
                 "filename": file.filename,
                 "original_name": file.filename,
                 "hash_md5": md5_hash,
@@ -223,7 +214,7 @@ async def upload_bulk_statements(
             file_path = item.pop("file_path", None)
             background_tasks.add_task(
                 StatementProcessingService.process_statement_task,
-                item["document_id"], file_path, person_id_str
+                item["document_id"], file_path, business_id_str
             )
             item["status"] = DocumentStatus.PENDING
             
@@ -239,9 +230,9 @@ async def get_uploaded_documents(
     if current_user.role == "admin":
         docs = await document_repo.find({}, limit=100)
     else:
-        if not current_user.person_id:
+        if not current_user.business_id:
             return []
-        docs = await document_repo.find({"person_id": current_user.person_id}, limit=100)
+        docs = await document_repo.find({"business_id": current_user.business_id}, limit=100)
     return docs
 
 @router.get("/{id}", response_model=DocumentResponse)
@@ -261,7 +252,7 @@ async def get_document_by_id(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
         
-    if current_user.role != "admin" and doc.person_id != current_user.person_id:
+    if current_user.role != "admin" and doc.business_id != current_user.business_id:
         raise HTTPException(status_code=403, detail="Access denied to this document.")
         
     return doc
@@ -283,7 +274,7 @@ async def get_processing_status(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
         
-    if current_user.role != "admin" and doc.person_id != current_user.person_id:
+    if current_user.role != "admin" and doc.business_id != current_user.business_id:
         raise HTTPException(status_code=403, detail="Access denied to this document.")
         
     # Query metadata logs
@@ -325,7 +316,7 @@ async def get_extracted_statement(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
         
-    if current_user.role != "admin" and doc.person_id != current_user.person_id:
+    if current_user.role != "admin" and doc.business_id != current_user.business_id:
         raise HTTPException(status_code=403, detail="Access denied to this document.")
     
     # Query account information
@@ -362,7 +353,7 @@ async def get_transactions_by_statement_id(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
         
-    if current_user.role != "admin" and doc.person_id != current_user.person_id:
+    if current_user.role != "admin" and doc.business_id != current_user.business_id:
         raise HTTPException(status_code=403, detail="Access denied to this document.")
         
     transaction_repo = BaseRepository(db, "transactions")
@@ -398,7 +389,7 @@ async def reprocess_statement(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
         
-    if current_user.role != "admin" and doc.person_id != current_user.person_id:
+    if current_user.role != "admin" and doc.business_id != current_user.business_id:
         raise HTTPException(status_code=403, detail="Access denied to this document.")
         
     # Check if local file exists
@@ -424,13 +415,13 @@ async def reprocess_statement(
     await db.commit()
     
     # 3. Execute processing task in the background
-    person_id_str = str(doc.person_id) if doc.person_id else None
+    business_id_str = str(doc.business_id) if doc.business_id else None
     logger.info(f"==> Enqueuing re-extraction pipeline to background tasks. Document ID: {id}")
     background_tasks.add_task(
         StatementProcessingService.process_statement_task,
         id,
         file_path,
-        person_id_str
+        business_id_str
     )
     
     # Refresh to return status PENDING
@@ -458,7 +449,7 @@ async def delete_uploaded_statement(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
         
-    if current_user.role != "admin" and doc.person_id != current_user.person_id:
+    if current_user.role != "admin" and doc.business_id != current_user.business_id:
         raise HTTPException(status_code=403, detail="Access denied to this document.")
         
     # 1. Remove file from storage

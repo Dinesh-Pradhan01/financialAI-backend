@@ -43,7 +43,6 @@ async def get_or_create_user(
 ) -> User:
     """
     Find an existing user by firebase_id, or create a new one.
-    Links the user to an isolated Person workspace record.
     """
     existing = await get_user_by_firebase_id(db, firebase_id)
 
@@ -81,67 +80,11 @@ async def get_or_create_user(
             await db.flush()
             logger.info("Accepted invite for existing user %s and updated role to %s", firebase_id, invite.role)
             
-        # Backwards compatibility migration: Create & link a Person if person_id is null
-        if existing.person_id is None:
-            from sqlalchemy.exc import IntegrityError
-            from app.database.models import Person
-            # Check if a Person record with this email already exists
-            person_stmt = select(Person).where(Person.email == email)
-            person_res = await db.execute(person_stmt)
-            person = person_res.scalar_one_or_none()
-
-            if person is None:
-                try:
-                    async with db.begin_nested():
-                        person = Person(
-                            email=email,
-                            full_name=email.split("@")[0].capitalize(),
-                            created_at=datetime.utcnow()
-                        )
-                        db.add(person)
-                        await db.flush()
-                        logger.info("Created new Person %s for existing user %s", person.id, firebase_id)
-                except IntegrityError:
-                    person_stmt = select(Person).where(Person.email == email)
-                    person_res = await db.execute(person_stmt)
-                    person = person_res.scalar_one()
-                    logger.info("Person record was created concurrently for %s", email)
-            else:
-                logger.info("Found existing Person record %s for existing user %s, reusing it", person.id, firebase_id)
-
-            existing.person_id = person.id
-            existing.updated_at = now
-            await db.flush()
-            logger.info("Migrated and linked Person %s for existing user %s", person.id, firebase_id)
-            
         return existing
 
-    # 1. Check if a Person record with this email already exists
     from sqlalchemy.exc import IntegrityError
-    from app.database.models import Person
-    person_stmt = select(Person).where(Person.email == email)
-    person_res = await db.execute(person_stmt)
-    person = person_res.scalar_one_or_none()
 
-    if person is None:
-        try:
-            async with db.begin_nested():
-                person = Person(
-                    email=email,
-                    full_name=email.split("@")[0].capitalize(),
-                    created_at=datetime.utcnow()
-                )
-                db.add(person)
-                await db.flush()  # Populates person.id UUID
-        except IntegrityError:
-            person_stmt = select(Person).where(Person.email == email)
-            person_res = await db.execute(person_stmt)
-            person = person_res.scalar_one()
-            logger.info("Person record was created concurrently for %s", email)
-    else:
-        logger.info("Found existing Person record %s for email %s, reusing it for user signup", person.id, email)
-
-    # 2. Create the new User and link to Person
+    # Create the new User
     try:
         async with db.begin_nested():
             # Check if this email was invited to a team
@@ -151,19 +94,17 @@ async def get_or_create_user(
             invite = invite_res.scalar_one_or_none()
 
             role = UserRole.USER.value
-            business_id = person.business_id
+            business_id = None
 
             if invite:
                 role = invite.role
                 business_id = invite.business_id
-                person.business_id = business_id
                 invite.status = "accepted"
 
             user = User(
                 firebase_id=firebase_id,
                 email=email,
                 email_verified=email_verified,
-                person_id=person.id,
                 business_id=business_id,
                 role=role,
                 is_active=True,
@@ -184,7 +125,7 @@ async def get_or_create_user(
 
     await db.refresh(user)
 
-    logger.info("Created new user %s (%s) linked to Person %s", firebase_id, email, person.id)
+    logger.info("Created new user %s (%s)", firebase_id, email)
     return user
 
 

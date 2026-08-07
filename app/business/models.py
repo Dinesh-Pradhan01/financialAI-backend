@@ -13,9 +13,7 @@ class GeneralInfo(TimestampMixin, Base):
     __tablename__ = "general_info"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    person_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("persons.id", ondelete="CASCADE"), nullable=True, index=True
-    )
+
 
     company_name: Mapped[str] = mapped_column(String(255), nullable=False)
     business_category: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -63,9 +61,9 @@ class LeadershipInfo(TimestampMixin, Base):
     )
 
     founder_ceo_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    primary_contact_person: Mapped[str] = mapped_column(String(255), nullable=False)
-    designation: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    years_in_business: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    founder_ceo_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    founder_ceo_phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    founder_ceo_designation: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     number_of_employees: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     number_of_branches: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     business_model: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
@@ -74,11 +72,15 @@ class LeadershipInfo(TimestampMixin, Base):
 
     cfo_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     cfo_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    cfo_additional_info: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    cfo_phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    cfo_designation: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    invite_cfo: Mapped[Optional[bool]] = mapped_column(Boolean, default=False, nullable=True)
     
     hr_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     hr_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    hr_additional_info: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    hr_phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    hr_designation: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    invite_hr: Mapped[Optional[bool]] = mapped_column(Boolean, default=False, nullable=True)
 
     business: Mapped["GeneralInfo"] = relationship("GeneralInfo", back_populates="leadership_info")
 

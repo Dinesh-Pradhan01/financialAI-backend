@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class StatementProcessingService:
     @staticmethod
-    async def process_statement_task(document_id: str, file_path: str, person_id: Optional[str] = None):
+    async def process_statement_task(document_id: str, file_path: str, business_id: Optional[str] = None):
         """
         Asynchronous background task that orchestrates the entire extraction pipeline:
         1. Read text from PDF.
@@ -42,8 +42,8 @@ class StatementProcessingService:
                     "status": DocumentStatus.PROCESSING,
                     "updated_at": datetime.utcnow()
                 }
-                if person_id:
-                    update_data["person_id"] = uuid.UUID(person_id) if isinstance(person_id, str) else person_id
+                if business_id:
+                    update_data["business_id"] = uuid.UUID(business_id) if isinstance(business_id, str) else business_id
                 await document_repo.update(document_id, update_data)
                 await session.commit()
             except Exception as e:
@@ -156,7 +156,7 @@ class StatementProcessingService:
                 # Insert Account info
                 account_doc = {
                     "document_id": document_id,
-                    "person_id": uuid.UUID(person_id) if isinstance(person_id, str) else person_id,
+                    "business_id": uuid.UUID(business_id) if isinstance(business_id, str) else business_id,
                     "bank_name": extracted_data.get("bank_name", "Unknown Bank"),
                     "account_holder_name": extracted_data.get("account_holder_name", "Customer"),
                     "account_number": extracted_data.get("account_number", "Unknown"),

@@ -39,12 +39,7 @@ async def get_user_business(user: User, db: AsyncSession) -> GeneralInfo:
     if user.business_id:
         res = await db.execute(select(GeneralInfo).where(GeneralInfo.id == user.business_id))
         business = res.scalar_one_or_none()
-    elif user.person_id:
-        res = await db.execute(select(GeneralInfo).where(GeneralInfo.person_id == user.person_id))
-        business = res.scalar_one_or_none()
-        if business:
-            user.business_id = business.id
-            await db.flush()
+
     
     if not business:
         raise HTTPException(status_code=404, detail="Business profile not found.")
@@ -72,7 +67,7 @@ async def get_company_profile(
         website=business.website,
         summary=info.business_description if info else None,
         registered_address=business.registered_address,
-        contact_person=info.primary_contact_person if info else None,
+        contact_person=info.founder_ceo_name if info else None,
         email=business.official_email,
         phone=business.official_phone,
         udyam_number=business.udyam_number,
