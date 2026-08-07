@@ -27,6 +27,9 @@ from sqlalchemy.dialects.postgresql import UUID
 class UserRole(str, Enum):
     USER = "user"
     ADMIN = "admin"
+    CEO = "ceo"
+    CFO = "cfo"
+    HR = "hr"
 
 
 # ---------------------------------------------------------------------------
@@ -42,9 +45,7 @@ class User(TimestampMixin, Base):
     firebase_id: Mapped[str] = mapped_column(
         String(128), unique=True, index=True, nullable=False
     )
-    person_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), unique=True, nullable=True
-    )
+
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     role: Mapped[str] = mapped_column(
@@ -56,6 +57,9 @@ class User(TimestampMixin, Base):
     )
     business_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True), ForeignKey("general_info.id"), nullable=True
+    )
+    invited_by_user_id: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
     
     sessions: Mapped[list["Session"]] = relationship(
@@ -100,7 +104,6 @@ class UserResponse(BaseModel):
     email: str
     role: str
     email_verified: bool
-    person_id: Optional[uuid.UUID] = None
     business_id: Optional[uuid.UUID] = None
     profile_completed: bool = False
     full_name: Optional[str] = None
@@ -117,7 +120,6 @@ class UserResponse(BaseModel):
             email=user.email,
             role=user.role,
             email_verified=user.email_verified,
-            person_id=user.person_id,
             business_id=business_id or user.business_id,
             profile_completed=profile_completed,
             full_name=full_name,

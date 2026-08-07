@@ -24,34 +24,6 @@ class TimestampMixin:
         nullable=False,
     )
 
-class Person(Base):
-    __tablename__ = "persons"
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    full_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    date_of_birth: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    gender: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    address: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    city: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    state: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    pincode: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
-    pan_number: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
-    occupation: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    bank_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    primary_bank: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    profile_completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="false")
-    business_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-
-    # Relationships
-    documents: Mapped[List["Document"]] = relationship(
-        "Document", back_populates="person", cascade="all, delete-orphan"
-    )
-    accounts: Mapped[List["Account"]] = relationship(
-        "Account", back_populates="person", cascade="all, delete-orphan"
-    )
 
 class Merchant(Base):
     __tablename__ = "merchants"
@@ -67,8 +39,8 @@ class Document(Base):
     __tablename__ = "documents"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    person_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("persons.id", ondelete="CASCADE"), nullable=True
+    business_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("general_info.id", ondelete="CASCADE"), nullable=True
     )
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
     original_name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -80,7 +52,7 @@ class Document(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
-    person: Mapped[Optional["Person"]] = relationship("Person", back_populates="documents")
+    business: Mapped[Optional["GeneralInfo"]] = relationship("GeneralInfo")
     account: Mapped[Optional["Account"]] = relationship(
         "Account", back_populates="document", cascade="all, delete-orphan", uselist=False
     )
@@ -95,11 +67,11 @@ class Account(Base):
     __tablename__ = "accounts"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    person_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("persons.id", ondelete="CASCADE"), nullable=True
+    business_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("general_info.id", ondelete="CASCADE"), nullable=True
     )
     document_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("documents.id", ondelete="CASCADE"), nullable=False, unique=True
+        UUID(as_uuid=True), ForeignKey("documents.id", ondelete="CASCADE"), nullable=False
     )
     bank_name: Mapped[str] = mapped_column(String(100), nullable=False)
     account_holder_name: Mapped[str] = mapped_column(String(150), nullable=False)
@@ -114,7 +86,7 @@ class Account(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
-    person: Mapped[Optional["Person"]] = relationship("Person", back_populates="accounts")
+    business: Mapped[Optional["GeneralInfo"]] = relationship("GeneralInfo")
     document: Mapped["Document"] = relationship("Document", back_populates="account")
     transactions: Mapped[List["Transaction"]] = relationship(
         "Transaction", back_populates="account", cascade="all, delete-orphan"

@@ -3,7 +3,7 @@ import logging
 from typing import Any, Dict, List, Optional, Type
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
-from app.database.models import Base, Document, Account, Transaction, ProcessingMetadata, Person, Merchant
+from app.database.models import Base, Document, Account, Transaction, ProcessingMetadata, Merchant
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,6 @@ MODEL_MAPPING: Dict[str, Type[Base]] = {
     "accounts": Account,
     "transactions": Transaction,
     "processing_metadata": ProcessingMetadata,
-    "persons": Person,
     "merchants": Merchant
 }
 

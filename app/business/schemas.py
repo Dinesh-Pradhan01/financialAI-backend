@@ -42,25 +42,49 @@ class GeneralInfoResponseSchema(BaseModel):
 
 class LeadershipInfoSaveSchema(BaseModel):
     founder_ceo_name: Optional[str] = None
-    primary_contact_person: str = Field(..., min_length=2)
-    designation: Optional[str] = None
-    years_in_business: Optional[str] = None
+    founder_ceo_email: Optional[str] = None
+    founder_ceo_phone: Optional[str] = None
+    founder_ceo_designation: Optional[str] = None
     number_of_employees: Optional[str] = None
     number_of_branches: Optional[str] = None
     business_model: Optional[str] = None
     primary_product_service: Optional[str] = None
     business_description: Optional[str] = None
+    
+    cfo_name: Optional[str] = None
+    cfo_email: Optional[str] = None
+    cfo_phone: Optional[str] = None
+    cfo_designation: Optional[str] = None
+    invite_cfo: Optional[bool] = False
+    
+    hr_name: Optional[str] = None
+    hr_email: Optional[str] = None
+    hr_phone: Optional[str] = None
+    hr_designation: Optional[str] = None
+    invite_hr: Optional[bool] = False
 
 class LeadershipInfoResponseSchema(BaseModel):
     founder_ceo_name: Optional[str] = None
-    primary_contact_person: str
-    designation: Optional[str] = None
-    years_in_business: Optional[str] = None
+    founder_ceo_email: Optional[str] = None
+    founder_ceo_phone: Optional[str] = None
+    founder_ceo_designation: Optional[str] = None
     number_of_employees: Optional[str] = None
     number_of_branches: Optional[str] = None
     business_model: Optional[str] = None
     primary_product_service: Optional[str] = None
     business_description: Optional[str] = None
+    
+    cfo_name: Optional[str] = None
+    cfo_email: Optional[str] = None
+    cfo_phone: Optional[str] = None
+    cfo_designation: Optional[str] = None
+    invite_cfo: Optional[bool] = False
+    
+    hr_name: Optional[str] = None
+    hr_email: Optional[str] = None
+    hr_phone: Optional[str] = None
+    hr_designation: Optional[str] = None
+    invite_hr: Optional[bool] = False
 
 
 class FinancialInfoSaveSchema(BaseModel):
@@ -87,6 +111,25 @@ class DocumentResponseSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class TeamInviteSaveSchema(BaseModel):
+    ceo_name: Optional[str] = None
+    cfo_name: str
+    cfo_email: EmailStr
+    hr_name: str
+    hr_email: EmailStr
+
+class TeamInviteResponseSchema(BaseModel):
+    id: uuid.UUID
+    role: str
+    full_name: str
+    email: str
+    status: str
+    additional_info: Optional[str] = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 class BusinessOnboardingFullResponse(BaseModel):
     business_id: Optional[uuid.UUID] = None
     current_step: int = 1
@@ -97,3 +140,5 @@ class BusinessOnboardingFullResponse(BaseModel):
     financial_info: Optional[FinancialInfoSaveSchema] = None
     verification_status: str = "pending"
     documents: List[DocumentResponseSchema] = Field(default_factory=list)
+    team_invites: List[TeamInviteResponseSchema] = Field(default_factory=list)
+

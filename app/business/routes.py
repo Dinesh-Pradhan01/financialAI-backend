@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import get_current_session_user
 from app.auth.model import User
 from app.database.connection import get_db
-from app.database.models import Person
+
 import pypdf
 from app.ai.llm import gemini_service
 from app.business.models import (
@@ -21,6 +21,8 @@ from app.business.models import (
     BusinessVerification,
     BusinessVerificationDocument,
 )
+from app.business.invite_model import TeamInvite
+from app.business.invite_service import generate_invite_token, send_invite_email
 from app.business.schemas import (
     GeneralInfoSaveSchema,
     LeadershipInfoSaveSchema,
@@ -29,6 +31,8 @@ from app.business.schemas import (
     BusinessOnboardingFullResponse,
     GeneralInfoResponseSchema,
     LeadershipInfoResponseSchema,
+    TeamInviteSaveSchema,
+    TeamInviteResponseSchema,
 )
 
 logger = logging.getLogger(__name__)
@@ -63,7 +67,7 @@ def calculate_completion_percentage(
 
     # Step 2: Business Info (20%)
     if info:
-        step2_fields = [info.primary_contact_person, info.founder_ceo_name, info.business_model, info.primary_product_service]
+        step2_fields = [info.founder_ceo_name, info.business_model, info.primary_product_service]
         step2_filled = sum(1 for f in step2_fields if f)
         score += (step2_filled / len(step2_fields)) * 20.0
 
@@ -91,14 +95,7 @@ async def get_or_fetch_user_business(
         if gen:
             return gen
 
-    if user.person_id:
-        res = await db.execute(select(GeneralInfo).where(GeneralInfo.person_id == user.person_id))
-        gen = res.scalar_one_or_none()
-        if gen:
-            # Link to user
-            user.business_id = gen.id
-            await db.flush()
-            return gen
+
 
     return None
 
@@ -129,6 +126,9 @@ async def build_full_onboarding_response(
     docs_res = await db.execute(select(BusinessVerificationDocument).where(BusinessVerificationDocument.business_id == gen.id))
     docs = list(docs_res.scalars().all())
 
+    invites_res = await db.execute(select(TeamInvite).where(TeamInvite.business_id == gen.id))
+    invites = list(invites_res.scalars().all())
+
     pct = calculate_completion_percentage(gen, info, fin, docs)
     gen.completion_percentage = pct
     await db.flush()
@@ -154,14 +154,26 @@ async def build_full_onboarding_response(
 
     info_schema = LeadershipInfoResponseSchema(
         founder_ceo_name=info.founder_ceo_name,
-        primary_contact_person=info.primary_contact_person,
-        designation=info.designation,
-        years_in_business=info.years_in_business,
+        founder_ceo_email=info.founder_ceo_email,
+        founder_ceo_phone=info.founder_ceo_phone,
+        founder_ceo_designation=info.founder_ceo_designation,
         number_of_employees=info.number_of_employees,
         number_of_branches=info.number_of_branches,
         business_model=info.business_model,
         primary_product_service=info.primary_product_service,
         business_description=info.business_description,
+        
+        cfo_name=info.cfo_name,
+        cfo_email=info.cfo_email,
+        cfo_phone=info.cfo_phone,
+        cfo_designation=info.cfo_designation,
+        invite_cfo=info.invite_cfo,
+        
+        hr_name=info.hr_name,
+        hr_email=info.hr_email,
+        hr_phone=info.hr_phone,
+        hr_designation=info.hr_designation,
+        invite_hr=info.invite_hr,
     ) if info else None
 
     fin_schema = FinancialInfoSaveSchema(
@@ -176,6 +188,10 @@ async def build_full_onboarding_response(
     doc_schemas = [
         DocumentResponseSchema.model_validate(d) for d in docs
     ]
+    
+    invite_schemas = [
+        TeamInviteResponseSchema.model_validate(i) for i in invites
+    ]
 
     return BusinessOnboardingFullResponse(
         business_id=gen.id,
@@ -187,6 +203,7 @@ async def build_full_onboarding_response(
         financial_info=fin_schema,
         verification_status=ver.verification_status if ver else "pending",
         documents=doc_schemas,
+        team_invites=invite_schemas,
     )
 
 
@@ -214,7 +231,7 @@ async def save_step1_general_info(
     if not gen:
         gen = GeneralInfo(
             id=uuid.uuid4(),
-            person_id=current_user.person_id,
+
             company_name=payload.company_name.strip(),
             business_category=payload.business_category,
             business_type=payload.business_type,
@@ -237,11 +254,7 @@ async def save_step1_general_info(
         await db.flush()
 
         current_user.business_id = gen.id
-        if current_user.person_id:
-            person_res = await db.execute(select(Person).where(Person.id == current_user.person_id))
-            person = person_res.scalar_one_or_none()
-            if person:
-                person.business_id = gen.id
+
     else:
         gen.company_name = payload.company_name.strip()
         gen.business_category = payload.business_category
@@ -265,8 +278,8 @@ async def save_step1_general_info(
     return await build_full_onboarding_response(gen, db)
 
 
-@router.post("/step/2", response_model=BusinessOnboardingFullResponse, summary="Save Step 2 Business Information")
-async def save_step2_business_info(
+@router.post("/step/2", response_model=BusinessOnboardingFullResponse, summary="Save Step 2 Leadership & Organization")
+async def save_step2_team_members(
     payload: LeadershipInfoSaveSchema,
     current_user: User = Depends(get_current_session_user),
     db: AsyncSession = Depends(get_db),
@@ -278,37 +291,140 @@ async def save_step2_business_info(
             detail="Please complete Step 1 (General Information) first."
         )
 
+    # Save Leadership Info
     info_res = await db.execute(select(LeadershipInfo).where(LeadershipInfo.business_id == gen.id))
     info = info_res.scalar_one_or_none()
-
     if not info:
         info = LeadershipInfo(
             business_id=gen.id,
-            founder_ceo_name=payload.founder_ceo_name.strip() if payload.founder_ceo_name else None,
-            primary_contact_person=payload.primary_contact_person.strip(),
-            designation=payload.designation.strip() if payload.designation else None,
-            years_in_business=payload.years_in_business,
+            founder_ceo_name=payload.founder_ceo_name,
+            founder_ceo_email=payload.founder_ceo_email,
+            founder_ceo_phone=payload.founder_ceo_phone,
+            founder_ceo_designation=payload.founder_ceo_designation,
             number_of_employees=payload.number_of_employees,
             number_of_branches=payload.number_of_branches,
             business_model=payload.business_model,
-            primary_product_service=payload.primary_product_service.strip() if payload.primary_product_service else None,
-            business_description=payload.business_description.strip() if payload.business_description else None,
+            primary_product_service=payload.primary_product_service,
+            business_description=payload.business_description,
+            
+            cfo_name=payload.cfo_name,
+            cfo_email=payload.cfo_email,
+            cfo_phone=payload.cfo_phone,
+            cfo_designation=payload.cfo_designation,
+            invite_cfo=payload.invite_cfo,
+            
+            hr_name=payload.hr_name,
+            hr_email=payload.hr_email,
+            hr_phone=payload.hr_phone,
+            hr_designation=payload.hr_designation,
+            invite_hr=payload.invite_hr,
         )
         db.add(info)
     else:
-        info.founder_ceo_name = payload.founder_ceo_name.strip() if payload.founder_ceo_name else None
-        info.primary_contact_person = payload.primary_contact_person.strip()
-        info.designation = payload.designation.strip() if payload.designation else None
-        info.years_in_business = payload.years_in_business
+        info.founder_ceo_name = payload.founder_ceo_name
+        info.founder_ceo_email = payload.founder_ceo_email
+        info.founder_ceo_phone = payload.founder_ceo_phone
+        info.founder_ceo_designation = payload.founder_ceo_designation
         info.number_of_employees = payload.number_of_employees
         info.number_of_branches = payload.number_of_branches
         info.business_model = payload.business_model
-        info.primary_product_service = payload.primary_product_service.strip() if payload.primary_product_service else None
-        info.business_description = payload.business_description.strip() if payload.business_description else None
+        info.primary_product_service = payload.primary_product_service
+        info.business_description = payload.business_description
+        
+        info.cfo_name = payload.cfo_name
+        info.cfo_email = payload.cfo_email
+        info.cfo_phone = payload.cfo_phone
+        info.cfo_designation = payload.cfo_designation
+        info.invite_cfo = payload.invite_cfo
+        
+        info.hr_name = payload.hr_name
+        info.hr_email = payload.hr_email
+        info.hr_phone = payload.hr_phone
+        info.hr_designation = payload.hr_designation
+        info.invite_hr = payload.invite_hr
+
+    roles_to_invite = []
+    if payload.invite_cfo and payload.cfo_email and payload.cfo_name:
+        roles_to_invite.append(("cfo", payload.cfo_name, payload.cfo_email, None))
+    if payload.invite_hr and payload.hr_email and payload.hr_name:
+        roles_to_invite.append(("hr", payload.hr_name, payload.hr_email, None))
+
+    for role, name, email, add_info in roles_to_invite:
+        # Check if invite exists
+        res = await db.execute(select(TeamInvite).where(
+            TeamInvite.business_id == gen.id, TeamInvite.role == role
+        ))
+        invite = res.scalar_one_or_none()
+
+        if not invite:
+            invite = TeamInvite(
+                business_id=gen.id,
+                invited_by_user_id=current_user.id,
+                role=role,
+                full_name=name.strip(),
+                email=email,
+                additional_info=add_info,
+                invite_token=generate_invite_token(),
+                status="pending"
+            )
+            db.add(invite)
+        else:
+            # Update existing if it's pending
+            if invite.status == "pending":
+                invite.full_name = name.strip()
+                invite.email = email
+                invite.additional_info = add_info
+                # Re-generate token
+                invite.invite_token = generate_invite_token()
+
+        await db.flush()
+        
+        # Send email if pending
+        if invite.status == "pending":
+            await send_invite_email(email, name, role, invite.invite_token, gen.company_name)
 
     gen.current_step = max(gen.current_step, 2)
     await db.flush()
     return await build_full_onboarding_response(gen, db)
+
+@router.post("/resend-invite/{invite_id}", summary="Resend an invite")
+async def resend_invite(
+    invite_id: uuid.UUID,
+    current_user: User = Depends(get_current_session_user),
+    db: AsyncSession = Depends(get_db),
+):
+    gen = await get_or_fetch_user_business(current_user, db)
+    if not gen:
+        raise HTTPException(status_code=400, detail="Business not found")
+        
+    res = await db.execute(select(TeamInvite).where(TeamInvite.id == invite_id, TeamInvite.business_id == gen.id))
+    invite = res.scalar_one_or_none()
+    
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invite not found")
+        
+    if invite.status == "accepted":
+        raise HTTPException(status_code=400, detail="Invite already accepted")
+        
+    invite.invite_token = generate_invite_token()
+    await db.flush()
+    
+    await send_invite_email(invite.email, invite.full_name, invite.role, invite.invite_token, gen.company_name)
+    return {"status": "success", "message": "Invite resent"}
+
+@router.get("/invites", summary="Get all invites")
+async def get_team_invites(
+    current_user: User = Depends(get_current_session_user),
+    db: AsyncSession = Depends(get_db),
+):
+    gen = await get_or_fetch_user_business(current_user, db)
+    if not gen:
+        return []
+    
+    res = await db.execute(select(TeamInvite).where(TeamInvite.business_id == gen.id))
+    invites = res.scalars().all()
+    
+    return [TeamInviteResponseSchema.model_validate(i) for i in invites]
 
 
 @router.post("/step/3", response_model=BusinessOnboardingFullResponse, summary="Save Step 3 Financial Information")
@@ -364,7 +480,7 @@ async def upload_verification_document(
         # Create skeleton profile since document upload is now Step 1
         gen = GeneralInfo(
             id=uuid.uuid4(),
-            person_id=current_user.person_id,
+
             company_name="",
             business_category="Others",
             business_type="Private Limited",
@@ -381,11 +497,7 @@ async def upload_verification_document(
         await db.flush()
         
         current_user.business_id = gen.id
-        if current_user.person_id:
-            person_res = await db.execute(select(Person).where(Person.id == current_user.person_id))
-            person = person_res.scalar_one_or_none()
-            if person:
-                person.business_id = gen.id
+
 
     # Directory for this business
     biz_dir = os.path.join(UPLOAD_DIR, str(gen.id))
@@ -541,12 +653,10 @@ async def complete_business_onboarding(
     else:
         ver.verification_status = "completed"
 
-    if current_user.person_id:
-        person_res = await db.execute(select(Person).where(Person.id == current_user.person_id))
-        person = person_res.scalar_one_or_none()
-        if person:
-            person.profile_completed = True
-            person.business_id = gen.id
+
+
+    if current_user.role == "user":
+        current_user.role = "ceo"
 
     await db.flush()
     logger.info(f"Business onboarding completed for business_id {gen.id} (user_id: {current_user.id}).")

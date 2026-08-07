@@ -81,9 +81,12 @@ async def sync_user(
 
     profile_completed = False
     full_name = None
-    if current_user.person_id:
-        from app.database.models import Person
-        stmt = select(Person.profile_completed, Person.full_name).where(Person.id == current_user.person_id)
+    
+    if current_user.business_id:
+        from app.business.models import GeneralInfo, LeadershipInfo
+        stmt = select(GeneralInfo.onboarding_completed, LeadershipInfo.founder_ceo_name).outerjoin(
+            LeadershipInfo, LeadershipInfo.business_id == GeneralInfo.id
+        ).where(GeneralInfo.id == current_user.business_id)
         res = await db.execute(stmt)
         row = res.fetchone()
         if row:
@@ -91,8 +94,8 @@ async def sync_user(
             full_name = row[1]
 
     logger.info(
-        "SYNC response for user %s (person_id=%s): profile_completed=%s, business_id=%s",
-        current_user.email, current_user.person_id, profile_completed, current_user.business_id,
+        "SYNC response for user %s: profile_completed=%s, business_id=%s",
+        current_user.email, profile_completed, current_user.business_id,
     )
 
     return UserResponse.from_user(current_user, profile_completed=profile_completed, full_name=full_name)
@@ -173,9 +176,12 @@ async def get_me(
 ):
     profile_completed = False
     full_name = None
-    if current_user.person_id:
-        from app.database.models import Person
-        stmt = select(Person.profile_completed, Person.full_name).where(Person.id == current_user.person_id)
+    
+    if current_user.business_id:
+        from app.business.models import GeneralInfo, LeadershipInfo
+        stmt = select(GeneralInfo.onboarding_completed, LeadershipInfo.founder_ceo_name).outerjoin(
+            LeadershipInfo, LeadershipInfo.business_id == GeneralInfo.id
+        ).where(GeneralInfo.id == current_user.business_id)
         res = await db.execute(stmt)
         row = res.fetchone()
         if row:
