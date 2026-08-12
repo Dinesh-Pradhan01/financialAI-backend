@@ -23,3 +23,4 @@ class TeamInvite(TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False)
     additional_info: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
     accepted_at = mapped_column(DateTime(timezone=False), nullable=True)
+    expires_at = mapped_column(DateTime(timezone=False), nullable=True)

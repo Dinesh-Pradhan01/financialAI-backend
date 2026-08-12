@@ -51,6 +51,7 @@ class PostgreSQLConnectionManager:
     async def create_tables(self):
         """Creates tables dynamically in the PostgreSQL database if they don't exist."""
         from app.database.models import Base
+        import app.auth.model  # Register auth models (User, Session, Role)
         import app.business.models  # Register business models with Base.metadata
         import app.business.invite_model  # Register invite models
         if self.engine is None:
@@ -59,7 +60,7 @@ class PostgreSQLConnectionManager:
             logger.info("Creating database tables...")
             async with self.engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
-                logger.info("Running database column migrations...")
+                logger.info("Running database column migrations and role seeding...")
                 
                 async def column_exists(table: str, col: str) -> bool:
                     res = await conn.execute(text(
@@ -67,6 +68,12 @@ class PostgreSQLConnectionManager:
                         f"WHERE table_name = '{table}' AND column_name = '{col}';"
                     ))
                     return res.fetchone() is not None
+
+                # Seed roles table with 4 rows if empty or missing entries
+                for role_name in ["ceo", "cfo", "hr", "admin"]:
+                    check_role = await conn.execute(text(f"SELECT 1 FROM roles WHERE name = '{role_name}';"))
+                    if not check_role.fetchone():
+                        await conn.execute(text(f"INSERT INTO roles (name) VALUES ('{role_name}');"))
 
                 if not await column_exists("documents", "business_id"):
                     await conn.execute(text("ALTER TABLE documents ADD COLUMN business_id UUID REFERENCES general_info(id) ON DELETE CASCADE;"))
@@ -83,10 +90,21 @@ class PostgreSQLConnectionManager:
                     await conn.execute(text("ALTER TABLE users ADD COLUMN business_id UUID REFERENCES general_info(id) ON DELETE SET NULL;"))
                 if not await column_exists("users", "invited_by_user_id"):
                     await conn.execute(text("ALTER TABLE users ADD COLUMN invited_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;"))
+                if not await column_exists("users", "role_id"):
+                    await conn.execute(text("ALTER TABLE users ADD COLUMN role_id INTEGER REFERENCES roles(id) ON DELETE SET NULL;"))
+                
+                # Backfill role_id on users based on role name
+                await conn.execute(text("UPDATE users SET role_id = roles.id FROM roles WHERE users.role = roles.name AND users.role_id IS NULL;"))
+
                 if not await column_exists("team_invites", "additional_info"):
-                    # Table might not exist yet if it's the very first run, but create_all runs above so it should exist
                     try:
                         await conn.execute(text("ALTER TABLE team_invites ADD COLUMN additional_info VARCHAR(1000);"))
+                    except Exception:
+                        pass
+
+                if not await column_exists("team_invites", "expires_at"):
+                    try:
+                        await conn.execute(text("ALTER TABLE team_invites ADD COLUMN expires_at TIMESTAMP;"))
                     except Exception:
                         pass
                 
@@ -99,7 +117,7 @@ class PostgreSQLConnectionManager:
                     if await column_exists("leadership_info", col):
                         await conn.execute(text(f"ALTER TABLE leadership_info DROP COLUMN {col};"))
 
-            logger.info("Database tables and migrations verified/created successfully.")
+            logger.info("Database tables, roles seeding, and migrations verified/created successfully.")
         except Exception as e:
             logger.error(f"Error creating database tables and running migrations: {e}")
             raise e
