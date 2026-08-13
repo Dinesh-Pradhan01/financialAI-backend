@@ -1,7 +1,11 @@
+from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 from sqlalchemy import String, Integer, Float, Text, ForeignKey, Numeric, Date, DateTime, JSON, func, Boolean
+
+if TYPE_CHECKING:
+    from app.business.models import GeneralInfo
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -52,7 +56,7 @@ class Document(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
-    business: Mapped[Optional["GeneralInfo"]] = relationship("GeneralInfo")
+    business: Mapped[Optional[GeneralInfo]] = relationship("GeneralInfo")
     account: Mapped[Optional["Account"]] = relationship(
         "Account", back_populates="document", cascade="all, delete-orphan", uselist=False
     )
@@ -86,7 +90,7 @@ class Account(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
-    business: Mapped[Optional["GeneralInfo"]] = relationship("GeneralInfo")
+    business: Mapped[Optional[GeneralInfo]] = relationship("GeneralInfo")
     document: Mapped["Document"] = relationship("Document", back_populates="account")
     transactions: Mapped[List["Transaction"]] = relationship(
         "Transaction", back_populates="account", cascade="all, delete-orphan"

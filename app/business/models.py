@@ -137,5 +137,10 @@ class BusinessVerificationDocument(TimestampMixin, Base):
     file_size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
     mime_type: Mapped[str] = mapped_column(String(100), nullable=False)
     upload_status: Mapped[str] = mapped_column(String(50), default="uploaded", nullable=False)
+    
+    file_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    quality_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    verification_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     business: Mapped["GeneralInfo"] = relationship("GeneralInfo", back_populates="documents")

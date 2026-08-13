@@ -1,6 +1,8 @@
 import logging
 import os
 import uuid
+import hashlib
+import io
 from datetime import datetime, date
 from typing import Optional, List
 
@@ -508,6 +510,79 @@ async def upload_verification_document(
     file_path = os.path.join(biz_dir, safe_filename)
 
     file_bytes = await file.read()
+    file_hash = hashlib.sha256(file_bytes).hexdigest()
+
+    logger.info(f"==> Document upload received: '{file.filename}' (type: {document_type}, category: {document_category}, size: {len(file_bytes)} bytes)")
+
+    # 1. Duplication Check — Global (same file hash across ANY business)
+    logger.info(f"  [1/4] Checking for duplicate documents globally (hash: {file_hash[:12]}...)...")
+    duplicate_res = await db.execute(
+        select(BusinessVerificationDocument).where(
+            BusinessVerificationDocument.file_hash == file_hash
+        )
+    )
+    existing_duplicate = duplicate_res.scalar_one_or_none()
+    if existing_duplicate:
+        is_same_business = existing_duplicate.business_id == gen.id
+        if is_same_business:
+            logger.warning(f"  [DUPLICATE] Document upload rejected — same file already uploaded for this business (doc_id: {existing_duplicate.id}).")
+            raise HTTPException(status_code=400, detail="Duplicate document uploaded. This file has already been uploaded for your business.")
+        else:
+            logger.warning(f"  [DUPLICATE] Document upload rejected — same file already uploaded by another business (business_id: {existing_duplicate.business_id}, doc_id: {existing_duplicate.id}).")
+            raise HTTPException(status_code=400, detail="Duplicate document detected. This exact file has already been uploaded by another business account.")
+
+    # 2. Extract Text (if PDF)
+    document_text = ""
+    if file.content_type == "application/pdf":
+        logger.info("  [2/4] Extracting text from PDF for AI verification...")
+        try:
+            reader = pypdf.PdfReader(io.BytesIO(file_bytes))
+            for page in reader.pages:
+                text = page.extract_text()
+                if text:
+                    document_text += text + "\n"
+            logger.info(f"  [2/4] Extracted {len(document_text)} characters from {len(reader.pages)} page(s).")
+        except Exception as e:
+            logger.warning(f"  [2/4] Failed to extract text from PDF: {e}")
+    else:
+        logger.info(f"  [2/4] Non-PDF file ({file.content_type}), skipping text extraction.")
+
+    # 3. Quality & Verification Check via AI
+    quality_score = None
+    is_verified = False
+    verification_notes = None
+
+    if document_text.strip():
+        expected_id = gen.business_pan if document_type == "business_pan" else (gen.cin if document_type == "registration_proof" else "")
+        logger.info(f"  [3/4] Running AI verification (type: {document_type}, expected_id: {expected_id or 'N/A'})...")
+        verification_result = await gemini_service.verify_document_quality(document_text, document_type, expected_id or "")
+        
+        if verification_result:
+            is_readable = verification_result.get("is_readable", False)
+            quality_score = verification_result.get("quality_score", 0.0)
+            extracted_id = verification_result.get("extracted_id")
+            verification_notes = verification_result.get("notes", "")
+            
+            logger.info(f"  [3/4] AI Verification Result — Readable: {is_readable}, Quality: {quality_score}, Extracted ID: {extracted_id}, Notes: {verification_notes}")
+            
+            if not is_readable or quality_score < 50.0:
+                logger.warning(f"  [REJECTED] Document quality too low (Score: {quality_score}). Rejecting upload.")
+                raise HTTPException(status_code=400, detail=f"Document quality is too low (Score: {quality_score}). Notes: {verification_notes}")
+                
+            if expected_id and extracted_id and expected_id.upper() not in extracted_id.upper():
+                logger.warning(f"  [REJECTED] ID mismatch — Expected: {expected_id}, Found: {extracted_id}. Rejecting upload.")
+                raise HTTPException(status_code=400, detail=f"Document verification failed. Expected ID {expected_id} but found {extracted_id}.")
+                
+            is_verified = True
+            logger.info(f"  [3/4] ✅ Document VERIFIED successfully (quality: {quality_score}%).")
+        else:
+            logger.warning("  [3/4] AI verification returned no result. Document will require manual review.")
+            verification_notes = "AI verification unavailable. Manual verification required."
+    else:
+        logger.info("  [3/4] No text extracted from document. Marking for manual verification.")
+        verification_notes = "No text extracted. Manual verification required."
+
+    logger.info(f"  [4/4] Saving file to disk and persisting to database...")
     with open(file_path, "wb") as f:
         f.write(file_bytes)
 
@@ -535,6 +610,10 @@ async def upload_verification_document(
         existing_doc.mime_type = file.content_type or "application/octet-stream"
         existing_doc.document_category = document_category
         existing_doc.upload_status = "uploaded"
+        existing_doc.file_hash = file_hash
+        existing_doc.quality_score = quality_score
+        existing_doc.is_verified = is_verified
+        existing_doc.verification_notes = verification_notes
     else:
         new_doc = BusinessVerificationDocument(
             business_id=gen.id,
@@ -546,6 +625,10 @@ async def upload_verification_document(
             file_size_bytes=len(file_bytes),
             mime_type=file.content_type or "application/octet-stream",
             upload_status="uploaded",
+            file_hash=file_hash,
+            quality_score=quality_score,
+            is_verified=is_verified,
+            verification_notes=verification_notes
         )
         db.add(new_doc)
 

@@ -39,3 +39,8 @@ db_schema_*.md
 
 # Local yfinance cache
 industry_data/yf_cache/
+check_docs.py
+Spotlite Features (1).pdf
+spotlite_erd.pdf
+SpotLite_Transaction_Risk_Schema_Final.pdf
+test_upload.py

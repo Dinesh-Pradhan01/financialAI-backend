@@ -5,7 +5,7 @@ from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
 import google.generativeai as genai
 from app.config import settings
-from app.ai.prompts import SYSTEM_INSTRUCTION, USER_PROMPT_TEMPLATE, METADATA_PROMPT_TEMPLATE, TRANSACTIONS_PROMPT_TEMPLATE, AI_VIEW_PROMPT_TEMPLATE, BUSINESS_REGISTRATION_PROMPT_TEMPLATE
+from app.ai.prompts import SYSTEM_INSTRUCTION, USER_PROMPT_TEMPLATE, METADATA_PROMPT_TEMPLATE, TRANSACTIONS_PROMPT_TEMPLATE, AI_VIEW_PROMPT_TEMPLATE, BUSINESS_REGISTRATION_PROMPT_TEMPLATE, DOCUMENT_VERIFICATION_PROMPT_TEMPLATE
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,12 @@ class ExtractedBusinessRegistrationSchema(BaseModel):
     state: Optional[str]
     pincode: Optional[str]
     udyam_number: Optional[str]
+
+class DocumentVerificationSchema(BaseModel):
+    is_readable: bool
+    quality_score: float
+    extracted_id: Optional[str]
+    notes: Optional[str]
 
 class ExtractedTransactionSchema(BaseModel):
     transaction_date: str  # YYYY-MM-DD
@@ -304,6 +310,48 @@ class GeminiExtractionService:
             
         except Exception as e:
             logger.warning(f"Gemini API business registration extraction failed: {e}")
+            return None
+
+    async def verify_document_quality(self, document_text: str, document_type: str, expected_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Calls Gemini to perform a quality check and verification on the document text.
+        Returns a dict matching DocumentVerificationSchema, or None if extraction fails.
+        """
+        if not self.is_available():
+            logger.warning("Gemini API not configured. Cannot perform online document verification.")
+            return None
+
+        try:
+            prompt = DOCUMENT_VERIFICATION_PROMPT_TEMPLATE.format(
+                document_type=document_type,
+                expected_id=expected_id or "N/A",
+                document_text=document_text
+            )
+            
+            generation_config = genai.GenerationConfig(
+                response_mime_type="application/json",
+                response_schema=DocumentVerificationSchema,
+                temperature=0.1
+            )
+            
+            response = await self._generate_content_with_retry(prompt, generation_config)
+            
+            if not response.text:
+                logger.error("Empty response received from Gemini API during document verification.")
+                return None
+                
+            extracted_data = json.loads(response.text)
+            
+            usage = getattr(response, "usage_metadata", None)
+            extracted_data["_metrics"] = {
+                "input_tokens": getattr(usage, "prompt_token_count", 0) if usage else 0,
+                "output_tokens": getattr(usage, "candidates_token_count", 0) if usage else 0,
+                "model_used": settings.GEMINI_MODEL
+            }
+            return extracted_data
+            
+        except Exception as e:
+            logger.warning(f"Gemini API document verification failed: {e}")
             return None
 
 gemini_service = GeminiExtractionService()
