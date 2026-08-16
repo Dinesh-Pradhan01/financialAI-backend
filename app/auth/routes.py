@@ -8,6 +8,7 @@ Auth API routes.
 
 import logging
 import os
+import uuid
 
 from fastapi import APIRouter, Depends, Response, Request, HTTPException, status
 from sqlalchemy import select
@@ -20,6 +21,8 @@ from app.auth.firebase import verify_firebase_token
 from app.auth.model import User, UserResponse, GoogleTokenPayload
 from app.auth.service import create_session, revoke_session, update_last_login, get_or_create_user
 from app.database.connection import get_db
+from app.config import settings
+from app.email_service.service import send_email_async
 
 logger = logging.getLogger(__name__)
 
@@ -234,6 +237,9 @@ class InviteRequest(BaseModel):
 class InviteAcceptPasswordRequest(BaseModel):
     token: str
     password: str
+    email: EmailStr
+    full_name: str = ""
+
 
 @router.post(
     "/invite",
@@ -518,23 +524,34 @@ async def accept_invite_with_password(
     invite.accepted_at = now
     await db.flush()
 
+    from app.business.models import GeneralInfo
+    biz_stmt = select(GeneralInfo).where(GeneralInfo.id == invite.business_id)
+    biz_res = await db.execute(biz_stmt)
+    biz = biz_res.scalar_one_or_none()
+
     # Generate verification link
-    frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:5173")
+    frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:8080")
     verification_link = f"{frontend_url}/verify-email?email={target_email}"
     
     try:
         fb_link = firebase_auth.generate_email_verification_link(target_email)
         logger.info("Firebase verification link generated: %s", fb_link)
+        #send email via sendgrid
+        cntxt = {"action_url": verification_link, "role":invite.role,
+                 "org_name":biz.company_name if biz else "SpotLite Platform"}
+        rspns = await send_email_async(target_email,"user_invitation","Just Send this Email",cntxt)
+
     except Exception:
         pass
 
     logger.info(
         "\n====================================================\n"
-        "VERIFICATION MAIL SENT TO %s (%s)\n"
+        "VERIFICATION MAIL FOR %s (%s)\n"
         "Email: %s\n"
         "Verification Link: %s\n"
+        "Response : %s\n"
         "====================================================",
-        target_name, invite.role.upper(), target_email, verification_link
+        target_name, invite.role.upper(), target_email, verification_link, rspns
     )
 
     # Create session cookie
