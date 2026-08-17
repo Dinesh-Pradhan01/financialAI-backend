@@ -226,7 +226,7 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel, EmailStr
 from app.auth.dependencies import require_role
 from app.business.invite_model import TeamInvite
-from app.business.invite_service import generate_invite_token, send_invite_email
+from app.business.invite_service import generate_invite_token, generate_invite_email
 from app.auth.model import Role, UserRole
 
 class InviteRequest(BaseModel):
@@ -322,14 +322,29 @@ async def create_role_invite(
         db.add(invite)
 
     await db.flush()
-
-    link = await send_invite_email(
+    
+    vlink = await generate_invite_email(
         email=payload.email,
         full_name=invite.full_name,
         role=role_clean,
         invite_token=token,
         company_name=company_name
     )
+    #send email via sendgrid
+    try:
+        cntxt = {"action_url": vlink, "role":role_clean.upper(),
+                 "org_name":company_name if company_name else "SpotLite Platform"}
+        rspns = await send_email_async(payload.email,"user_invitation","User Invitation",cntxt)
+
+        logger.info(
+            "=========================="
+            "SendGrid Email Service Status : \n"
+            "%s\n"
+            "==========================",
+            rspns
+        )
+    except Exception as e:
+        logger.warning(f"Encountered : {e}")
 
     return {
         "status": "success",
@@ -339,7 +354,7 @@ async def create_role_invite(
         "role": role_clean,
         "invite_token": token,
         "expires_at": expires_at.isoformat(),
-        "invite_link": link
+        "invite_link": vlink
     }
 
 
@@ -536,11 +551,7 @@ async def accept_invite_with_password(
     try:
         fb_link = firebase_auth.generate_email_verification_link(target_email)
         logger.info("Firebase verification link generated: %s", fb_link)
-        #send email via sendgrid
-        cntxt = {"action_url": verification_link, "role":invite.role,
-                 "org_name":biz.company_name if biz else "SpotLite Platform"}
-        rspns = await send_email_async(target_email,"user_invitation","Just Send this Email",cntxt)
-
+        
     except Exception:
         pass
 
@@ -549,9 +560,8 @@ async def accept_invite_with_password(
         "VERIFICATION MAIL FOR %s (%s)\n"
         "Email: %s\n"
         "Verification Link: %s\n"
-        "Response : %s\n"
         "====================================================",
-        target_name, invite.role.upper(), target_email, verification_link, rspns
+        target_name, invite.role.upper(), target_email, verification_link
     )
 
     # Create session cookie

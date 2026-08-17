@@ -22,7 +22,7 @@ from app.business.models import (
     BusinessVerificationDocument,
 )
 from app.business.invite_model import TeamInvite
-from app.business.invite_service import generate_invite_token, send_invite_email
+from app.business.invite_service import generate_invite_token, generate_invite_email
 from app.business.schemas import (
     GeneralInfoSaveSchema,
     LeadershipInfoSaveSchema,
@@ -381,7 +381,7 @@ async def save_step2_team_members(
         
         # Send email if pending
         if invite.status == "pending":
-            await send_invite_email(email, name, role, invite.invite_token, gen.company_name)
+            await generate_invite_email(email, name, role, invite.invite_token, gen.company_name)
 
     gen.current_step = max(gen.current_step, 2)
     await db.flush()
@@ -409,7 +409,7 @@ async def resend_invite(
     invite.invite_token = generate_invite_token()
     await db.flush()
     
-    await send_invite_email(invite.email, invite.full_name, invite.role, invite.invite_token, gen.company_name)
+    await generate_invite_email(invite.email, invite.full_name, invite.role, invite.invite_token, gen.company_name)
     return {"status": "success", "message": "Invite resent"}
 
 @router.get("/invites", summary="Get all invites")
