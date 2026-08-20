@@ -70,6 +70,7 @@ async def get_or_create_user(
             
         # Check if they have a pending invite and accept it (update role & business)
         from app.business.invite_model import TeamInvite
+        from app.auth.model import Role
         invite_stmt = select(TeamInvite).where(TeamInvite.email == email, TeamInvite.status == "pending")
         invite_res = await db.execute(invite_stmt)
         invite = invite_res.scalar_one_or_none()
@@ -77,12 +78,19 @@ async def get_or_create_user(
             existing.role = invite.role
             existing.business_id = invite.business_id
             invite.status = "accepted"
+            role_res = await db.execute(select(Role.id).where(Role.name == invite.role))
+            existing.role_id = role_res.scalar_one_or_none()
             await db.flush()
             logger.info("Accepted invite for existing user %s and updated role to %s", firebase_id, invite.role)
+        elif existing.role_id is None:
+            role_res = await db.execute(select(Role.id).where(Role.name == existing.role))
+            existing.role_id = role_res.scalar_one_or_none()
+            await db.flush()
             
         return existing
 
     from sqlalchemy.exc import IntegrityError
+    from app.auth.model import Role
 
     # Create the new User
     try:
@@ -93,7 +101,7 @@ async def get_or_create_user(
             invite_res = await db.execute(invite_stmt)
             invite = invite_res.scalar_one_or_none()
 
-            role = UserRole.USER.value
+            role = UserRole.CEO.value
             business_id = None
 
             if invite:
@@ -101,12 +109,16 @@ async def get_or_create_user(
                 business_id = invite.business_id
                 invite.status = "accepted"
 
+            role_res = await db.execute(select(Role.id).where(Role.name == role))
+            role_id = role_res.scalar_one_or_none()
+
             user = User(
                 firebase_id=firebase_id,
                 email=email,
                 email_verified=email_verified,
                 business_id=business_id,
                 role=role,
+                role_id=role_id,
                 is_active=True,
                 created_at=now,
                 updated_at=now,

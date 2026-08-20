@@ -37,6 +37,13 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = "http://localhost:8000,http://localhost:8080"
     FRONTEND_URL: str = "http://localhost:8080"
 
+    #SendGrid Mail-Service
+    SENDER_EMAIL: str = os.getenv('SENDER_EMAIL')
+    SENDGRID_API_KEY: str = os.getenv('SENDGRID_API_KEY')
+
+    #absolute path
+    #APP_DIR = os.path.dirname(os.path.abspath(__file__))
+
     @property
     def cors_origins_list(self) -> List[str]:
         """Parse the comma-separated CORS_ORIGINS string into a list."""

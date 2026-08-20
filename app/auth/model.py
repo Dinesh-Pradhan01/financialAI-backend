@@ -36,6 +36,15 @@ class UserRole(str, Enum):
 # SQLAlchemy ORM models
 # ---------------------------------------------------------------------------
 
+class Role(Base):
+    """Represents a row in the `roles` PostgreSQL table."""
+
+    __tablename__ = "roles"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+
+
 class User(TimestampMixin, Base):
     """Represents a row in the `users` PostgreSQL table."""
 
@@ -49,7 +58,10 @@ class User(TimestampMixin, Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     role: Mapped[str] = mapped_column(
-        String(20), default=UserRole.USER.value, nullable=False
+        String(20), default=UserRole.CEO.value, nullable=False
+    )
+    role_id: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey("roles.id", ondelete="SET NULL"), nullable=True
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     last_login_at: Mapped[Optional[datetime]] = mapped_column(
@@ -62,6 +74,7 @@ class User(TimestampMixin, Base):
         Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
     
+    role_rel: Mapped[Optional["Role"]] = relationship("Role")
     sessions: Mapped[list["Session"]] = relationship(
         "Session", back_populates="user", cascade="all, delete-orphan"
     )

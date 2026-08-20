@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.models import Base, TimestampMixin
 
-
+#0810PbMKD
 class GeneralInfo(TimestampMixin, Base):
     """Step 1: Master legal profile for the business."""
     __tablename__ = "general_info"
