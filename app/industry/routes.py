@@ -397,3 +397,22 @@ async def get_top_5_stocks(
         data[date_str][sym] = price
         
     return dict(data)
+
+@router.get("/basic-industries")
+async def get_all_basic_industries(db: AsyncSession = Depends(get_db)):
+    try:
+        res = await db.execute(
+            text(
+                "SELECT DISTINCT cl.basic_industry "
+                "FROM classifications cl "
+                "JOIN companies c ON c.classification_id = cl.id "
+                "ORDER BY cl.basic_industry ASC"
+            )
+        )
+        return [r[0] for r in res.fetchall() if r[0]]
+    except Exception as e:
+        logger.error(f"Error querying basic industries: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database query error: {str(e)}"
+        )
