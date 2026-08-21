@@ -143,4 +143,43 @@ class BusinessVerificationDocument(TimestampMixin, Base):
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     verification_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
+    uploaded_by: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
     business: Mapped["GeneralInfo"] = relationship("GeneralInfo", back_populates="documents")
+
+
+class DocumentAuditLog(TimestampMixin, Base):
+    """Audit log for document actions (upload, replace, delete)."""
+    __tablename__ = "document_audit_log"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    document_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    action: Mapped[str] = mapped_column(String(50), nullable=False) # upload, replace, delete
+    
+    # Optionally store snapshot details (e.g. filename, hash)
+    details: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+
+
+class Package(TimestampMixin, Base):
+    """A collection of documents."""
+    __tablename__ = "packages"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    business_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("general_info.id", ondelete="CASCADE"), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_by: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    
+    documents: Mapped[List["PackageDocument"]] = relationship("PackageDocument", back_populates="package", cascade="all, delete-orphan")
+
+
+class PackageDocument(TimestampMixin, Base):
+    """Junction table mapping documents to packages (many-to-many)."""
+    __tablename__ = "package_documents"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    package_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("packages.id", ondelete="CASCADE"), nullable=False, index=True)
+    document_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("business_documents.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    package: Mapped["Package"] = relationship("Package", back_populates="documents")
+    document: Mapped["BusinessVerificationDocument"] = relationship("BusinessVerificationDocument")

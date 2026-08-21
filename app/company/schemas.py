@@ -52,3 +52,42 @@ class CompanyDocumentResponse(BaseModel):
     file_size_bytes: int
     mime_type: str
     upload_status: str
+    quality_score: Optional[float] = None
+    is_verified: bool = False
+    verification_notes: Optional[str] = None
+    uploaded_by: Optional[int] = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class DocumentAuditLogResponse(BaseModel):
+    id: uuid.UUID
+    document_id: uuid.UUID
+    user_id: Optional[int] = None
+    action: str
+    details: Optional[dict] = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class PackageRequest(BaseModel):
+    name: str
+    document_ids: Optional[List[uuid.UUID]] = None
+
+
+class PackageResponse(BaseModel):
+    id: uuid.UUID
+    name: str
+    created_by: Optional[int] = None
+    created_at: datetime
+    updated_at: datetime
+    documents: List[CompanyDocumentResponse] = []
+
+    model_config = {"from_attributes": True}
+
+
+class PackageDocumentUpdate(BaseModel):
+    document_ids: List[uuid.UUID]
