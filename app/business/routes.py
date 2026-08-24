@@ -3,17 +3,20 @@ import os
 import uuid
 import hashlib
 import io
-from datetime import datetime, date
+from datetime import datetime, timedelta
 from typing import Optional, List
-
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+# pyrefly: ignore [missing-import]
 from sqlalchemy import select
+# pyrefly: ignore [missing-import]
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.dependencies import get_current_session_user
+from app.auth.dependencies import get_current_session_user, require_role
 from app.auth.model import User
 from app.database.connection import get_db
 
+# pyrefly: ignore [missing-import]
 import pypdf
 from app.ai.llm import gemini_service
 from app.business.models import (
@@ -24,7 +27,7 @@ from app.business.models import (
     BusinessVerificationDocument,
 )
 from app.business.invite_model import TeamInvite
-from app.business.invite_service import generate_invite_token, generate_invite_email
+from app.business.invite_service import generate_invite_token, generate_invite_email, create_invite_audit_log
 from app.business.schemas import (
     GeneralInfoSaveSchema,
     LeadershipInfoSaveSchema,
@@ -384,6 +387,15 @@ async def save_step2_team_members(
         # Send email if pending
         if invite.status == "pending":
             await generate_invite_email(email, name, role, invite.invite_token, gen.company_name)
+            await create_invite_audit_log(
+                db=db,
+                invite_id=invite.id,
+                business_id=gen.id,
+                actor_user_id=current_user.id,
+                action="send",
+                target_email=email,
+                details={"role": role}
+            )
 
     gen.current_step = max(gen.current_step, 2)
     await db.flush()
@@ -392,7 +404,7 @@ async def save_step2_team_members(
 @router.post("/resend-invite/{invite_id}", summary="Resend an invite")
 async def resend_invite(
     invite_id: uuid.UUID,
-    current_user: User = Depends(get_current_session_user),
+    current_user: User = Depends(require_role("ceo", "admin")),
     db: AsyncSession = Depends(get_db),
 ):
     gen = await get_or_fetch_user_business(current_user, db)
@@ -407,16 +419,35 @@ async def resend_invite(
         
     if invite.status == "accepted":
         raise HTTPException(status_code=400, detail="Invite already accepted")
+    if invite.status == "removed":
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot resend invite for a removed member. Please create a new invitation."
+        )
         
+    now = datetime.utcnow()
     invite.invite_token = generate_invite_token()
+    invite.status = "pending"
+    invite.expires_at = now + timedelta(hours=24)
+    invite.updated_at = now
     await db.flush()
     
     await generate_invite_email(invite.email, invite.full_name, invite.role, invite.invite_token, gen.company_name)
+    
+    await create_invite_audit_log(
+        db=db,
+        invite_id=invite.id,
+        business_id=gen.id,
+        actor_user_id=current_user.id,
+        action="resend",
+        target_email=invite.email,
+    )
+    
     return {"status": "success", "message": "Invite resent"}
 
 @router.get("/invites", summary="Get all invites")
 async def get_team_invites(
-    current_user: User = Depends(get_current_session_user),
+    current_user: User = Depends(require_role("ceo", "admin")),
     db: AsyncSession = Depends(get_db),
 ):
     gen = await get_or_fetch_user_business(current_user, db)

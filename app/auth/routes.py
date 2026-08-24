@@ -11,7 +11,9 @@ import os
 import uuid
 
 from fastapi import APIRouter, Depends, Response, Request, HTTPException, status
+# pyrefly: ignore [missing-import]
 from sqlalchemy import select
+# pyrefly: ignore [missing-import]
 from sqlalchemy.ext.asyncio import AsyncSession
 # pyrefly: ignore [missing-import]
 from firebase_admin import auth as firebase_auth
@@ -223,10 +225,12 @@ async def logout(
 # ---------------------------------------------------------------------------
 
 from datetime import datetime, timedelta
+from typing import Optional
 from pydantic import BaseModel, EmailStr
 from app.auth.dependencies import require_role
 from app.business.invite_model import TeamInvite
-from app.business.invite_service import generate_invite_token, generate_invite_email
+from app.business.invite_service import generate_invite_token, generate_invite_email, create_invite_audit_log
+from app.auth.service import revoke_all_user_sessions
 from app.auth.model import Role, UserRole
 
 class InviteRequest(BaseModel):
@@ -239,6 +243,20 @@ class InviteAcceptPasswordRequest(BaseModel):
     password: str
     email: EmailStr
     full_name: str = ""
+
+class TeamInviteItemResponse(BaseModel):
+    id: str
+    email: str
+    full_name: str
+    role: str
+    status: str
+    invite_token: Optional[str] = None
+    created_at: Optional[str] = None
+    expires_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    message: Optional[str] = None
+
+    model_config = {"from_attributes": True}
 
 
 @router.post(
@@ -262,21 +280,24 @@ async def create_role_invite(
     business_id = current_user.business_id
     if not business_id:
         from app.business.models import GeneralInfo
-        stmt = select(GeneralInfo).where(GeneralInfo.user_id == current_user.id)
-        res = await db.execute(stmt)
-        biz = res.scalar_one_or_none()
-        if not biz:
-            biz = GeneralInfo(
-                user_id=current_user.id,
-                company_name="My Company",
-                business_type="LLP",
-                industry_sector="Technology",
-                onboarding_completed=False
-            )
-            db.add(biz)
-            await db.flush()
+        biz = GeneralInfo(
+            company_name="My Company",
+            business_category="Services",
+            business_type="LLP",
+            business_pan="AAAAA0000A",
+            registered_address="Address",
+            state="State",
+            city="City",
+            pincode="000000",
+            official_email=current_user.email,
+            official_phone="0000000000",
+            onboarding_completed=False
+        )
+        db.add(biz)
+        await db.flush()
         business_id = biz.id
         current_user.business_id = business_id
+        await db.flush()
         await db.flush()
 
     # Get company name
@@ -322,6 +343,16 @@ async def create_role_invite(
         db.add(invite)
 
     await db.flush()
+
+    await create_invite_audit_log(
+        db=db,
+        invite_id=invite.id,
+        business_id=business_id,
+        actor_user_id=current_user.id,
+        action="send",
+        target_email=payload.email,
+        details={"role": role_clean}
+    )
     
     vlink = await generate_invite_email(
         email=payload.email,
@@ -387,8 +418,278 @@ async def list_role_invites(
             "invite_token": inv.invite_token,
             "created_at": inv.created_at.isoformat() if inv.created_at else None,
             "expires_at": inv.expires_at.isoformat() if inv.expires_at else None,
+            "updated_at": inv.updated_at.isoformat() if inv.updated_at else None,
         })
     return result
+
+
+@router.delete(
+    "/invite/{invite_id}",
+    response_model=TeamInviteItemResponse,
+    summary="CEO/Admin revoke a pending or expired invitation (R8-1)",
+    description="Soft-deletes the invitation by setting status='revoked'. Retains row for audit history.",
+)
+async def revoke_invite(
+    invite_id: uuid.UUID,
+    current_user: User = Depends(require_role("ceo", "admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    stmt = select(TeamInvite).where(TeamInvite.id == invite_id)
+    if current_user.business_id:
+        stmt = stmt.where(
+            (TeamInvite.business_id == current_user.business_id) | (TeamInvite.invited_by_user_id == current_user.id)
+        )
+    else:
+        stmt = stmt.where(TeamInvite.invited_by_user_id == current_user.id)
+
+    res = await db.execute(stmt)
+    invite = res.scalar_one_or_none()
+
+    if not invite:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invitation not found."
+        )
+
+    if invite.status == "accepted":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot revoke an already accepted invitation. Use remove member instead."
+        )
+    if invite.status == "revoked":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invitation is already revoked."
+        )
+    if invite.status == "removed":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Member was already removed."
+        )
+
+    previous_status = invite.status
+    now = datetime.utcnow()
+    invite.status = "revoked"
+    invite.updated_at = now
+    await db.flush()
+
+    await create_invite_audit_log(
+        db=db,
+        invite_id=invite.id,
+        business_id=invite.business_id,
+        actor_user_id=current_user.id,
+        action="revoke",
+        target_email=invite.email,
+        details={"previous_status": previous_status}
+    )
+
+    return TeamInviteItemResponse(
+        id=str(invite.id),
+        email=invite.email,
+        full_name=invite.full_name,
+        role=invite.role,
+        status=invite.status,
+        invite_token=invite.invite_token,
+        created_at=invite.created_at.isoformat() if invite.created_at else None,
+        expires_at=invite.expires_at.isoformat() if invite.expires_at else None,
+        updated_at=invite.updated_at.isoformat() if invite.updated_at else None,
+        message="Invitation successfully revoked."
+    )
+
+
+@router.post(
+    "/invite/{invite_id}/remove",
+    response_model=TeamInviteItemResponse,
+    summary="CEO/Admin remove an accepted team member (R8-2)",
+    description="Disassociates member from business, resets role to 'user', revokes active sessions and Firebase tokens, and sets invite status='removed'.",
+)
+async def remove_team_member(
+    invite_id: uuid.UUID,
+    current_user: User = Depends(require_role("ceo", "admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    stmt = select(TeamInvite).where(TeamInvite.id == invite_id)
+    if current_user.business_id:
+        stmt = stmt.where(
+            (TeamInvite.business_id == current_user.business_id) | (TeamInvite.invited_by_user_id == current_user.id)
+        )
+    else:
+        stmt = stmt.where(TeamInvite.invited_by_user_id == current_user.id)
+
+    res = await db.execute(stmt)
+    invite = res.scalar_one_or_none()
+
+    if not invite:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invitation not found."
+        )
+
+    if invite.status != "accepted":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot remove member with invite status '{invite.status}'. Member must have accepted the invitation first."
+        )
+
+    # Find the corresponding User
+    user_stmt = select(User).where(User.email == invite.email)
+    user_res = await db.execute(user_stmt)
+    target_user = user_res.scalar_one_or_none()
+
+    if target_user and target_user.id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot remove yourself from the business."
+        )
+
+    now = datetime.utcnow()
+    revoked_sessions_count = 0
+
+    if target_user:
+        # Reset business association & role
+        target_user.business_id = None
+        target_user.invited_by_user_id = None
+        target_user.role = UserRole.USER.value
+        
+        role_res = await db.execute(select(Role.id).where(Role.name == UserRole.USER.value))
+        target_user.role_id = role_res.scalar_one_or_none()
+        target_user.updated_at = now
+
+        # Invalidate all active backend cookie sessions
+        revoked_sessions_count = await revoke_all_user_sessions(db, target_user.id)
+
+        # Invalidate Firebase tokens
+        if target_user.firebase_id:
+            try:
+                firebase_auth.revoke_refresh_tokens(target_user.firebase_id)
+                logger.info("Revoked Firebase refresh tokens for user %s", target_user.firebase_id)
+            except Exception as e:
+                logger.warning("Could not revoke Firebase refresh tokens for %s: %s", target_user.firebase_id, e)
+
+    invite.status = "removed"
+    invite.updated_at = now
+    await db.flush()
+
+    await create_invite_audit_log(
+        db=db,
+        invite_id=invite.id,
+        business_id=invite.business_id,
+        actor_user_id=current_user.id,
+        action="remove",
+        target_email=invite.email,
+        details={
+            "removed_user_id": target_user.id if target_user else None,
+            "revoked_sessions_count": revoked_sessions_count,
+        }
+    )
+
+    return TeamInviteItemResponse(
+        id=str(invite.id),
+        email=invite.email,
+        full_name=invite.full_name,
+        role=invite.role,
+        status=invite.status,
+        invite_token=invite.invite_token,
+        created_at=invite.created_at.isoformat() if invite.created_at else None,
+        expires_at=invite.expires_at.isoformat() if invite.expires_at else None,
+        updated_at=invite.updated_at.isoformat() if invite.updated_at else None,
+        message=f"Member {invite.email} successfully removed from the organization."
+    )
+
+
+@router.post(
+    "/invite/{invite_id}/resend",
+    response_model=TeamInviteItemResponse,
+    summary="CEO/Admin resend invitation",
+)
+async def resend_role_invite(
+    invite_id: uuid.UUID,
+    current_user: User = Depends(require_role("ceo", "admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    stmt = select(TeamInvite).where(TeamInvite.id == invite_id)
+    if current_user.business_id:
+        stmt = stmt.where(
+            (TeamInvite.business_id == current_user.business_id) | (TeamInvite.invited_by_user_id == current_user.id)
+        )
+    else:
+        stmt = stmt.where(TeamInvite.invited_by_user_id == current_user.id)
+
+    res = await db.execute(stmt)
+    invite = res.scalar_one_or_none()
+
+    if not invite:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invitation not found."
+        )
+
+    if invite.status == "accepted":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invite has already been accepted."
+        )
+    if invite.status == "removed":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot resend invite for a removed member. Please create a new invitation."
+        )
+
+    # Get company name
+    from app.business.models import GeneralInfo
+    company_name = "SpotLite Platform"
+    if invite.business_id:
+        biz_stmt = select(GeneralInfo).where(GeneralInfo.id == invite.business_id)
+        biz_res = await db.execute(biz_stmt)
+        biz_obj = biz_res.scalar_one_or_none()
+        if biz_obj and biz_obj.company_name:
+            company_name = biz_obj.company_name
+
+    now = datetime.utcnow()
+    expires_at = now + timedelta(hours=24)
+    token = generate_invite_token()
+
+    invite.invite_token = token
+    invite.status = "pending"
+    invite.expires_at = expires_at
+    invite.updated_at = now
+    await db.flush()
+
+    vlink = await generate_invite_email(
+        email=invite.email,
+        full_name=invite.full_name,
+        role=invite.role,
+        invite_token=token,
+        company_name=company_name
+    )
+
+    try:
+        cntxt = {"action_url": vlink, "role": invite.role.upper(), "org_name": company_name}
+        await send_email_async(invite.email, "user_invitation", "User Invitation", cntxt)
+    except Exception as e:
+        logger.warning(f"Encountered SendGrid email error on resend: {e}")
+
+    await create_invite_audit_log(
+        db=db,
+        invite_id=invite.id,
+        business_id=invite.business_id,
+        actor_user_id=current_user.id,
+        action="resend",
+        target_email=invite.email,
+    )
+
+    return TeamInviteItemResponse(
+        id=str(invite.id),
+        email=invite.email,
+        full_name=invite.full_name,
+        role=invite.role,
+        status=invite.status,
+        invite_token=invite.invite_token,
+        created_at=invite.created_at.isoformat() if invite.created_at else None,
+        expires_at=invite.expires_at.isoformat() if invite.expires_at else None,
+        updated_at=invite.updated_at.isoformat() if invite.updated_at else None,
+        message="Invitation successfully resent."
+    )
 
 
 @router.get(
@@ -413,6 +714,16 @@ async def verify_invite(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="This invitation link has already been used and accepted."
+        )
+    if invite.status == "revoked":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This invitation has been revoked by the administrator."
+        )
+    if invite.status == "removed":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This membership has been removed."
         )
 
     # Check 24-hour expiration
@@ -465,6 +776,17 @@ async def accept_invite_with_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="This invitation link has already been used and accepted."
         )
+    if invite.status == "revoked":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This invitation has been revoked by the administrator."
+        )
+    if invite.status == "removed":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This membership has been removed."
+        )
+
 
     now = datetime.utcnow()
     expires_at = invite.expires_at or (invite.created_at + timedelta(hours=24) if invite.created_at else None)
@@ -538,6 +860,16 @@ async def accept_invite_with_password(
     invite.status = "accepted"
     invite.accepted_at = now
     await db.flush()
+
+    await create_invite_audit_log(
+        db=db,
+        invite_id=invite.id,
+        business_id=invite.business_id,
+        actor_user_id=user.id,
+        action="accept",
+        target_email=target_email,
+        details={"accepted_role": invite.role}
+    )
 
     from app.business.models import GeneralInfo
     biz_stmt = select(GeneralInfo).where(GeneralInfo.id == invite.business_id)

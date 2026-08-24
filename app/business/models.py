@@ -1,8 +1,11 @@
 import uuid
 from datetime import datetime, date
 from typing import List, Optional
-from sqlalchemy import String, Integer, Float, Text, ForeignKey, Date, DateTime, JSON, Boolean, func
+# pyrefly: ignore [missing-import]
+from sqlalchemy import String, Integer, Float, Text, ForeignKey, Date, DateTime, JSON, Boolean
+# pyrefly: ignore [missing-import]
 from sqlalchemy.dialects.postgresql import UUID
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.models import Base, TimestampMixin
@@ -183,3 +186,17 @@ class PackageDocument(TimestampMixin, Base):
 
     package: Mapped["Package"] = relationship("Package", back_populates="documents")
     document: Mapped["BusinessVerificationDocument"] = relationship("BusinessVerificationDocument")
+
+
+class TeamInviteAuditLog(TimestampMixin, Base):
+    """Audit log for team invite & member actions (send, resend, revoke, remove, accept)."""
+    __tablename__ = "team_invite_audit_logs"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    invite_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    business_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("general_info.id", ondelete="CASCADE"), nullable=True, index=True)
+    actor_user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    action: Mapped[str] = mapped_column(String(50), nullable=False)  # send, resend, revoke, remove, accept
+    target_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    details: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+
