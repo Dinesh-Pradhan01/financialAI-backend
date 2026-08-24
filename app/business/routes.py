@@ -545,6 +545,13 @@ async def upload_verification_document(
 
     logger.info(f"==> Document upload received: '{file.filename}' (type: {document_type}, category: {document_category}, size: {len(file_bytes)} bytes)")
 
+    # 0. File type validation — only PDF accepted (quality score requires text extraction)
+    if file.content_type != "application/pdf":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type '{file.content_type}'. Only PDF files are accepted for document verification."
+        )
+
     # 1. Duplication Check — Global (same file hash across ANY business)
     logger.info(f"  [1/4] Checking for duplicate documents globally (hash: {file_hash[:12]}...)...")
     duplicate_res = await db.execute(

@@ -49,9 +49,9 @@ async def get_user_business(user: User, db: AsyncSession) -> GeneralInfo:
     raise HTTPException(status_code=404, detail="Business profile not found.")
 
 def validate_file(file: UploadFile, max_size_mb: int = 10):
-    ALLOWED_MIMES = ["application/pdf", "image/png", "image/jpeg", "image/jpg"]
+    ALLOWED_MIMES = ["application/pdf"]
     if file.content_type not in ALLOWED_MIMES:
-        raise HTTPException(status_code=400, detail=f"Invalid file type {file.content_type}. Allowed: {ALLOWED_MIMES}")
+        raise HTTPException(status_code=400, detail=f"Invalid file type '{file.content_type}'. Only PDF files are accepted for document verification.")
 
 async def process_document_ai(file: UploadFile, file_bytes: bytes, document_type: str, business: GeneralInfo):
     document_text = ""
