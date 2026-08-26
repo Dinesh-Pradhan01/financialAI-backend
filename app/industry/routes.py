@@ -416,3 +416,30 @@ async def get_all_basic_industries(db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Database query error: {str(e)}"
         )
+
+@router.get("/classifications")
+async def get_all_classifications(db: AsyncSession = Depends(get_db)):
+    try:
+        res = await db.execute(
+            text(
+                "SELECT id, macro_economic_indicator, sector, industry, basic_industry "
+                "FROM classifications "
+                "ORDER BY macro_economic_indicator, sector, industry, basic_industry ASC"
+            )
+        )
+        return [
+            {
+                "id": r[0],
+                "macro_economic_indicator": r[1],
+                "sector": r[2],
+                "industry": r[3],
+                "basic_industry": r[4]
+            }
+            for r in res.fetchall()
+        ]
+    except Exception as e:
+        logger.error(f"Error querying classifications: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database query error: {str(e)}"
+        )
