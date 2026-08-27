@@ -261,6 +261,9 @@ async def create_role_invite(
     # Resolve business_id from current_user
     business_id = current_user.business_id
     if not business_id:
+        return {"status":"failed",
+                "message":"Company/Business not registered for current user!"}
+
         from app.business.models import GeneralInfo
         stmt = select(GeneralInfo).where(GeneralInfo.user_id == current_user.id)
         res = await db.execute(stmt)
