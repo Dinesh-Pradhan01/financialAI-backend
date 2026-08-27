@@ -4,6 +4,17 @@ This is the backend API for the Spotlite Financial Analysis platform. It is buil
 
 ---
 
+## Key Features & APIs
+
+- **Authentication & Sessions**: Syncs with Firebase JWTs, establishes secure session cookies, and maintains user context.
+- **User Profiles**: Profiles CRUD management for users and associated entities.
+- **Industry & Stock Insights**: 
+  - `/v1/basic-industry/{basic_industry_name}`: Returns quarterly peer financial metrics, scaled MSME benchmark financials, and growth trends.
+  - `/v1/stocks/top5`: Fetches daily price charts for top 5 stocks within a basic industry (accepts query parameter `basic_industry`, e.g., `/v1/stocks/top5?basic_industry=2/3 Wheelers`).
+- **Bank Statement Analyzer**: Asynchronous, AI-driven bank statement text extraction, categorization, validation, and metadata parsing using Google Gemini.
+
+---
+
 ## Technical Stack & Libraries
 
 - **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Asynchronous endpoints, automatic OpenAPI docs)
@@ -31,6 +42,8 @@ financialAI-backend/
 │   │   ├── connection.py    # Async session maker, engine setup, database seeding
 │   │   ├── models.py        # Core entity declarations (Base, TimestampMixin, Person)
 │   │   └── repository.py    # Database query abstractions
+│   ├── industry/            # Industry & Stock Analysis
+│   │   └── routes.py        # Peer average comparison & Top 5 stock list endpoints
 │   ├── person/              # User Profile Management
 │   │   └── routes.py        # Profile crud router endpoints (/persons/me)
 │   ├── statement/           # Bank Statement Parsing & Analysis

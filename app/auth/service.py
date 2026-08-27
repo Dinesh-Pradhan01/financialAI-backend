@@ -7,8 +7,9 @@ import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-
+# pyrefly: ignore [missing-import]
 from sqlalchemy import select, update
+# pyrefly: ignore [missing-import]
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.model import User, UserRole, Session
@@ -89,6 +90,7 @@ async def get_or_create_user(
             
         return existing
 
+# pyrefly: ignore [missing-import]
     from sqlalchemy.exc import IntegrityError
     from app.auth.model import Role
 
@@ -229,3 +231,18 @@ async def revoke_session(db: AsyncSession, raw_token: str) -> bool:
     result = await db.execute(stmt)
     await db.flush()
     return result.rowcount > 0
+
+
+async def revoke_all_user_sessions(db: AsyncSession, user_id: int) -> int:
+    """
+    Mark all active sessions for a given user as revoked.
+    """
+    stmt = (
+        update(Session)
+        .where(Session.user_id == user_id, Session.is_revoked == False)
+        .values(is_revoked=True)
+    )
+    result = await db.execute(stmt)
+    await db.flush()
+    return result.rowcount
+

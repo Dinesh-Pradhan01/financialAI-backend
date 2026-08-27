@@ -1,8 +1,13 @@
 import secrets
 import logging
-import firebase_admin
-from firebase_admin import auth
+import uuid
+from typing import Optional, Dict, Any
+# pyrefly: ignore [missing-import]
+from sqlalchemy.ext.asyncio import AsyncSession
+
+
 from app.config import settings
+from app.business.models import TeamInviteAuditLog
 
 logger = logging.getLogger(__name__)
 
@@ -28,3 +33,27 @@ async def generate_invite_email(email: str, full_name: str, role: str, invite_to
                 f"====================================================")
                 
     return direct_link
+
+
+async def create_invite_audit_log(
+    db: AsyncSession,
+    invite_id: uuid.UUID,
+    actor_user_id: Optional[int],
+    action: str,
+    target_email: Optional[str] = None,
+    business_id: Optional[uuid.UUID] = None,
+    details: Optional[Dict[str, Any]] = None,
+) -> TeamInviteAuditLog:
+    """Record an audit log entry for team invite and member state changes."""
+    log = TeamInviteAuditLog(
+        invite_id=invite_id,
+        business_id=business_id,
+        actor_user_id=actor_user_id,
+        action=action,
+        target_email=target_email,
+        details=details,
+    )
+    db.add(log)
+    await db.flush()
+    return log
+

@@ -23,6 +23,7 @@ from app.auth.routes import router as auth_router
 from app.business.routes import router as business_router
 from app.business.invite_routes import router as invite_router
 from app.company.routes import router as company_router
+from app.company.document_routes import router as document_router, package_router
 from app.industry.routes import router as industry_router
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
@@ -139,6 +140,8 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(business_router, prefix="/api")
 app.include_router(invite_router, prefix="/api")
 app.include_router(company_router, prefix="/api")
+app.include_router(document_router, prefix="/api/company")
+app.include_router(package_router, prefix="/api/company")
 app.include_router(industry_router, prefix="/api")
 
 # ---------------------------------------------------------------------------

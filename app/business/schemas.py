@@ -106,6 +106,9 @@ class DocumentResponseSchema(BaseModel):
     file_size_bytes: int
     mime_type: str
     upload_status: str
+    quality_score: Optional[float] = None
+    is_verified: bool = False
+    verification_notes: Optional[str] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

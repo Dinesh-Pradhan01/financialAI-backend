@@ -77,6 +77,17 @@ class PostgreSQLConnectionManager:
 
                 if not await column_exists("documents", "business_id"):
                     await conn.execute(text("ALTER TABLE documents ADD COLUMN business_id UUID REFERENCES general_info(id) ON DELETE CASCADE;"))
+                
+                # business_documents table updates
+                if not await column_exists("business_documents", "file_hash"):
+                    await conn.execute(text("ALTER TABLE business_documents ADD COLUMN file_hash VARCHAR(64);"))
+                if not await column_exists("business_documents", "quality_score"):
+                    await conn.execute(text("ALTER TABLE business_documents ADD COLUMN quality_score FLOAT;"))
+                if not await column_exists("business_documents", "is_verified"):
+                    await conn.execute(text("ALTER TABLE business_documents ADD COLUMN is_verified BOOLEAN DEFAULT FALSE NOT NULL;"))
+                if not await column_exists("business_documents", "verification_notes"):
+                    await conn.execute(text("ALTER TABLE business_documents ADD COLUMN verification_notes TEXT;"))
+
                 if not await column_exists("accounts", "business_id"):
                     await conn.execute(text("ALTER TABLE accounts ADD COLUMN business_id UUID REFERENCES general_info(id) ON DELETE CASCADE;"))
                 if not await column_exists("accounts", "account_type"):

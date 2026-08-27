@@ -100,3 +100,24 @@ Here is the raw text extracted from the document:
 Generate output as valid JSON matching the specified schema.
 """
 
+DOCUMENT_VERIFICATION_PROMPT_TEMPLATE = """
+You are an enterprise-grade Document Quality and Verification AI.
+Your task is to analyze raw text extracted from a document uploaded during business onboarding.
+We need to determine if the document is of acceptable quality (e.g. readable, not garbled/blurry) and if it matches the expected identity.
+
+Expected Document Type: {document_type}
+Expected Identifier (e.g. PAN, CIN): {expected_id}
+
+Determine:
+1. is_readable (boolean): Is the text coherent enough to be considered a valid, legible document?
+2. quality_score (float, 0-100): Score the readability/quality based on the text. 100 is perfect OCR/text.
+3. extracted_id (string or null): Extract the primary identifier for this document type (e.g. the 10-character PAN, or CIN) if present.
+4. notes (string): Any notes on why the quality is low or why it failed verification.
+
+Here is the raw text extracted from the document:
+--- START OF TEXT ---
+{document_text}
+--- END OF TEXT ---
+
+Generate output as valid JSON matching the specified schema.
+"""

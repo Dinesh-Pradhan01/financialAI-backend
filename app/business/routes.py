@@ -1,17 +1,22 @@
 import logging
 import os
 import uuid
-from datetime import datetime, date
+import hashlib
+import io
+from datetime import datetime, timedelta
 from typing import Optional, List
-
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+# pyrefly: ignore [missing-import]
 from sqlalchemy import select
+# pyrefly: ignore [missing-import]
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.dependencies import get_current_session_user
+from app.auth.dependencies import get_current_session_user, require_role
 from app.auth.model import User
 from app.database.connection import get_db
 
+# pyrefly: ignore [missing-import]
 import pypdf
 from app.ai.llm import gemini_service
 from app.business.models import (
@@ -22,7 +27,7 @@ from app.business.models import (
     BusinessVerificationDocument,
 )
 from app.business.invite_model import TeamInvite
-from app.business.invite_service import generate_invite_token, generate_invite_email
+from app.business.invite_service import generate_invite_token, generate_invite_email, create_invite_audit_log
 from app.business.schemas import (
     GeneralInfoSaveSchema,
     LeadershipInfoSaveSchema,
@@ -382,6 +387,15 @@ async def save_step2_team_members(
         # Send email if pending
         if invite.status == "pending":
             await generate_invite_email(email, name, role, invite.invite_token, gen.company_name)
+            await create_invite_audit_log(
+                db=db,
+                invite_id=invite.id,
+                business_id=gen.id,
+                actor_user_id=current_user.id,
+                action="send",
+                target_email=email,
+                details={"role": role}
+            )
 
     gen.current_step = max(gen.current_step, 2)
     await db.flush()
@@ -390,7 +404,7 @@ async def save_step2_team_members(
 @router.post("/resend-invite/{invite_id}", summary="Resend an invite")
 async def resend_invite(
     invite_id: uuid.UUID,
-    current_user: User = Depends(get_current_session_user),
+    current_user: User = Depends(require_role("ceo", "admin")),
     db: AsyncSession = Depends(get_db),
 ):
     gen = await get_or_fetch_user_business(current_user, db)
@@ -405,16 +419,35 @@ async def resend_invite(
         
     if invite.status == "accepted":
         raise HTTPException(status_code=400, detail="Invite already accepted")
+    if invite.status == "removed":
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot resend invite for a removed member. Please create a new invitation."
+        )
         
+    now = datetime.utcnow()
     invite.invite_token = generate_invite_token()
+    invite.status = "pending"
+    invite.expires_at = now + timedelta(hours=24)
+    invite.updated_at = now
     await db.flush()
     
     await generate_invite_email(invite.email, invite.full_name, invite.role, invite.invite_token, gen.company_name)
+    
+    await create_invite_audit_log(
+        db=db,
+        invite_id=invite.id,
+        business_id=gen.id,
+        actor_user_id=current_user.id,
+        action="resend",
+        target_email=invite.email,
+    )
+    
     return {"status": "success", "message": "Invite resent"}
 
 @router.get("/invites", summary="Get all invites")
 async def get_team_invites(
-    current_user: User = Depends(get_current_session_user),
+    current_user: User = Depends(require_role("ceo", "admin")),
     db: AsyncSession = Depends(get_db),
 ):
     gen = await get_or_fetch_user_business(current_user, db)
@@ -508,6 +541,86 @@ async def upload_verification_document(
     file_path = os.path.join(biz_dir, safe_filename)
 
     file_bytes = await file.read()
+    file_hash = hashlib.sha256(file_bytes).hexdigest()
+
+    logger.info(f"==> Document upload received: '{file.filename}' (type: {document_type}, category: {document_category}, size: {len(file_bytes)} bytes)")
+
+    # 0. File type validation — only PDF accepted (quality score requires text extraction)
+    if file.content_type != "application/pdf":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type '{file.content_type}'. Only PDF files are accepted for document verification."
+        )
+
+    # 1. Duplication Check — Global (same file hash across ANY business)
+    logger.info(f"  [1/4] Checking for duplicate documents globally (hash: {file_hash[:12]}...)...")
+    duplicate_res = await db.execute(
+        select(BusinessVerificationDocument).where(
+            BusinessVerificationDocument.file_hash == file_hash
+        )
+    )
+    existing_duplicate = duplicate_res.scalar_one_or_none()
+    if existing_duplicate:
+        is_same_business = existing_duplicate.business_id == gen.id
+        if is_same_business:
+            logger.warning(f"  [DUPLICATE] Document upload rejected — same file already uploaded for this business (doc_id: {existing_duplicate.id}).")
+            raise HTTPException(status_code=400, detail="Duplicate document uploaded. This file has already been uploaded for your business.")
+        else:
+            logger.warning(f"  [DUPLICATE] Document upload rejected — same file already uploaded by another business (business_id: {existing_duplicate.business_id}, doc_id: {existing_duplicate.id}).")
+            raise HTTPException(status_code=400, detail="Duplicate document detected. This exact file has already been uploaded by another business account.")
+
+    # 2. Extract Text (if PDF)
+    document_text = ""
+    if file.content_type == "application/pdf":
+        logger.info("  [2/4] Extracting text from PDF for AI verification...")
+        try:
+            reader = pypdf.PdfReader(io.BytesIO(file_bytes))
+            for page in reader.pages:
+                text = page.extract_text()
+                if text:
+                    document_text += text + "\n"
+            logger.info(f"  [2/4] Extracted {len(document_text)} characters from {len(reader.pages)} page(s).")
+        except Exception as e:
+            logger.warning(f"  [2/4] Failed to extract text from PDF: {e}")
+    else:
+        logger.info(f"  [2/4] Non-PDF file ({file.content_type}), skipping text extraction.")
+
+    # 3. Quality & Verification Check via AI
+    quality_score = None
+    is_verified = False
+    verification_notes = None
+
+    if document_text.strip():
+        expected_id = gen.business_pan if document_type == "business_pan" else (gen.cin if document_type == "registration_proof" else "")
+        logger.info(f"  [3/4] Running AI verification (type: {document_type}, expected_id: {expected_id or 'N/A'})...")
+        verification_result = await gemini_service.verify_document_quality(document_text, document_type, expected_id or "")
+        
+        if verification_result:
+            is_readable = verification_result.get("is_readable", False)
+            quality_score = verification_result.get("quality_score", 0.0)
+            extracted_id = verification_result.get("extracted_id")
+            verification_notes = verification_result.get("notes", "")
+            
+            logger.info(f"  [3/4] AI Verification Result — Readable: {is_readable}, Quality: {quality_score}, Extracted ID: {extracted_id}, Notes: {verification_notes}")
+            
+            if not is_readable or quality_score < 50.0:
+                logger.warning(f"  [REJECTED] Document quality too low (Score: {quality_score}). Rejecting upload.")
+                raise HTTPException(status_code=400, detail=f"Document quality is too low (Score: {quality_score}). Notes: {verification_notes}")
+                
+            if expected_id and extracted_id and expected_id.upper() not in extracted_id.upper():
+                logger.warning(f"  [REJECTED] ID mismatch — Expected: {expected_id}, Found: {extracted_id}. Rejecting upload.")
+                raise HTTPException(status_code=400, detail=f"Document verification failed. Expected ID {expected_id} but found {extracted_id}.")
+                
+            is_verified = True
+            logger.info(f"  [3/4] ✅ Document VERIFIED successfully (quality: {quality_score}%).")
+        else:
+            logger.warning("  [3/4] AI verification returned no result. Document will require manual review.")
+            verification_notes = "AI verification unavailable. Manual verification required."
+    else:
+        logger.info("  [3/4] No text extracted from document. Marking for manual verification.")
+        verification_notes = "No text extracted. Manual verification required."
+
+    logger.info(f"  [4/4] Saving file to disk and persisting to database...")
     with open(file_path, "wb") as f:
         f.write(file_bytes)
 
@@ -535,6 +648,10 @@ async def upload_verification_document(
         existing_doc.mime_type = file.content_type or "application/octet-stream"
         existing_doc.document_category = document_category
         existing_doc.upload_status = "uploaded"
+        existing_doc.file_hash = file_hash
+        existing_doc.quality_score = quality_score
+        existing_doc.is_verified = is_verified
+        existing_doc.verification_notes = verification_notes
     else:
         new_doc = BusinessVerificationDocument(
             business_id=gen.id,
@@ -546,6 +663,10 @@ async def upload_verification_document(
             file_size_bytes=len(file_bytes),
             mime_type=file.content_type or "application/octet-stream",
             upload_status="uploaded",
+            file_hash=file_hash,
+            quality_score=quality_score,
+            is_verified=is_verified,
+            verification_notes=verification_notes
         )
         db.add(new_doc)
 
