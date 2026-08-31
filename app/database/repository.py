@@ -3,7 +3,11 @@ import logging
 from typing import Any, Dict, List, Optional, Type
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
-from app.database.models import Base, Document, Account, Transaction, ProcessingMetadata, Merchant
+from app.database.models import (
+    Base, Document, Account, Transaction, ProcessingMetadata, Merchant,
+    BankStatementData, IntelligenceGroup, TransactionCategory, CategoryRule
+)
+from app.business.models import GeneralInfo
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +17,12 @@ MODEL_MAPPING: Dict[str, Type[Base]] = {
     "accounts": Account,
     "transactions": Transaction,
     "processing_metadata": ProcessingMetadata,
-    "merchants": Merchant
+    "merchants": Merchant,
+    "bank_statement_data": BankStatementData,
+    "intelligence_groups": IntelligenceGroup,
+    "transaction_categories": TransactionCategory,
+    "category_rules": CategoryRule,
+    "general_info": GeneralInfo,
 }
 
 class BaseRepository:
@@ -48,7 +57,7 @@ class BaseRepository:
             attr = getattr(self.model_class, search_key, None)
             if attr is not None:
                 # Convert foreign keys or ID strings to UUIDs
-                if search_key in ("id", "document_id", "account_id") and isinstance(value, str):
+                if search_key in ("id", "document_id", "account_id", "business_id") and isinstance(value, str):
                     try:
                         value = uuid.UUID(value)
                     except ValueError:
@@ -67,7 +76,7 @@ class BaseRepository:
             
         cleaned_data = {}
         for key, val in data.items():
-            if key in ("id", "document_id", "account_id") and isinstance(val, str):
+            if key in ("id", "document_id", "account_id", "business_id") and isinstance(val, str):
                 try:
                     val = uuid.UUID(val)
                 except ValueError:
@@ -88,7 +97,7 @@ class BaseRepository:
         for key, val in data.items():
             if key in ("id", "_id"):
                 continue  # Prevent primary key alterations
-            if key in ("document_id", "account_id") and isinstance(val, str):
+            if key in ("document_id", "account_id", "business_id") and isinstance(val, str):
                 try:
                     val = uuid.UUID(val)
                 except ValueError:
@@ -106,4 +115,3 @@ class BaseRepository:
         await self.session.delete(instance)
         await self.session.flush()
         return True
-

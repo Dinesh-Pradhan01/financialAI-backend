@@ -7,17 +7,17 @@ from datetime import datetime
 from app.database.connection import db_manager
 from app.config import settings
 from app.database.repository import BaseRepository
-from app.statement.model import DocumentStatus
-from app.statement.extraction.extractor import StatementExtractor
+from app.transaction.schemas import DocumentStatus
+from app.transaction.extraction.extractor import StatementExtractor
 from app.ai.llm import gemini_service
-from app.statement.extraction.parser import FallbackStatementParser
-from app.statement.extraction.normalizer import StatementNormalizer
+from app.transaction.extraction.parser import FallbackStatementParser
+from app.transaction.extraction.normalizer import StatementNormalizer
 
 logger = logging.getLogger(__name__)
 
-class StatementProcessingService:
+class TransactionExtractionService:
     @staticmethod
-    async def process_statement_task(document_id: str, file_path: str, business_id: Optional[str] = None):
+    async def extract_transactions_task(document_id: str, file_path: str, business_id: Optional[str] = None):
         """
         Asynchronous background task that orchestrates the entire extraction pipeline:
         1. Read text from PDF.
