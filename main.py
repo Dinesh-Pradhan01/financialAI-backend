@@ -152,10 +152,10 @@ app.include_router(package_router, prefix="/api/company")
 app.include_router(industry_router, prefix="/api")
 
 # HR/Vendor Module Routers registered under prefix /api/v1/hr
-app.include_router(employee_router, prefix="/api/v1/hr/employees", tags=["Employee"])
-app.include_router(vendor_router, prefix="/api/v1/hr/vendors", tags=["Vendor"])
-app.include_router(dashboard_router, prefix="/api/v1/hr/dashboard", tags=["Dashboard"])
-app.include_router(chatbot_router, prefix="/api/v1/hr/chatbot", tags=["Chatbot"])
+app.include_router(employee_router, prefix="/api/v1/hr/employees", tags=["HR-Employee"])
+app.include_router(vendor_router, prefix="/api/v1/hr/vendors", tags=["HR-Vendor"])
+app.include_router(dashboard_router, prefix="/api/v1/hr/dashboard", tags=["HR-Dashboard"])
+app.include_router(chatbot_router, prefix="/api/v1/hr/chatbot", tags=["HR-Chatbot"])
 
 # ---------------------------------------------------------------------------
 # Health / Root
