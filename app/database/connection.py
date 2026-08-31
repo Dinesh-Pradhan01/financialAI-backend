@@ -51,15 +51,23 @@ class PostgreSQLConnectionManager:
     async def create_tables(self):
         """Creates tables dynamically in the PostgreSQL database if they don't exist."""
         from app.database.models import Base
+        from app.db.base import Base as DbBase
         import app.auth.model  # Register auth models (User, Session, Role)
         import app.business.models  # Register business models with Base.metadata
         import app.business.invite_model  # Register invite models
+        
+        # Register HR/Vendor models
+        import app.db.models.employee
+        import app.db.models.vendor
+        import app.db.models.upload
+
         if self.engine is None:
             raise RuntimeError("Database engine not initialized. Please call connect() first.")
         try:
             logger.info("Creating database tables...")
             async with self.engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
+                await conn.run_sync(DbBase.metadata.create_all)
                 logger.info("Running database column migrations and role seeding...")
                 
                 async def column_exists(table: str, col: str) -> bool:

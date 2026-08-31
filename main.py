@@ -151,11 +151,11 @@ app.include_router(document_router, prefix="/api/company")
 app.include_router(package_router, prefix="/api/company")
 app.include_router(industry_router, prefix="/api")
 
-# HR/Vendor Module Routers registered under prefix /api/v1
-app.include_router(employee_router, prefix="/api/v1/employees", tags=["Employee"])
-app.include_router(vendor_router, prefix="/api/v1/vendors", tags=["Vendor"])
-app.include_router(dashboard_router, prefix="/api/v1/dashboard", tags=["Dashboard"])
-app.include_router(chatbot_router, prefix="/api/v1/chatbot", tags=["Chatbot"])
+# HR/Vendor Module Routers registered under prefix /api/v1/hr
+app.include_router(employee_router, prefix="/api/v1/hr/employees", tags=["Employee"])
+app.include_router(vendor_router, prefix="/api/v1/hr/vendors", tags=["Vendor"])
+app.include_router(dashboard_router, prefix="/api/v1/hr/dashboard", tags=["Dashboard"])
+app.include_router(chatbot_router, prefix="/api/v1/hr/chatbot", tags=["Chatbot"])
 
 # ---------------------------------------------------------------------------
 # Health / Root
