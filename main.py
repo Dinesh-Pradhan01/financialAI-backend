@@ -25,6 +25,13 @@ from app.business.invite_routes import router as invite_router
 from app.company.routes import router as company_router
 from app.company.document_routes import router as document_router, package_router
 from app.industry.routes import router as industry_router
+
+# HR/Vendor Module Routers
+from app.api.employee.routes import router as employee_router
+from app.api.vendor.routes import router as vendor_router
+from app.api.dashboard.routes import router as dashboard_router
+from app.api.chatbot.routes import router as chatbot_router
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
@@ -143,6 +150,12 @@ app.include_router(company_router, prefix="/api")
 app.include_router(document_router, prefix="/api/company")
 app.include_router(package_router, prefix="/api/company")
 app.include_router(industry_router, prefix="/api")
+
+# HR/Vendor Module Routers registered under prefix /api/v1
+app.include_router(employee_router, prefix="/api/v1/employees", tags=["Employee"])
+app.include_router(vendor_router, prefix="/api/v1/vendors", tags=["Vendor"])
+app.include_router(dashboard_router, prefix="/api/v1/dashboard", tags=["Dashboard"])
+app.include_router(chatbot_router, prefix="/api/v1/chatbot", tags=["Chatbot"])
 
 # ---------------------------------------------------------------------------
 # Health / Root
