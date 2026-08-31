@@ -1,0 +1,304 @@
+{
+  "module": "vendor",
+  "fields": [
+    {
+      "name": "vendor_id",
+      "header_variations": ["vendor id", "vendorid", "client id", "clientid"],
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "vendor_name",
+      "header_variations": ["vendor name", "client name"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "legal_name",
+      "header_variations": ["legal name"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "entity_type",
+      "header_variations": ["entity type"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "category",
+      "header_variations": ["category"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "sub_category",
+      "header_variations": ["sub category"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "industry",
+      "header_variations": ["industry"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "gst_number",
+      "header_variations": ["gst number", "gst"],
+      "required": false,
+      "type": "string",
+      "regex": "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$"
+    },
+    {
+      "name": "pan_number",
+      "header_variations": ["pan number", "pan"],
+      "required": false,
+      "type": "string",
+      "regex": "^[A-Z]{5}[0-9]{4}[A-Z]{1}$"
+    },
+    {
+      "name": "cin_number",
+      "header_variations": ["cin number", "cin"],
+      "required": false,
+      "type": "string",
+      "regex": "^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$"
+    },
+    {
+      "name": "contact_person",
+      "header_variations": ["contact person"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "email",
+      "header_variations": ["email"],
+      "required": false,
+      "type": "email"
+    },
+    {
+      "name": "mobile_number",
+      "header_variations": ["mobile number"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "address",
+      "header_variations": ["address"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "city",
+      "header_variations": ["city"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "state",
+      "header_variations": ["state"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "country",
+      "header_variations": ["country"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "pincode",
+      "header_variations": ["pincode"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "contract_id",
+      "header_variations": ["contract id", "contractid"],
+      "required": true,
+      "type": "string",
+      "unique": true
+    },
+    {
+      "name": "project_name",
+      "header_variations": ["project name"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "contract_type",
+      "header_variations": ["contract type"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "contract_start_date",
+      "header_variations": ["contract start date"],
+      "required": false,
+      "type": "date"
+    },
+    {
+      "name": "contract_end_date",
+      "header_variations": ["contract end date"],
+      "required": false,
+      "type": "date",
+      "custom_rule": "after_start_date"
+    },
+    {
+      "name": "renewal_date",
+      "header_variations": ["renewal date"],
+      "required": false,
+      "type": "date"
+    },
+    {
+      "name": "contract_value",
+      "header_variations": ["contract value"],
+      "required": false,
+      "type": "number",
+      "min": 0
+    },
+    {
+      "name": "currency",
+      "header_variations": ["currency"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "base_cost",
+      "header_variations": ["base cost"],
+      "required": false,
+      "type": "number",
+      "min": 0
+    },
+    {
+      "name": "support_cost",
+      "header_variations": ["support cost"],
+      "required": false,
+      "type": "number",
+      "min": 0
+    },
+    {
+      "name": "maintenance_cost",
+      "header_variations": ["maintenance cost"],
+      "required": false,
+      "type": "number",
+      "min": 0
+    },
+    {
+      "name": "hosting_cost",
+      "header_variations": ["hosting cost"],
+      "required": false,
+      "type": "number",
+      "min": 0
+    },
+    {
+      "name": "cloud_cost",
+      "header_variations": ["cloud cost"],
+      "required": false,
+      "type": "number",
+      "min": 0
+    },
+    {
+      "name": "miscellaneous_cost",
+      "header_variations": ["miscellaneous cost"],
+      "required": false,
+      "type": "number",
+      "min": 0
+    },
+    {
+      "name": "tax_percentage",
+      "header_variations": ["tax (%)", "tax percentage"],
+      "required": false,
+      "type": "number",
+      "min": 0
+    },
+    {
+      "name": "discount",
+      "header_variations": ["discount"],
+      "required": false,
+      "type": "number",
+      "min": 0
+    },
+    {
+      "name": "payment_flow",
+      "header_variations": ["payment flow (debit/credit)", "payment flow"],
+      "required": false,
+      "type": "string",
+      "allowed_values": ["debit", "credit"]
+    },
+    {
+      "name": "expected_billing",
+      "header_variations": ["expected billing"],
+      "required": false,
+      "type": "number",
+      "custom_rule": "calculate_billing"
+    },
+    {
+      "name": "payment_type",
+      "header_variations": ["payment type"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "frequency",
+      "header_variations": ["frequency"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "recurring",
+      "header_variations": ["recurring"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "bank_name",
+      "header_variations": ["bank name"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "account_holder_name",
+      "header_variations": ["account holder name"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "account_number",
+      "header_variations": ["account number"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "ifsc_code",
+      "header_variations": ["ifsc code", "ifsc"],
+      "required": false,
+      "type": "string",
+      "regex": "^[A-Z]{4}0[A-Z0-9]{6}$"
+    },
+    {
+      "name": "branch_name",
+      "header_variations": ["branch name"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "primary_account",
+      "header_variations": ["primary account"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "status",
+      "header_variations": ["status"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "remarks",
+      "header_variations": ["remarks"],
+      "required": false,
+      "type": "string"
+    }
+  ]
+}
