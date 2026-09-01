@@ -1,0 +1,190 @@
+{
+  "module": "employee",
+  "fields": [
+    {
+      "name": "employee_id",
+      "header_variations": ["employee id", "employeeid"],
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "employee_name",
+      "header_variations": ["employee name", "employeename"],
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "email",
+      "header_variations": ["email"],
+      "required": false,
+      "type": "email"
+    },
+    {
+      "name": "phone",
+      "header_variations": ["phone"],
+      "required": false,
+      "type": "string",
+      "regex": "^\\+?[1-9]\\d{1,14}$"
+    },
+    {
+      "name": "gender",
+      "header_variations": ["gender"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "date_of_birth",
+      "header_variations": ["date of birth", "dob"],
+      "required": false,
+      "type": "date"
+    },
+    {
+      "name": "joining_date",
+      "header_variations": ["joining date", "doj"],
+      "required": false,
+      "type": "date",
+      "custom_rule": "not_future"
+    },
+    {
+      "name": "department",
+      "header_variations": ["department", "dept"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "designation",
+      "header_variations": ["designation"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "manager",
+      "header_variations": ["manager"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "employment_type",
+      "header_variations": ["employment type"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "status",
+      "header_variations": ["status"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "salary",
+      "header_variations": ["salary"],
+      "required": false,
+      "type": "number",
+      "min": 0
+    },
+    {
+      "name": "previous_salary",
+      "header_variations": ["previous salary"],
+      "required": false,
+      "type": "number",
+      "min": 0
+    },
+    {
+      "name": "hike_percentage",
+      "header_variations": ["hike %", "hike percentage"],
+      "required": false,
+      "type": "number",
+      "min": 0,
+      "max": 100
+    },
+    {
+      "name": "salary_frequency",
+      "header_variations": ["salary frequency"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "pan",
+      "header_variations": ["pan", "pan number"],
+      "required": false,
+      "type": "string",
+      "regex": "^[A-Z]{5}[0-9]{4}[A-Z]{1}$"
+    },
+    {
+      "name": "aadhaar",
+      "header_variations": ["aadhaar", "aadhaar number"],
+      "required": false,
+      "type": "string",
+      "regex": "^\\d{12}$"
+    },
+    {
+      "name": "address",
+      "header_variations": ["address"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "city",
+      "header_variations": ["city"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "state",
+      "header_variations": ["state"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "country",
+      "header_variations": ["country"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "account_holder_name",
+      "header_variations": ["acc holder name", "account holder name"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "account_number",
+      "header_variations": ["account number"],
+      "required": false,
+      "type": "string",
+      "min_length": 6
+    },
+    {
+      "name": "confirm_account_number",
+      "header_variations": ["confirm account"],
+      "required": false,
+      "type": "string",
+      "match_field": "account_number"
+    },
+    {
+      "name": "ifsc_code",
+      "header_variations": ["ifsc code", "ifsc"],
+      "required": false,
+      "type": "string",
+      "regex": "^[A-Z]{4}0[A-Z0-9]{6}$"
+    },
+    {
+      "name": "bank_name",
+      "header_variations": ["bank name"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "account_type",
+      "header_variations": ["account type", "acct type"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "payment_mode",
+      "header_variations": ["payment mode"],
+      "required": false,
+      "type": "string"
+    }
+  ]
+}
