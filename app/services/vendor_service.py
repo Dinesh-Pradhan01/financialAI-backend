@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_
 from app.repositories.vendor import vendor_repository
 from app.db.models.vendor import VendorMaster
-from app.schemas.vendor import VendorCreate, VendorUpdate
+from app.schemas.vendor import VendorCreate, VendorUpdate, VendorResponse
 
 def parse_float(val) -> float:
     try:
@@ -76,12 +76,13 @@ async def get_vendors(
     total_result = await db.execute(count_query)
     total = total_result.scalar_one()
     
+    query = query.order_by(VendorMaster.created_at.desc())
     query = query.offset(skip).limit(limit)
     result = await db.execute(query)
     items = result.scalars().all()
     
     return {
-        "items": items,
+        "items": [VendorResponse.model_validate(item).model_dump(mode="json") for item in items],
         "total": total,
         "page": (skip // limit) + 1 if limit > 0 else 1,
         "size": limit

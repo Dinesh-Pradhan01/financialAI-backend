@@ -125,6 +125,12 @@ class VendorResponse(VendorBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+class VendorListResponse(BaseModel):
+    items: list[VendorResponse]
+    total: int
+    page: int
+    size: int
+
 class VendorPreview(BaseModel):
     records: list[VendorCreate]
     summary: dict
