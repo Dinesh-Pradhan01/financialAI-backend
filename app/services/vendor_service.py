@@ -61,7 +61,10 @@ async def get_vendors(
     if status:
         filters.append(VendorMaster.status == status)
     if recurring is not None:
-        filters.append(VendorMaster.recurring == recurring)
+        if recurring:
+            filters.append(VendorMaster.recurring == True)
+        else:
+            filters.append(or_(VendorMaster.recurring == False, VendorMaster.recurring.is_(None)))
     if currency:
         filters.append(VendorMaster.currency == currency)
     if contract_type:

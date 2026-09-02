@@ -105,22 +105,19 @@ async def get_vendor_dashboard_metrics(db: AsyncSession):
     }
 
 async def get_recent_activity(db: AsyncSession, limit: int = 5):
-    # Fetch recent upload history logs that have been successfully imported
-    query = select(UploadHistory).where(UploadHistory.status == "IMPORTED").order_by(UploadHistory.created_at.desc()).limit(limit)
+    # Fetch recent upload history logs regardless of status
+    query = select(UploadHistory).order_by(UploadHistory.created_at.desc()).limit(limit)
     result = await db.execute(query)
     logs = result.scalars().all()
     
     activities = []
     for log in logs:
-        upload_type_str = log.upload_type.replace("_", " ").title() if log.upload_type else "Data"
-        upload_type_str = upload_type_str.replace("Client", "Vendor")
-        
         activities.append({
             "upload_id": str(log.id),
-            "upload_type": upload_type_str.replace(" Upload", ""),
-            "file_name": log.file_name or "Unknown File",
+            "upload_type": log.upload_type,
+            "file_name": log.file_name,
             "uploaded_at": log.created_at.isoformat() if log.created_at else None,
-            "record_count": log.success_records or log.total_records or 0,
+            "record_count": log.total_records or 0,
             "status": log.status
         })
         
