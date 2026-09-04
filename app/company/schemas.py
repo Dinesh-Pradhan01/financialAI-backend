@@ -36,6 +36,7 @@ class CompanyNewsResponse(BaseModel):
     source: str
     date: str
     summary: str
+    url: Optional[str] = None
 
 class CompanyAIViewRequest(BaseModel):
     company_id: uuid.UUID
