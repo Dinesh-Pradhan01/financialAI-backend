@@ -2,7 +2,7 @@ from typing import List, Dict, Any
 
 class PreviewBuilder:
     @staticmethod
-    def build(upload_id: str, records: List[Dict[str, Any]], issues: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def build(upload_id: str, records: List[Dict[str, Any]], issues: List[Dict[str, Any]], module_name: str = "generic") -> Dict[str, Any]:
         error_row_ids = set()
         warning_row_ids = set()
         duplicate_ids = sum(1 for i in issues if i["code"] == "DUPLICATE_ERROR")
@@ -20,9 +20,7 @@ class PreviewBuilder:
                 valid_records += 1
 
         summary = {
-            "validVendors": valid_records, # reusing structure for generic
             "validRecords": valid_records,
-            "validEmployees": valid_records,
             "warnings": len([i for i in issues if i["severity"] == "warning"]),
             "errors": len([i for i in issues if i["severity"] == "error"]),
             "issues": issues,
@@ -31,6 +29,11 @@ class PreviewBuilder:
             "duplicateIds": duplicate_ids,
             "missingRequiredFields": missing_required
         }
+        
+        if module_name == "employee":
+            summary["validEmployees"] = valid_records
+        elif module_name == "vendor":
+            summary["validVendors"] = valid_records
         
         return {
             "upload_id": str(upload_id),

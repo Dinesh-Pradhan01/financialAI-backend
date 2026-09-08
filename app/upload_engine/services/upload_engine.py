@@ -70,7 +70,7 @@ class UploadEngine:
         dup_issues = DuplicateValidator.validate_duplicates(normalized_records, self.schema)
         all_issues.extend(dup_issues)
         
-        preview_obj = PreviewBuilder.build("", normalized_records, all_issues)
+        preview_obj = PreviewBuilder.build("", normalized_records, all_issues, module_name=self.module_name)
         summary_info = preview_obj["summary"]
         
         processing_time = int((time.time() - start_time) * 1000)
@@ -86,8 +86,11 @@ class UploadEngine:
             processing_time=processing_time,
             status="PREVIEW"
         )
-        history_record = await upload_history_repository.create(db, obj_in=history_in)
-        
-        preview_obj["upload_id"] = str(history_record.id)
+        if db is not None:
+            history_record = await upload_history_repository.create(db, obj_in=history_in)
+            preview_obj["upload_id"] = str(history_record.id)
+        else:
+            preview_obj["upload_id"] = str(uuid.uuid4())
+
         preview_obj["schema_def"] = self.schema
         return preview_obj
