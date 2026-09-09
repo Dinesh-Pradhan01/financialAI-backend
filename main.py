@@ -15,7 +15,6 @@ from fastapi import FastAPI, Depends, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.statement.upload.routes import router as statement_router
 from app.database.connection import init_db, close_db, get_db
 from app.auth.firebase import initialize_firebase
 from app.auth.routes import router as auth_router
@@ -32,6 +31,7 @@ from app.api.vendor.routes import router as vendor_router
 from app.api.dashboard.routes import router as dashboard_router
 from app.api.chatbot.routes import router as chatbot_router
 
+from app.transaction.routes import router as transaction_router
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
@@ -141,7 +141,6 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 # Routers
 # ---------------------------------------------------------------------------
-app.include_router(statement_router)
 app.include_router(auth_router, prefix="/api")
 
 app.include_router(business_router, prefix="/api")
@@ -156,6 +155,7 @@ app.include_router(employee_router, prefix="/api/v1/hr/employees", tags=["HR-Emp
 app.include_router(vendor_router, prefix="/api/v1/hr/vendors", tags=["HR-Vendor"])
 app.include_router(dashboard_router, prefix="/api/v1/hr/dashboard", tags=["HR-Dashboard"])
 app.include_router(chatbot_router, prefix="/api/v1/hr/chatbot", tags=["HR-Chatbot"])
+app.include_router(transaction_router, prefix="/api")
 
 # ---------------------------------------------------------------------------
 # Health / Root
@@ -181,3 +181,5 @@ async def health_check(db: AsyncSession = Depends(get_db)):
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
         return {"status": "unhealthy", "database": "disconnected", "detail": str(e)}
+
+# Trigger reload

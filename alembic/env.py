@@ -17,8 +17,12 @@ from app.config import settings
 # Import Spotlite Base and Models
 from app.database.models import Base as SpotliteBase
 from app.auth.model import User, Session
-from app.database.models import Merchant, Document, Account, Transaction, ProcessingMetadata
+from app.database.models import (
+    Merchant, Document, Account, Transaction, ProcessingMetadata,
+    BankStatementData, IntelligenceGroup, TransactionCategory, CategoryRule
+)
 from app.business.models import GeneralInfo, LeadershipInfo, FinancialInfo, BusinessVerification, BusinessVerificationDocument
+from app.risk.models import RiskRule, RiskDetection, RiskDetectionTransaction
 
 # Import HR/Vendor Base and Models
 from app.db.base import Base as DbBase

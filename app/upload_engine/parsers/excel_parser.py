@@ -33,8 +33,16 @@ class ExcelParser:
         
         records = []
         for _, row in df.iterrows():
-            row_dict = {k: (str(v).strip() if v is not None and str(v).strip() != "" else None) 
-                        for k, v in row.to_dict().items()}
+            row_dict = {}
+            for k, v in row.to_dict().items():
+                if v is None or pd.isna(v):
+                    row_dict[k] = None
+                else:
+                    v_str = str(v).strip()
+                    if v_str.lower() in ("nan", "<na>", "none", "null", ""):
+                        row_dict[k] = None
+                    else:
+                        row_dict[k] = v_str
             records.append(row_dict)
             
         return records

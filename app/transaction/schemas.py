@@ -91,3 +91,14 @@ class ExtractedStatementResponse(BaseModel):
 class TransactionListResponse(BaseModel):
     total: int
     transactions: List[TransactionResponse]
+
+class TransactionUpdateRequest(BaseModel):
+    """
+    Schema for manually updating an existing transaction.
+    Most fields are optional to allow partial updates (PATCH style).
+    """
+    category: Optional[str] = None
+    category_id: Optional[int] = None
+    merchant_id: Optional[uuid.UUID] = None
+    narration: Optional[str] = None
+    classification: Optional[str] = None
