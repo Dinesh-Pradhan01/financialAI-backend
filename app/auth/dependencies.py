@@ -166,6 +166,20 @@ async def get_current_session_user(
     )
 
 
+async def get_optional_current_user(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer_scheme_optional),
+    db: AsyncSession = Depends(get_db),
+) -> Optional[User]:
+    """
+    Returns current User if authenticated via session cookie or Bearer token, or None if unauthenticated.
+    """
+    try:
+        return await get_current_session_user(request, credentials, db)
+    except HTTPException:
+        return None
+
+
 def require_role(
     *allowed_roles: str,
 ) -> Callable:

@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.connection import get_db
+from app.auth.dependencies import get_optional_current_user
+from app.auth.model import User
 from app.api.spotlite.service import SpotliteService
 from app.api.spotlite.schemas import (
     SpotliteFullReport,
@@ -28,13 +30,19 @@ router = APIRouter(prefix="", tags=["Spotlite"])
     description="Calculates all non-entity statement & cash flow metrics at once and returns the complete analytics report."
 )
 async def get_full_spotlite_report(
+    user_id: Optional[str] = Query(None, description="User ID, Email, or Firebase ID to analyze for"),
     company_name: Optional[str] = Query(None, description="Target company name"),
     business_id: Optional[str] = Query(None, description="Business profile UUID"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(db, company_name=company_name, business_id=business_id)
+        report = await SpotliteService.compute_spotlite_report(
+            db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
+        )
         return report
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error computing Spotlite report: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to generate Spotlite report: {str(e)}")
@@ -47,13 +55,19 @@ async def get_full_spotlite_report(
     description="Returns the executive scorecard summarizing key indicators across liquidity, burn rate, runway, and anomaly controls."
 )
 async def get_executive_summary(
+    user_id: Optional[str] = Query(None, description="User ID, Email, or Firebase ID to analyze for"),
     company_name: Optional[str] = Query(None, description="Target company name"),
     business_id: Optional[str] = Query(None, description="Business profile UUID"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(db, company_name=company_name, business_id=business_id)
+        report = await SpotliteService.compute_spotlite_report(
+            db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
+        )
         return report.executive_summary
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching executive summary: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to fetch executive summary: {str(e)}")
@@ -66,13 +80,19 @@ async def get_executive_summary(
     description="Returns bank account header metadata extracted directly from native statement headers and database records."
 )
 async def get_header_metadata(
+    user_id: Optional[str] = Query(None, description="User ID, Email, or Firebase ID to analyze for"),
     company_name: Optional[str] = Query(None, description="Target company name"),
     business_id: Optional[str] = Query(None, description="Business profile UUID"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(db, company_name=company_name, business_id=business_id)
+        report = await SpotliteService.compute_spotlite_report(
+            db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
+        )
         return report.section_1_header_metadata
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching header metadata: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to fetch header metadata: {str(e)}")
@@ -85,13 +105,19 @@ async def get_header_metadata(
     description="Returns monthly cash flow trajectory, outflow burn rates, cash runway, liquidity buffer, and idle cash reserves."
 )
 async def get_macro_cash_flow(
+    user_id: Optional[str] = Query(None, description="User ID, Email, or Firebase ID to analyze for"),
     company_name: Optional[str] = Query(None, description="Target company name"),
     business_id: Optional[str] = Query(None, description="Business profile UUID"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(db, company_name=company_name, business_id=business_id)
+        report = await SpotliteService.compute_spotlite_report(
+            db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
+        )
         return report.section_2_macro_cash_flow
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching macro cash flow: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to fetch macro cash flow: {str(e)}")
@@ -104,13 +130,19 @@ async def get_macro_cash_flow(
     description="Returns day-of-month cash flow distributions, month-end liquidity dip metrics, and day-of-week spend cyclicality."
 )
 async def get_temporal_patterns(
+    user_id: Optional[str] = Query(None, description="User ID, Email, or Firebase ID to analyze for"),
     company_name: Optional[str] = Query(None, description="Target company name"),
     business_id: Optional[str] = Query(None, description="Business profile UUID"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(db, company_name=company_name, business_id=business_id)
+        report = await SpotliteService.compute_spotlite_report(
+            db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
+        )
         return report.section_3_temporal_patterns
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching temporal patterns: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to fetch temporal patterns: {str(e)}")
@@ -123,13 +155,19 @@ async def get_temporal_patterns(
     description="Returns payment channel breakdown (RTGS, NEFT, UPI, POS/Card, Auto-Debit/ACH) with volume and outflow shares."
 )
 async def get_channel_distribution(
+    user_id: Optional[str] = Query(None, description="User ID, Email, or Firebase ID to analyze for"),
     company_name: Optional[str] = Query(None, description="Target company name"),
     business_id: Optional[str] = Query(None, description="Business profile UUID"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(db, company_name=company_name, business_id=business_id)
+        report = await SpotliteService.compute_spotlite_report(
+            db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
+        )
         return report.section_4_channel_distribution
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching channel distribution: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to fetch channel distribution: {str(e)}")
@@ -142,13 +180,19 @@ async def get_channel_distribution(
     description="Returns statistical category outliers (Z-score > 2.0σ) and duplicate transaction flags. Note: Statement Arithmetic and Round-Number Anomalies have been removed."
 )
 async def get_anomalies_and_outliers(
+    user_id: Optional[str] = Query(None, description="User ID, Email, or Firebase ID to analyze for"),
     company_name: Optional[str] = Query(None, description="Target company name"),
     business_id: Optional[str] = Query(None, description="Business profile UUID"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(db, company_name=company_name, business_id=business_id)
+        report = await SpotliteService.compute_spotlite_report(
+            db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
+        )
         return report.section_5_anomaly_risk
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching anomalies and outliers: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to fetch anomalies and outliers: {str(e)}")
@@ -161,13 +205,19 @@ async def get_anomalies_and_outliers(
     description="Returns operational efficiency ratios (cost-to-income, net margin proxy) and annualized run-rate projections."
 )
 async def get_efficiency_and_projections(
+    user_id: Optional[str] = Query(None, description="User ID, Email, or Firebase ID to analyze for"),
     company_name: Optional[str] = Query(None, description="Target company name"),
     business_id: Optional[str] = Query(None, description="Business profile UUID"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(db, company_name=company_name, business_id=business_id)
+        report = await SpotliteService.compute_spotlite_report(
+            db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
+        )
         return report.section_6_efficiency_projections
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching efficiency and projections: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to fetch efficiency and projections: {str(e)}")

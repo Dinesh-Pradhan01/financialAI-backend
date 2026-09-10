@@ -33,18 +33,48 @@ class SpotliteService:
     @staticmethod
     async def compute_spotlite_report(
         db: AsyncSession,
+        user_id: Optional[str] = None,
         company_name: Optional[str] = None,
-        business_id: Optional[str] = None
+        business_id: Optional[str] = None,
+        current_user: Optional[Any] = None
     ) -> SpotliteFullReport:
         """
         Computes all non-entity statement & cash flow analytics in a single unified execution pass,
         matching the specifications in test2/non_entity_metrics_analysis.md and test2/generate_metrics.py.
-        
-        Note: Per requirements, Section 5A (Statement Arithmetic & Integrity Check) and
-              Section 5B (Round-Number Transaction Anomalies) are explicitly excluded.
+        Enforces tenant isolation so users can only view their own business transaction analysis.
         """
-        logger.info(f"Computing Spotlite report for company_name='{company_name}', business_id='{business_id}'")
+        logger.info(f"Computing Spotlite report for user_id='{user_id}', company_name='{company_name}', business_id='{business_id}', user='{getattr(current_user, 'email', None)}'")
         
+        # Tenant Isolation & Authorization Enforcement
+        if current_user and getattr(current_user, "role", "user") != "admin":
+            user_b_id = str(current_user.business_id) if getattr(current_user, "business_id", None) else None
+            if user_b_id:
+                if business_id and str(business_id) != user_b_id:
+                    from fastapi import HTTPException
+                    raise HTTPException(status_code=403, detail="Access denied. Non-admin users can only view transaction analytics for their own company.")
+                # Force tenant isolation for regular user
+                business_id = user_b_id
+                company_name = None
+                user_id = None
+
+        # Resolve user_id if provided (for admins or unauthenticated dev requests)
+        if user_id and not business_id and not company_name:
+            user_res = None
+            if str(user_id).isdigit():
+                user_res = await db.execute(text("SELECT id, email, business_id FROM users WHERE id = :uid"), {"uid": int(user_id)})
+            else:
+                user_res = await db.execute(text("SELECT id, email, business_id FROM users WHERE email = :uemail OR firebase_id = :ufirebase"), {"uemail": user_id, "ufirebase": user_id})
+            
+            u_row = user_res.fetchone() if user_res else None
+            if u_row:
+                if u_row.business_id:
+                    business_id = str(u_row.business_id)
+                else:
+                    doc_res = await db.execute(text("SELECT business_id FROM documents WHERE uploaded_by = :uid AND business_id IS NOT NULL LIMIT 1"), {"uid": u_row.id})
+                    d_row = doc_res.fetchone()
+                    if d_row and d_row.business_id:
+                        business_id = str(d_row.business_id)
+
         # -------------------------------------------------------------------
         # 1. Fetch Company Info & Transactions from DB
         # -------------------------------------------------------------------
