@@ -30,6 +30,7 @@ from app.api.employee.routes import router as employee_router
 from app.api.vendor.routes import router as vendor_router
 from app.api.dashboard.routes import router as dashboard_router
 from app.api.chatbot.routes import router as chatbot_router
+from app.api.spotlite.routes import router as spotlite_router
 
 from app.transaction.routes import router as transaction_router
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -156,6 +157,7 @@ app.include_router(vendor_router, prefix="/api/v1/hr/vendors", tags=["HR-Vendor"
 app.include_router(dashboard_router, prefix="/api/v1/hr/dashboard", tags=["HR-Dashboard"])
 app.include_router(chatbot_router, prefix="/api/v1/hr/chatbot", tags=["HR-Chatbot"])
 app.include_router(transaction_router, prefix="/api")
+app.include_router(spotlite_router, prefix="/api/v1/spotlite")
 
 # ---------------------------------------------------------------------------
 # Health / Root
