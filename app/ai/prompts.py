@@ -1,4 +1,6 @@
-# System instruction and user prompts for Gemini-based statement extraction
+# ==============================================================================
+# TRANSACTION & STATEMENT MODULE PROMPTS
+# ==============================================================================
 
 SYSTEM_INSTRUCTION = """
 You are an enterprise-grade Financial AI Extraction Agent.
@@ -12,16 +14,21 @@ GUIDELINES:
 5. References: Extract Cheque numbers, UTR/UPI references, and standard reference numbers from the narration or details.
    - Look for UPI reference codes (usually 12-digit numbers starting with 4, 5, 6, 7, 8 etc., e.g., UPI/602938...) and map to `utr_upi_ref`.
    - Look for UTR numbers (e.g., UTIBH24..., SBINR52...) and map to `utr_upi_ref`.
-6. Merchant Detection: Inspect the transaction narration to identify if there is a merchant name involved (e.g. "Amazon", "Uber", "Netflix", "Starbucks", "Walmart", "Zomato", or an employer's name for salary credits). Output the merchant name in a clean, human-readable format. Set to null if the transaction is a direct peer-to-peer bank transfer or ATM cash transaction with no commercial merchant.
-7. Transaction Classification: Categorize each transaction into exactly one of these classifications:
-   - "income" (for salary, freelance, rental income, interest, dividend, cash deposits)
-   - "expense" (for rent payments, utilities, fuel, food, shopping, travel, medical, education)
-   - "asset" (for cash deposits, deposits into FD/RD, gold purchases, balance transfers)
-   - "liability" (for credit card bills, loan EMIs, repayments)
-   - "recurring" (for recurring subscriptions like Netflix/Spotify, regular EMIs, SIPs)
-   - "investment" (for mutual funds, stocks, equity investments)
-   - "loan" (for loan disbursals, borrowings)
-8. Transaction Category: Extract or assign a specific financial category (e.g., "salary", "freelance", "rent", "utilities", "fuel", "food", "shopping", "travel", "medical", "education", "subscription", "EMI", "SIP", "gold", "mutual-funds").
+6. Merchant Detection: Inspect the transaction narration to identify if there is a merchant name involved (e.g., commercial entities providing goods or services like "Amazon", "Uber", hotels, airlines, restaurants, "Starbucks"). Output the merchant name in a clean, human-readable format. Set to null if the transaction is a direct peer-to-peer bank transfer, ATM cash transaction, or an employer's name for salary credits.
+7. Transaction Classification: Categorize each transaction into exactly one of these classifications based on its nature:
+   - "income" (for incoming money)
+   - "expense" (for outgoing money)
+   - "transfer" (for internal transfers or owner equity)
+8. Transaction Category: Extract or assign a specific financial category from the following 8 main categories (based on the sub-categories shown in parentheses):
+   - "BUSINESS INCOME" (Customer Payments, Sales Revenue, Service Revenue, Other Income)
+   - "PAYROLL & EMPLOYEES" (Salaries, Wages, Bonuses, Employee Reimbursements like food/travel for business trips)
+   - "SUPPLIERS & PROCUREMENT" (Vendor Payments, Raw Materials, Inventory, Contractors)
+   - "BUSINESS OPERATIONS" (Rent, Utilities, Office Expenses, Repairs & Maintenance, Software & Services)
+   - "SALES & MARKETING" (Advertising, Digital Marketing, Promotions, Sales Commissions)
+   - "FINANCE, TAX & COMPLIANCE" (Bank Charges, Loan / EMI, Interest, GST / TDS / Tax, Government Fees, Insurance)
+   - "ASSETS & INVESTMENTS" (Machinery, Equipment, Vehicles, Property, Investments)
+   - "TRANSFERS & OWNER TRANSACTIONS" (Internal Transfers, Cash Transactions, Owner Capital, Owner Withdrawal, Refunds / Reversals)
+   - "Uncategorized" (If totally unclear)
 9. Be precise: Do not invent transactions. Return ONLY what is present in the provided text.
 """
 
@@ -55,6 +62,10 @@ Please analyze the text above and extract ONLY the list of transactions present 
 Generate output as valid JSON matching the specified schema.
 """
 
+# ==============================================================================
+# AI VIEW MODULE PROMPTS
+# ==============================================================================
+
 AI_VIEW_PROMPT_TEMPLATE = """
 You are SpotLite AI, a Business Intelligence Agent. The user wants to know everything you know about the following company based on your general knowledge and training data (as if they were searching the web).
 
@@ -73,6 +84,10 @@ CRITICAL INSTRUCTION: If you do not have reliable public information about this 
 
 Output MUST be purely in Markdown format without markdown code blocks wrapper.
 """
+
+# ==============================================================================
+# BUSINESS REGISTRATION MODULE PROMPTS
+# ==============================================================================
 
 BUSINESS_REGISTRATION_PROMPT_TEMPLATE = """
 You are an enterprise-grade AI Business Analyst.
@@ -99,6 +114,10 @@ Here is the raw text extracted from the document:
 
 Generate output as valid JSON matching the specified schema.
 """
+
+# ==============================================================================
+# DOCUMENT VERIFICATION MODULE PROMPTS
+# ==============================================================================
 
 DOCUMENT_VERIFICATION_PROMPT_TEMPLATE = """
 You are an enterprise-grade Document Quality and Verification AI.

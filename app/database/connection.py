@@ -258,78 +258,86 @@ async def close_db() -> None:
 # Category Seed Data
 # ---------------------------------------------------------------------------
 
-# Default intelligence groups and their categories, matching the existing
-# normalizer.py category system so backward compatibility is maintained.
+# Simplified MSME categories - 8 main categories only
 _SEED_DATA = {
-    "Revenue & Income": {
+    "Income": {
         "display_order": 1,
-        "description": "Income streams and revenue sources",
-        "categories": ["Salary"],
+        "description": "Revenue and income",
+        "categories": ["BUSINESS INCOME"],
     },
-    "Operating Expenses": {
+    "Expenses": {
         "display_order": 2,
-        "description": "Day-to-day operational costs",
-        "categories": ["Fuel", "Restaurant", "Grocery", "Utilities", "Rent"],
+        "description": "Business expenses",
+        "categories": [
+            "PAYROLL & EMPLOYEES",
+            "SUPPLIERS & PROCUREMENT",
+            "BUSINESS OPERATIONS",
+            "SALES & MARKETING",
+            "FINANCE, TAX & COMPLIANCE",
+            "ASSETS & INVESTMENTS"
+        ],
     },
-    "Travel & Transport": {
+    "Transfers": {
         "display_order": 3,
-        "description": "Travel and transportation expenses",
-        "categories": ["Airlines", "Railway"],
-    },
-    "Lifestyle & Shopping": {
-        "display_order": 4,
-        "description": "Lifestyle, entertainment and shopping",
-        "categories": ["Lifestyle", "Movies"],
-    },
-    "Investments": {
-        "display_order": 5,
-        "description": "Investment and financial instruments",
-        "categories": ["Investment"],
+        "description": "Internal and owner transactions",
+        "categories": ["TRANSFERS & OWNER TRANSACTIONS"],
     },
     "Uncategorized": {
         "display_order": 99,
-        "description": "Transactions that could not be automatically categorized",
+        "description": "Uncategorized transactions",
         "categories": ["Uncategorized"],
     },
 }
 
 
 async def _seed_categories(conn, table_exists_fn):
-    """Seed intelligence_groups and transaction_categories with defaults if empty."""
+    """Seed intelligence_groups and transaction_categories safely."""
     try:
         if not await table_exists_fn("intelligence_groups"):
-            return  # Table not created yet — Base.metadata.create_all should have done it
+            return  # Table not created yet
 
-        # Check if already seeded
-        result = await conn.execute(text("SELECT COUNT(*) FROM intelligence_groups;"))
-        count = result.scalar()
-        if count and count > 0:
-            logger.info(f"Intelligence groups already seeded ({count} rows). Skipping.")
-            return
-
-        logger.info("Seeding intelligence_groups and transaction_categories...")
+        # Clean up mixed categories if we have more than the 8 main categories
+        count_res = await conn.execute(text("SELECT COUNT(*) FROM transaction_categories;"))
+        count = count_res.scalar()
+        if count > 8:
+            logger.info("Found mixed/old categories (count > 8). Wiping to reset to 8 main categories...")
+            await conn.execute(text("DELETE FROM transaction_categories;"))
+            await conn.execute(text("DELETE FROM intelligence_groups;"))
+            
+        logger.info("Verifying intelligence_groups and transaction_categories...")
         for group_name, group_info in _SEED_DATA.items():
-            await conn.execute(text(
-                "INSERT INTO intelligence_groups (group_name, description, display_order, is_active) "
-                "VALUES (:name, :desc, :order, TRUE);"
-            ), {
-                "name": group_name,
-                "desc": group_info["description"],
-                "order": group_info["display_order"],
-            })
-
-            # Fetch the auto-generated group ID
+            # Check if group exists
             grp_result = await conn.execute(text(
                 "SELECT id FROM intelligence_groups WHERE group_name = :name;"
             ), {"name": group_name})
             group_id = grp_result.scalar()
 
-            for cat_name in group_info["categories"]:
+            if not group_id:
+                # Insert group
                 await conn.execute(text(
-                    "INSERT INTO transaction_categories (intelligence_group_id, category_name, is_system_defined, is_active) "
-                    "VALUES (:gid, :cname, TRUE, TRUE);"
-                ), {"gid": group_id, "cname": cat_name})
+                    "INSERT INTO intelligence_groups (group_name, description, display_order, is_active) "
+                    "VALUES (:name, :desc, :order, TRUE);"
+                ), {
+                    "name": group_name,
+                    "desc": group_info["description"],
+                    "order": group_info["display_order"],
+                })
+                grp_result = await conn.execute(text(
+                    "SELECT id FROM intelligence_groups WHERE group_name = :name;"
+                ), {"name": group_name})
+                group_id = grp_result.scalar()
 
-        logger.info("Intelligence groups and transaction categories seeded successfully.")
+            # Insert categories if they don't exist under this group
+            for cat_name in group_info["categories"]:
+                cat_result = await conn.execute(text(
+                    "SELECT id FROM transaction_categories WHERE category_name = :cname AND intelligence_group_id = :gid;"
+                ), {"cname": cat_name, "gid": group_id})
+                if not cat_result.scalar():
+                    await conn.execute(text(
+                        "INSERT INTO transaction_categories (intelligence_group_id, category_name, is_system_defined, is_active) "
+                        "VALUES (:gid, :cname, TRUE, TRUE);"
+                    ), {"gid": group_id, "cname": cat_name})
+
+        logger.info("Intelligence groups and transaction categories verified/seeded successfully.")
     except Exception as e:
         logger.warning(f"Could not seed categories (non-fatal): {e}")

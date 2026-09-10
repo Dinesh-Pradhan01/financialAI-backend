@@ -5,7 +5,15 @@ from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
 import google.generativeai as genai
 from app.config import settings
-from app.ai.prompts import SYSTEM_INSTRUCTION, USER_PROMPT_TEMPLATE, METADATA_PROMPT_TEMPLATE, TRANSACTIONS_PROMPT_TEMPLATE, AI_VIEW_PROMPT_TEMPLATE, BUSINESS_REGISTRATION_PROMPT_TEMPLATE, DOCUMENT_VERIFICATION_PROMPT_TEMPLATE
+from app.ai.prompts import (
+    SYSTEM_INSTRUCTION, 
+    USER_PROMPT_TEMPLATE, 
+    METADATA_PROMPT_TEMPLATE, 
+    TRANSACTIONS_PROMPT_TEMPLATE, 
+    AI_VIEW_PROMPT_TEMPLATE, 
+    BUSINESS_REGISTRATION_PROMPT_TEMPLATE, 
+    DOCUMENT_VERIFICATION_PROMPT_TEMPLATE
+)
 
 logger = logging.getLogger(__name__)
 
