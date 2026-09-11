@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Query, Body, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Dict, Any, Optional
-import uuid
 
 from app.api.employee.dependencies import get_db
 from app.utils.response import success_response, error_response
@@ -19,14 +18,15 @@ async def upload_employee_excel(
 ):
     """
     Upload Employee Excel.
-    Accepts multipart/form-data. Stores file locally, parses, normalizes, validates, and returns preview.
+    Parses, validates, and returns preview data.
+    Does NOT mutate permanent employee database.
     """
     if not file.filename.endswith(('.xlsx', '.xls')):
         return error_response("Invalid file type. Only Excel files are allowed.")
         
     try:
-        preview_data = await process_employee_excel_upload(file, db)
-        return success_response("Preview generated successfully", data=preview_data)
+        preview_res = await process_employee_excel_upload(file, db)
+        return success_response("Employee file processed successfully. Preview ready for review.", data=preview_res)
     except ValueError as e:
         return error_response(str(e))
     except Exception as e:
@@ -39,11 +39,12 @@ async def manual_employee_entry(
 ):
     """
     Accept manual entry JSON.
-    Normalizes, validates, and returns preview.
+    Validates and returns preview data.
+    Does NOT mutate permanent employee database.
     """
     try:
-        preview_data = await process_employee_manual_entry(data, db)
-        return success_response("Preview generated successfully", data=preview_data)
+        preview_res = await process_employee_manual_entry(data, db)
+        return success_response("Employee manual entry processed successfully. Preview ready for review.", data=preview_res)
     except Exception as e:
         return error_response(f"An unexpected error occurred: {str(e)}", status_code=500)
 
@@ -53,28 +54,27 @@ async def preview_employees(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Returns normalized preview. Identical functionality to manual entry.
+    Generate employee preview data for HR review and editing.
+    Does NOT mutate permanent employee database.
     """
     try:
-        preview_data = await process_employee_manual_entry(data, db)
-        return success_response("Preview generated successfully", data=preview_data)
+        preview_res = await process_employee_manual_entry(data, db)
+        return success_response("Employee preview generated successfully.", data=preview_res)
     except Exception as e:
         return error_response(f"An unexpected error occurred: {str(e)}", status_code=500)
 
 @router.post("/import")
 async def import_validated_employees(
-    preview_data: EmployeePreviewResponse = Body(...),
+    preview_data: Dict[str, Any] = Body(...),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Bulk insert all validated employees.
-    Uses transaction. Rolls back on critical error. Stores import logs.
+    Bulk import validated employees.
+    ONLY endpoint in the workflow that permanently writes/updates employee records.
     """
     try:
         result = await import_employees(preview_data, db)
-        if result["errors"]:
-            return error_response("Import completed with errors", errors=result["errors"], status_code=207)
-        return success_response("Import completed successfully", data=result)
+        return success_response("Employees imported successfully", data=result)
     except Exception as e:
         return error_response(f"Failed to import employees: {str(e)}", status_code=500)
 
@@ -95,42 +95,46 @@ async def list_employees(
     result = await get_employees(db, skip=skip, limit=size, search=search, department=department, status=status, employment_type=employment_type)
     return success_response("Employees fetched successfully", data=result.model_dump())
 
-@router.get("/{id}")
+@router.get("/{employee_id}")
 async def get_employee(
-    id: uuid.UUID,
+    employee_id: str,
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Return complete employee details.
+    Return complete employee details by employee_id string PK.
     """
-    emp = await get_employee_by_id(db, id)
+    emp = await get_employee_by_id(db, employee_id)
     if not emp:
         raise HTTPException(status_code=404, detail="Employee not found")
     return success_response("Employee fetched successfully", data=emp.model_dump())
 
-@router.put("/{id}")
+@router.put("/{employee_id}")
 async def update_employee_details(
-    id: uuid.UUID,
+    employee_id: str,
     emp_in: EmployeeUpdate,
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Update employee details.
+    Update employee details by employee_id string PK.
     """
-    updated_emp = await update_employee(db, id, emp_in)
-    if not updated_emp:
-        raise HTTPException(status_code=404, detail="Employee not found")
-    return success_response("Employee updated successfully", data=updated_emp.model_dump())
+    try:
+        updated_emp = await update_employee(db, employee_id, emp_in)
+        if not updated_emp:
+            raise HTTPException(status_code=404, detail="Employee not found")
+        return success_response("Employee updated successfully", data=updated_emp.model_dump())
+    except ValueError as ve:
+        return error_response(str(ve), status_code=400)
 
-@router.delete("/{id}")
+@router.delete("/{employee_id}")
 async def delete_employee_record(
-    id: uuid.UUID,
+    employee_id: str,
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Soft delete employee.
+    Soft delete employee by employee_id string PK.
     """
-    success = await delete_employee(db, id)
+    success = await delete_employee(db, employee_id)
     if not success:
         raise HTTPException(status_code=404, detail="Employee not found")
     return success_response("Employee deleted successfully")
+

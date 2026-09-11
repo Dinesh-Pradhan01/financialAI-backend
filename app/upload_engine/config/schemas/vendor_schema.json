@@ -34,7 +34,7 @@
     {
       "name": "contract_id",
       "header_variations": ["contract id", "contractid"],
-      "required": true,
+      "required": false,
       "type": "string"
     },
     {
@@ -70,7 +70,7 @@
     },
     {
       "name": "monthly_cost",
-      "header_variations": ["monthly cost"],
+      "header_variations": ["monthly cost", "cost"],
       "required": true,
       "type": "number",
       "min": 0

@@ -1,6 +1,7 @@
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from collections import defaultdict
+from typing import Optional
 
 from app.db.models.employee import EmployeeMaster
 from app.db.models.vendor import VendorMaster
@@ -104,9 +105,21 @@ async def get_vendor_dashboard_metrics(db: AsyncSession):
         "industries": dict(industries)
     }
 
-async def get_recent_activity(db: AsyncSession, limit: int = 5):
-    # Fetch recent upload history logs regardless of status
-    query = select(UploadHistory).order_by(UploadHistory.created_at.desc()).limit(limit)
+async def get_recent_activity(db: AsyncSession, limit: int = 5, scope: Optional[str] = None):
+    query = select(UploadHistory)
+    if scope:
+        scope_lower = scope.lower()
+        if scope_lower == "hr":
+            query = query.where(UploadHistory.upload_type.ilike("EMPLOYEE%"))
+        elif scope_lower == "cfo":
+            query = query.where(
+                or_(
+                    UploadHistory.upload_type.ilike("VENDOR%"),
+                    UploadHistory.upload_type.ilike("CLIENT%"),
+                    UploadHistory.upload_type.ilike("TENANT%")
+                )
+            )
+    query = query.order_by(UploadHistory.created_at.desc()).limit(limit)
     result = await db.execute(query)
     logs = result.scalars().all()
     
@@ -123,31 +136,109 @@ async def get_recent_activity(db: AsyncSession, limit: int = 5):
         
     return activities
 
-async def get_upload_preview(db: AsyncSession, upload_id: str):
-    # Fetch import logs to find the entity_ids associated with this upload
-    query = select(ImportLogs).where(ImportLogs.upload_history_id == upload_id)
+async def get_upload_preview(db: AsyncSession, upload_id: str, scope: Optional[str] = None):
+    import uuid
+    try:
+        u_uuid = uuid.UUID(upload_id)
+    except ValueError:
+        return None
+
+    stmt = select(UploadHistory).where(UploadHistory.id == u_uuid)
+    res = await db.execute(stmt)
+    history_record = res.scalars().first()
+
+    if not history_record:
+        return None
+
+    raw_type = history_record.upload_type or ""
+    raw_type_upper = raw_type.upper()
+
+    # Scope validation / data isolation
+    if scope:
+        scope_lower = scope.lower()
+        if scope_lower == "hr":
+            if not raw_type_upper.startswith("EMPLOYEE"):
+                return None
+        elif scope_lower == "cfo":
+            if not (raw_type_upper.startswith("VENDOR") or raw_type_upper.startswith("CLIENT") or raw_type_upper.startswith("TENANT")):
+                return None
+
+    module_type = raw_type.split('_')[0].lower() if '_' in raw_type else raw_type.lower()
+
+    if history_record.preview_data:
+        p_data = history_record.preview_data
+        records = []
+        if isinstance(p_data, dict):
+            records = p_data.get("records", [])
+        elif isinstance(p_data, list):
+            records = p_data
+        return {
+            "upload_type": module_type,
+            "records": records
+        }
+
+    # Fallback to ImportLogs for legacy imports if preview_data was not saved
+    query = select(ImportLogs).where(ImportLogs.upload_history_id == u_uuid)
     result = await db.execute(query)
     import_logs = result.scalars().all()
 
     if not import_logs:
-        return {"upload_type": None, "records": []}
+        return {
+            "upload_type": module_type,
+            "records": []
+        }
 
-    # All logs for an upload should be of the same entity_type
     entity_type = import_logs[0].entity_type
     entity_ids = [log.entity_id for log in import_logs if log.entity_id and log.entity_id != "ALL"]
-    
-    if not entity_ids:
-        return {"upload_type": entity_type, "records": []}
 
-    if entity_type == "EMPLOYEE":
+    if not entity_ids:
+        return {
+            "upload_type": module_type,
+            "records": []
+        }
+
+    if entity_type.upper() == "EMPLOYEE" or module_type == "employee":
         rec_query = select(EmployeeMaster).where(EmployeeMaster.employee_id.in_(entity_ids))
         rec_result = await db.execute(rec_query)
-        records = rec_result.scalars().all()
-        return {"upload_type": "Employee", "records": [r.__dict__ for r in records]}
-    elif entity_type == "VENDOR":
+        employees = rec_result.scalars().all()
+        records = [
+            {
+                "employee_id": emp.employee_id,
+                "emp_id": emp.employee_id,
+                "employee_name": emp.employee_name,
+                "email": emp.email,
+                "joining_date": emp.joining_date,
+                "department": emp.department,
+                "designation": emp.designation,
+                "salary": emp.salary,
+                "account_number": emp.account_number,
+                "ifsc_code": emp.ifsc_code,
+                "bank_name": emp.bank_name,
+                "employment_type": emp.employment_type,
+                "status": emp.status,
+                "salary_frequency": emp.salary_frequency,
+                "account_holder_name": emp.account_holder_name,
+                "payment_mode": emp.payment_mode
+            }
+            for emp in employees
+        ]
+        return {"upload_type": "employee", "records": records}
+    elif entity_type.upper() == "VENDOR" or module_type == "vendor":
         rec_query = select(VendorMaster).where(VendorMaster.vendor_id.in_(entity_ids))
         rec_result = await db.execute(rec_query)
-        records = rec_result.scalars().all()
-        return {"upload_type": "Vendor", "records": [r.__dict__ for r in records]}
+        vendors = rec_result.scalars().all()
+        records = [
+            {
+                "vendor_id": v.vendor_id,
+                "vendor_name": v.vendor_name,
+                "category": v.category,
+                "contract_id": v.contract_id,
+                "contract_value": v.contract_value,
+                "currency": v.currency,
+                "monthly_cost": str(v.monthly_cost) if v.monthly_cost is not None else None
+            }
+            for v in vendors
+        ]
+        return {"upload_type": "vendor", "records": records}
     else:
-        return {"upload_type": entity_type, "records": []}
+        return {"upload_type": module_type, "records": []}

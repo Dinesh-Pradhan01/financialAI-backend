@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import String, Integer, ForeignKey
+from sqlalchemy import String, Integer, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.db.base import Base, TimestampMixin
@@ -16,6 +16,7 @@ class UploadHistory(TimestampMixin, Base):
     failed_records: Mapped[int | None] = mapped_column(Integer, default=0, nullable=True)
     processing_time: Mapped[int | None] = mapped_column(Integer, nullable=True)
     status: Mapped[str | None] = mapped_column(String, nullable=True)
+    preview_data: Mapped[dict | list | None] = mapped_column(JSON, nullable=True)
 
     validation_logs: Mapped[list["ValidationLogs"]] = relationship("ValidationLogs", back_populates="upload_history", cascade="all, delete-orphan")
     import_logs: Mapped[list["ImportLogs"]] = relationship("ImportLogs", back_populates="upload_history", cascade="all, delete-orphan")

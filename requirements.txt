@@ -20,3 +20,8 @@ pandas>=2.2.0
 openpyxl>=3.1.0
 loguru>=0.7.2
 PyJWT>=2.8.0
+pymupdf
+python-docx
+pytesseract
+pdf2image
+numpy==2.5.2

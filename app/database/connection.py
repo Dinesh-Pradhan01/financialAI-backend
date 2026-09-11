@@ -59,6 +59,7 @@ class PostgreSQLConnectionManager:
         # Register HR/Vendor models
         import app.db.models.employee
         import app.db.models.vendor
+        import app.db.models.client
         import app.db.models.upload
 
         import app.risk.models  # Register risk models (RiskRule, RiskDetection, RiskDetectionTransaction)
@@ -97,6 +98,57 @@ class PostgreSQLConnectionManager:
                     check_role = await conn.execute(text(f"SELECT 1 FROM roles WHERE name = '{role_name}';"))
                     if not check_role.fetchone():
                         await conn.execute(text(f"INSERT INTO roles (name) VALUES ('{role_name}');"))
+
+                # ----- Upload history table migrations -----
+                if await table_exists("upload_history"):
+                    if not await column_exists("upload_history", "preview_data"):
+                        await conn.execute(text("ALTER TABLE upload_history ADD COLUMN IF NOT EXISTS preview_data JSON;"))
+
+                # ----- Employee table migrations -----
+                if await table_exists("employee_master"):
+                    if not await column_exists("employee_master", "version"):
+                        await conn.execute(text("ALTER TABLE employee_master ADD COLUMN IF NOT EXISTS version INTEGER NOT NULL DEFAULT 1;"))
+                    if await column_exists("employee_master", "id"):
+                        # Check existing PK
+                        pk_res = await conn.execute(text("""
+                            SELECT constraint_name 
+                            FROM information_schema.table_constraints 
+                            WHERE table_name = 'employee_master' AND constraint_type = 'PRIMARY KEY';
+                        """))
+                        pk_row = pk_res.fetchone()
+                        if pk_row:
+                            await conn.execute(text(f"ALTER TABLE employee_master DROP CONSTRAINT IF EXISTS {pk_row[0]};"))
+                        await conn.execute(text("ALTER TABLE employee_master DROP COLUMN IF EXISTS id;"))
+                        await conn.execute(text("ALTER TABLE employee_master ALTER COLUMN employee_id SET NOT NULL;"))
+                        await conn.execute(text("ALTER TABLE employee_master ADD PRIMARY KEY (employee_id);"))
+
+                # ----- Vendor table migrations -----
+                if await table_exists("vendor_master"):
+                    await conn.execute(text("DROP INDEX IF EXISTS ix_vendor_master_vendor_id;"))
+                    if not await column_exists("vendor_master", "monthly_cost"):
+                        await conn.execute(text("ALTER TABLE vendor_master ADD COLUMN IF NOT EXISTS monthly_cost NUMERIC(15, 2) DEFAULT 0;"))
+                    if await column_exists("vendor_master", "contract_id"):
+                        await conn.execute(text("ALTER TABLE vendor_master ALTER COLUMN contract_id DROP NOT NULL;"))
+                    if await column_exists("vendor_master", "recurring"):
+                        await conn.execute(text("ALTER TABLE vendor_master ALTER COLUMN recurring TYPE VARCHAR(50) USING recurring::VARCHAR;"))
+                    if await column_exists("vendor_master", "id") or await column_exists("vendor_master", "row_id"):
+                        await conn.execute(text("UPDATE vendor_master SET category = 'General' WHERE category IS NULL OR TRIM(category) = '';"))
+                        await conn.execute(text("UPDATE vendor_master SET vendor_id = 'V_UNKNOWN' WHERE vendor_id IS NULL OR TRIM(vendor_id) = '';"))
+                        pk_res = await conn.execute(text("""
+                            SELECT constraint_name 
+                            FROM information_schema.table_constraints 
+                            WHERE table_name = 'vendor_master' AND constraint_type = 'PRIMARY KEY';
+                        """))
+                        pk_row = pk_res.fetchone()
+                        if pk_row:
+                            await conn.execute(text(f"ALTER TABLE vendor_master DROP CONSTRAINT IF EXISTS {pk_row[0]};"))
+                        if await column_exists("vendor_master", "id"):
+                            await conn.execute(text("ALTER TABLE vendor_master DROP COLUMN IF EXISTS id;"))
+                        if await column_exists("vendor_master", "row_id"):
+                            await conn.execute(text("ALTER TABLE vendor_master DROP COLUMN IF EXISTS row_id;"))
+                        await conn.execute(text("ALTER TABLE vendor_master ALTER COLUMN vendor_id SET NOT NULL;"))
+                        await conn.execute(text("ALTER TABLE vendor_master ALTER COLUMN category SET NOT NULL;"))
+                        await conn.execute(text("ALTER TABLE vendor_master ADD PRIMARY KEY (vendor_id, category);"))
 
                 # ----- Document table migrations -----
                 if not await column_exists("documents", "business_id"):

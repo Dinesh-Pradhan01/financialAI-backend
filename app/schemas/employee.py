@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 import re
 from datetime import date
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, UUID4
@@ -19,6 +19,11 @@ class EmployeeBase(BaseModel):
     salary_frequency: Optional[str] = None
     account_holder_name: Optional[str] = None
     payment_mode: Optional[str] = None
+
+    @classmethod
+    @field_validator("employee_id", mode="before")
+    def populate_employee_id(cls, v: Any, info) -> Any:
+        return v
 
     @field_validator("email", mode="before")
     @classmethod
@@ -53,8 +58,8 @@ class EmployeeUpdate(BaseModel):
     payment_mode: Optional[str] = None
 
 class EmployeeResponse(EmployeeBase):
-    id: UUID4
-    is_deleted: bool
+    version: int = 1
+    is_deleted: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -66,6 +71,7 @@ class EmployeeListResponse(BaseModel):
 
 class EmployeeRecordDTO(BaseModel):
     employee_id: Optional[str] = None
+    emp_id: Optional[str] = None
     employee_name: Optional[str] = None
     email: Optional[str] = None
     joining_date: Optional[str] = None
@@ -109,4 +115,20 @@ class EmployeePreviewResponse(BaseModel):
     records: list[EmployeeRecordDTO]
     summary: ValidationSummary
     schema_def: Optional[dict] = None
+
+class EmployeeIngestionResultItem(BaseModel):
+    emp_id: str
+    status: str  # inserted, updated, duplicate, failed
+    message: Optional[str] = None
+    version: Optional[int] = None
+    changed_fields: Optional[list[str]] = None
+
+class EmployeeIngestionResponse(BaseModel):
+    total_records: int
+    inserted: int
+    updated: int
+    duplicates: int
+    failed: int
+    results: list[EmployeeIngestionResultItem]
+
 

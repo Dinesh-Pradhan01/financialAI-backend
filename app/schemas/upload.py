@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Any
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, UUID4
 
@@ -36,6 +36,7 @@ class UploadHistoryBase(BaseModel):
     failed_records: Optional[int] = 0
     processing_time: Optional[int] = None
     status: Optional[str] = None
+    preview_data: Optional[Any] = None
 
 class UploadHistoryCreate(UploadHistoryBase):
     pass
