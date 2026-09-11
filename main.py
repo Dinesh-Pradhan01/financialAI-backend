@@ -28,15 +28,10 @@ from app.industry.routes import router as industry_router
 # HR / CFO Module Routers
 from app.api.employee.routes import router as employee_router
 from app.api.vendor.routes import router as vendor_router
-<<<<<<< HEAD
-from app.api.dashboard.routes import router as dashboard_router
-from app.api.chatbot.routes import router as chatbot_router
-from app.api.spotlite.routes import router as spotlite_router
-=======
 from app.api.cfo.clients.routes import router as cfo_client_router
 from app.api.dashboard.routes import router as dashboard_router, cfo_dashboard_router
 from app.api.chatbot.routes import router as chatbot_router, cfo_chatbot_router
->>>>>>> 32dd859 (Implement CFO client and vendor agreement management)
+from app.api.spotlite.routes import router as spotlite_router
 
 from app.transaction.routes import router as transaction_router
 from sqlalchemy.ext.asyncio import AsyncSession
