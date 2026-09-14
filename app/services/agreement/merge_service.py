@@ -32,16 +32,19 @@ class MergeService:
             raise InvalidStagingRecordException(f"UploadHistory record with ID {upload_id} not found.")
 
         preview_data = history_record.preview_data
-        if not isinstance(preview_data, list):
-            raise InvalidStagingRecordException("Staging data is corrupted or not a list.")
+        is_dict = isinstance(preview_data, dict) and "records" in preview_data
+        if not (isinstance(preview_data, list) or is_dict):
+            raise InvalidStagingRecordException("Staging data is corrupted or neither a list nor contains 'records'.")
 
         updated = False
         target_row = None
         new_preview_data = copy.deepcopy(preview_data)
+        rows_list = new_preview_data["records"] if is_dict else new_preview_data
 
-        for row in new_preview_data:
-            # Check rowId or row_id matching the preview_row_id
-            if str(row.get("rowId", "")) == preview_row_id or str(row.get("row_id", "")) == preview_row_id:
+        for row in rows_list:
+            # Check rowId, row_id, or row matching the preview_row_id
+            row_identifier = str(row.get("rowId") or row.get("row_id") or row.get("row") or "")
+            if row_identifier == str(preview_row_id):
                 # Merge the extracted fields into the row
                 for key, val in extracted_data.items():
                     if val is not None:

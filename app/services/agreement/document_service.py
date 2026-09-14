@@ -45,7 +45,8 @@ class DocumentService:
         DocumentService._validate_file(file)
 
         # Ensure staging directory exists
-        staging_dir = os.path.join(settings.UPLOAD_DIR, "agreements", entity_type, str(upload_id))
+        upload_root = getattr(settings, "UPLOAD_DIR", None) or os.getenv("UPLOAD_DIR", os.path.join(os.getcwd(), "uploads"))
+        staging_dir = os.path.join(upload_root, "agreements", entity_type, str(upload_id))
         os.makedirs(staging_dir, exist_ok=True)
 
         file_id = str(uuid.uuid4())

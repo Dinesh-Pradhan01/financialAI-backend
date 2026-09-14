@@ -1,11 +1,16 @@
 # pyrefly: ignore [missing-import]
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
+import os
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Spotlite HR & Vendor Upload Module"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
+    UPLOAD_DIR: str = os.getenv(
+        "UPLOAD_DIR",
+        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "uploads")
+    )
     
     # Postgres
     DATABASE_URL: str

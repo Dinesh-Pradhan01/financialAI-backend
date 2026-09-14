@@ -2,7 +2,8 @@ import os
 import uuid
 import tempfile
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Depends, UploadFile, File, Form, status as http_status
+from fastapi import APIRouter, BackgroundTasks, Depends, UploadFile, File, Form, status as http_status
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from loguru import logger
@@ -139,7 +140,7 @@ async def upload_agreement_document(
             upload_id=upload_id,
             db=db
         )
-        
+
         # Trigger background extraction
         background_tasks.add_task(
             background_extraction_task,
@@ -259,6 +260,31 @@ async def get_agreement_extraction_status(
         )
     except Exception as e:
         logger.exception("Error fetching agreement extraction status")
+        return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
+
+@router.get("/preview/{upload_id}/row/{row_id}/agreement/file")
+async def get_agreement_file(
+    upload_id: str,
+    row_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Stream the uploaded agreement file for viewing or downloading.
+    """
+    try:
+        doc = await DocumentService.get_active_document(row_id, db)
+        if not doc or not doc.file_path or not os.path.exists(doc.file_path):
+            return error_response(
+                message=f"No agreement file found for preview row '{row_id}'.",
+                status_code=http_status.HTTP_404_NOT_FOUND
+            )
+        return FileResponse(
+            path=doc.file_path,
+            filename=doc.file_name,
+            media_type=doc.mime_type or "application/pdf"
+        )
+    except Exception as e:
+        logger.exception("Error streaming agreement file")
         return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
 
 # ---------------------------------------------------------------------------

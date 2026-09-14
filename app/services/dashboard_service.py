@@ -5,6 +5,7 @@ from typing import Optional
 
 from app.db.models.employee import EmployeeMaster
 from app.db.models.vendor import VendorMaster
+from app.db.models.client import ClientMaster
 from app.db.models.upload import ImportLogs, UploadHistory
 
 async def get_employee_dashboard_metrics(db: AsyncSession):
@@ -89,17 +90,53 @@ async def get_vendor_dashboard_metrics(db: AsyncSession):
             except ValueError:
                 return 0
 
-        eb = float(vendor.expected_billing or 0)
+        eb = float(vendor.monthly_cost or 0)
         cv = float(vendor.contract_value or 0)
         
         expected_billing += eb
         contract_value += cv
-        revenue += eb # Mocking revenue as expected_billing for now
+        revenue += eb  # Using monthly_cost as expected billing proxy
 
     return {
         "totalVendors": total_vendors,
         "recurringVendors": recurring_vendors,
         "expectedBilling": expected_billing,
+        "contractValue": contract_value,
+        "revenue": revenue,
+        "industries": dict(industries)
+    }
+
+async def get_client_dashboard_metrics(db: AsyncSession):
+    query = select(ClientMaster).where(ClientMaster.is_deleted == False)
+    result = await db.execute(query)
+    clients = result.scalars().all()
+
+    total_clients = len(clients)
+    recurring_clients = 0
+    industries = defaultdict(int)
+
+    contract_value = 0.0
+    revenue = 0.0
+
+    for client in clients:
+        # Recurring
+        rec_str = str(client.recurring or "").strip().lower()
+        if rec_str in ["yes", "true", "1", "recurring"]:
+            recurring_clients += 1
+
+        # Industry
+        if client.industry:
+            industries[client.industry] += 1
+
+        cv = float(client.contract_value or 0)
+        rev = float(client.revenue or 0)
+
+        contract_value += cv
+        revenue += rev
+
+    return {
+        "totalClients": total_clients,
+        "recurringClients": recurring_clients,
         "contractValue": contract_value,
         "revenue": revenue,
         "industries": dict(industries)
@@ -119,6 +156,8 @@ async def get_recent_activity(db: AsyncSession, limit: int = 5, scope: Optional[
                     UploadHistory.upload_type.ilike("TENANT%")
                 )
             )
+        elif scope_lower == "cfo_client":
+            query = query.where(UploadHistory.upload_type.ilike("CLIENT%"))
     query = query.order_by(UploadHistory.created_at.desc()).limit(limit)
     result = await db.execute(query)
     logs = result.scalars().all()

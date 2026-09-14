@@ -20,6 +20,25 @@ class RowValidator:
         for field in schema["fields"]:
             fname = field["name"]
             val = record.get(fname)
+            if val is None and "_" in fname:
+                parts = fname.split("_")
+                camel = parts[0] + "".join(p.title() for p in parts[1:])
+                val = record.get(camel)
+            if val is None and fname == "monthly_cost":
+                val = record.get("cost")
+
+            if (val is None or str(val).strip() == "") and fname == "monthly_cost":
+                c_type = str(record.get("contract_type") or record.get("contractType") or "").lower()
+                c_val = record.get("contract_value") or record.get("contractValue")
+                is_sub = "sub" in c_type or str(record.get("recurring", "")).lower() in ["true", "yes", "1"]
+                if is_sub and c_val:
+                    try:
+                        val = round(float(c_val) / 12.0, 2)
+                        record["monthly_cost"] = val
+                        record["monthlyCost"] = val
+                    except (ValueError, TypeError):
+                        pass
+
             val_str = str(val).strip() if val is not None and str(val).strip() != "" else None
             
             # Required

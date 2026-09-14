@@ -33,6 +33,7 @@ from app.api.dashboard.routes import router as dashboard_router, cfo_dashboard_r
 from app.api.chatbot.routes import router as chatbot_router, cfo_chatbot_router
 from app.api.spotlite.routes import router as spotlite_router
 
+from app.statement.upload.routes import router as statement_router
 from app.transaction.routes import router as transaction_router
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
@@ -163,6 +164,7 @@ app.include_router(cfo_client_router, prefix="/api/v1/cfo/clients", tags=["CFO-C
 app.include_router(cfo_dashboard_router, prefix="/api/v1/cfo/dashboard", tags=["CFO-Dashboard"])
 app.include_router(cfo_chatbot_router, prefix="/api/v1/cfo/chatbot", tags=["CFO-Chatbot"])
 app.include_router(transaction_router, prefix="/api")
+app.include_router(statement_router)
 app.include_router(spotlite_router, prefix="/api/v1/spotlite")
 
 # ---------------------------------------------------------------------------

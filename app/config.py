@@ -52,6 +52,12 @@ class Settings(BaseSettings):
     SENDER_EMAIL: str = os.getenv('SENDER_EMAIL')
     SENDGRID_API_KEY: str = os.getenv('SENDGRID_API_KEY')
 
+    # Storage settings
+    UPLOAD_DIR: str = os.getenv(
+        "UPLOAD_DIR",
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads")
+    )
+
     #absolute path
     #APP_DIR = os.path.dirname(os.path.abspath(__file__))
 

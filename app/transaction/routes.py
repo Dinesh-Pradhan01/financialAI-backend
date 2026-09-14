@@ -3,10 +3,10 @@ import uuid
 import logging
 import asyncio
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, date
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, delete
+from sqlalchemy import select, func, delete, and_, or_
 
 from app.database.connection import get_db
 from app.database.repository import BaseRepository
@@ -403,6 +403,141 @@ async def delete_uploaded_statement(
 # ==========================================
 # TRANSACTION CRUD (MANUAL)
 # ==========================================
+
+ALLOWED_SORT_FIELDS = {"transaction_date", "debit_amount"}
+ALLOWED_SORT_ORDERS = {"asc", "desc"}
+
+@router.get("", response_model=TransactionListResponse)
+async def get_all_transactions(
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=1000, description="Max number of records to return"),
+    date_from: Optional[date] = Query(None, description="Filter transactions on or after this date (YYYY-MM-DD)"),
+    date_to: Optional[date] = Query(None, description="Filter transactions on or before this date (YYYY-MM-DD)"),
+    category: Optional[str] = Query(None, description="Filter by category string"),
+    category_id: Optional[int] = Query(None, description="Filter by category ID"),
+    classification: Optional[str] = Query(None, description="Filter by classification ('expense', 'income', 'transfer')"),
+    account_id: Optional[uuid.UUID] = Query(None, description="Filter by bank account ID"),
+    business_id: Optional[str] = Query(None, description="Admin-only filter by business ID"),
+    search: Optional[str] = Query(None, description="Search term matching narration substring (case-insensitive)"),
+    sort_by: str = Query("transaction_date", description="Field to sort by ('transaction_date', 'debit_amount')"),
+    sort_order: str = Query("desc", description="Sort order ('asc', 'desc')"),
+    current_user: User = Depends(get_current_session_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Fetch paginated transactions across the business with flexible filtering,
+    search, and sorting. Non-admin users are strictly tenant-isolated to their business.
+    """
+    # Resolve Query defaults when called directly as a Python function in unit tests
+    if not isinstance(sort_by, str) and hasattr(sort_by, "default"):
+        sort_by = sort_by.default
+    if not isinstance(sort_order, str) and hasattr(sort_order, "default"):
+        sort_order = sort_order.default
+    if not isinstance(skip, int) and hasattr(skip, "default"):
+        skip = skip.default
+    if not isinstance(limit, int) and hasattr(limit, "default"):
+        limit = limit.default
+    if date_from is not None and not isinstance(date_from, date) and hasattr(date_from, "default"):
+        date_from = date_from.default
+    if date_to is not None and not isinstance(date_to, date) and hasattr(date_to, "default"):
+        date_to = date_to.default
+    if category is not None and not isinstance(category, str) and hasattr(category, "default"):
+        category = category.default
+    if category_id is not None and not isinstance(category_id, int) and hasattr(category_id, "default"):
+        category_id = category_id.default
+    if classification is not None and not isinstance(classification, str) and hasattr(classification, "default"):
+        classification = classification.default
+    if account_id is not None and not isinstance(account_id, uuid.UUID) and hasattr(account_id, "default"):
+        account_id = account_id.default
+    if business_id is not None and not isinstance(business_id, str) and hasattr(business_id, "default"):
+        business_id = business_id.default
+    if search is not None and not isinstance(search, str) and hasattr(search, "default"):
+        search = search.default
+
+    # 1. Validation
+    if sort_by not in ALLOWED_SORT_FIELDS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid sort_by field: '{sort_by}'. Allowed fields: {sorted(list(ALLOWED_SORT_FIELDS))}"
+        )
+    
+    clean_sort_order = sort_order.strip().lower()
+    if clean_sort_order not in ALLOWED_SORT_ORDERS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid sort_order: '{sort_order}'. Allowed values: ['asc', 'desc']"
+        )
+
+    # 2. Tenant isolation resolution
+    conditions = []
+    if current_user.role != "admin":
+        if not current_user.business_id:
+            return {"total": 0, "transactions": []}
+        user_biz_uuid = current_user.business_id
+        conditions.append(
+            or_(
+                Transaction.business_id == user_biz_uuid,
+                Account.business_id == user_biz_uuid
+            )
+        )
+    else:
+        # Admin can optionally filter by business_id
+        if business_id:
+            try:
+                admin_target_biz = uuid.UUID(business_id)
+                conditions.append(
+                    or_(
+                        Transaction.business_id == admin_target_biz,
+                        Account.business_id == admin_target_biz
+                    )
+                )
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid business_id UUID format.")
+
+    # 3. Dynamic filters (AND conditions)
+    if date_from:
+        conditions.append(Transaction.transaction_date >= date_from)
+    if date_to:
+        conditions.append(Transaction.transaction_date <= date_to)
+    if category and category.strip():
+        conditions.append(func.lower(Transaction.category) == category.strip().lower())
+    if category_id is not None:
+        conditions.append(Transaction.category_id == category_id)
+    if classification and classification.strip():
+        conditions.append(func.lower(Transaction.classification) == classification.strip().lower())
+    if account_id:
+        conditions.append(Transaction.account_id == account_id)
+    if search and search.strip():
+        conditions.append(Transaction.narration.ilike(f"%{search.strip()}%"))
+
+    # 4. Construct queries with Account join for consistent tenant scoping
+    count_stmt = select(func.count(Transaction.id)).join(Account, Transaction.account_id == Account.id)
+    data_stmt = select(Transaction).join(Account, Transaction.account_id == Account.id)
+
+    if conditions:
+        where_filter = and_(*conditions)
+        count_stmt = count_stmt.where(where_filter)
+        data_stmt = data_stmt.where(where_filter)
+
+    # 5. Sorting
+    sort_col = getattr(Transaction, sort_by)
+    if clean_sort_order == "asc":
+        data_stmt = data_stmt.order_by(sort_col.asc(), Transaction.id.asc())
+    else:
+        data_stmt = data_stmt.order_by(sort_col.desc(), Transaction.id.desc())
+
+    # 6. Pagination
+    data_stmt = data_stmt.offset(skip).limit(limit)
+
+    # 7. Execution
+    total_res = await db.execute(count_stmt)
+    total = total_res.scalar() or 0
+
+    tx_res = await db.execute(data_stmt)
+    transactions = tx_res.scalars().all()
+
+    return {"total": total, "transactions": transactions}
+
 
 @router.get("/account/{account_id}", response_model=TransactionListResponse)
 async def get_transactions_by_account(

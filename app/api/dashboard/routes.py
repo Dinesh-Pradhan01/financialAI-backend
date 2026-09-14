@@ -6,6 +6,7 @@ from app.utils.response import success_response, error_response
 from app.services.dashboard_service import (
     get_employee_dashboard_metrics,
     get_vendor_dashboard_metrics,
+    get_client_dashboard_metrics,
     get_recent_activity,
     get_upload_preview
 )
@@ -28,6 +29,14 @@ async def get_vendor_dashboard(db: AsyncSession = Depends(get_db)):
         return success_response("Vendor metrics fetched successfully", data=metrics)
     except Exception as e:
         return error_response(f"Failed to fetch vendor metrics: {str(e)}", status_code=500)
+
+@cfo_dashboard_router.get("/client")
+async def get_client_dashboard(db: AsyncSession = Depends(get_db)):
+    try:
+        metrics = await get_client_dashboard_metrics(db)
+        return success_response("Client metrics fetched successfully", data=metrics)
+    except Exception as e:
+        return error_response(f"Failed to fetch client metrics: {str(e)}", status_code=500)
 
 @router.get("/history")
 async def get_history(db: AsyncSession = Depends(get_db)):

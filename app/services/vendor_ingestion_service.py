@@ -102,9 +102,21 @@ class VendorIngestionService:
             # Clean row dictionary
             c_row = {k: v for k, v in row.items() if k not in ["rowId", "sourceRow", "isBlank"]}
 
-            # Map 'cost' header variation to 'monthly_cost'
-            if "cost" in c_row and ("monthly_cost" not in c_row or c_row["monthly_cost"] is None or str(c_row["monthly_cost"]).strip() == ""):
-                c_row["monthly_cost"] = c_row["cost"]
+            # Map 'monthlyCost' and 'cost' to 'monthly_cost'
+            if ("monthly_cost" not in c_row or c_row["monthly_cost"] is None or str(c_row["monthly_cost"]).strip() == ""):
+                if "monthlyCost" in c_row and c_row["monthlyCost"] is not None and str(c_row["monthlyCost"]).strip() != "":
+                    c_row["monthly_cost"] = c_row["monthlyCost"]
+                elif "cost" in c_row and c_row["cost"] is not None and str(c_row["cost"]).strip() != "":
+                    c_row["monthly_cost"] = c_row["cost"]
+                else:
+                    c_type = str(c_row.get("contract_type") or c_row.get("contractType") or "").lower()
+                    c_val = c_row.get("contract_value") or c_row.get("contractValue")
+                    is_sub = "sub" in c_type or str(c_row.get("recurring", "")).lower() in ["true", "yes", "1"]
+                    if is_sub and c_val:
+                        try:
+                            c_row["monthly_cost"] = round(float(c_val) / 12.0, 2)
+                        except (ValueError, TypeError):
+                            pass
 
             raw_vendor_id = c_row.get("vendor_id")
             raw_category = c_row.get("category")

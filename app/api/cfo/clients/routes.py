@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import os
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.vendor.dependencies import get_db
@@ -94,8 +96,9 @@ async def upload_clients(file: UploadFile = File(...), db: AsyncSession = Depend
     try:
         import openpyxl
 
+        import io
         contents = await file.read()
-        workbook = openpyxl.load_workbook(filename=None, data=contents, read_only=True)
+        workbook = openpyxl.load_workbook(filename=io.BytesIO(contents), read_only=True)
         sheet = workbook.active
         rows = []
         headers = []
@@ -231,6 +234,7 @@ async def upload_agreement_document_client(
 ):
     """
     Upload an agreement PDF/DOCX document for a specific client preview row.
+    Triggers extraction in the background.
     """
     try:
         doc = await DocumentService.save_uploaded_agreement(
@@ -358,6 +362,30 @@ async def get_agreement_extraction_status_client(
     except Exception as e:
         return error_response(message=str(e), status_code=400)
 
+@router.get("/preview/{upload_id}/row/{row_id}/agreement/file")
+async def get_agreement_file_client(
+    upload_id: str,
+    row_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Stream the uploaded agreement file for viewing or downloading.
+    """
+    try:
+        doc = await DocumentService.get_active_document(row_id, db)
+        if not doc or not doc.file_path or not os.path.exists(doc.file_path):
+            return error_response(
+                message=f"No agreement file found for preview row '{row_id}'.",
+                status_code=404
+            )
+        return FileResponse(
+            path=doc.file_path,
+            filename=doc.file_name,
+            media_type=doc.mime_type or "application/pdf"
+        )
+    except Exception as e:
+        return error_response(message=str(e), status_code=400)
+
 
 @router.put("/{client_id}")
 async def update_client(client_id: str, payload: Dict[str, Any] = None, category: Optional[str] = Query(None), db: AsyncSession = Depends(get_db)):
@@ -384,38 +412,15 @@ async def update_client(client_id: str, payload: Dict[str, Any] = None, category
     return success_response("Client updated successfully", data=existing.__dict__)
 
 
-@router.delete("/{client_id}")
-async def delete_client(client_id: str, category: Optional[str] = Query(None), db: AsyncSession = Depends(get_db)):
-    if category is None:
-        return error_response("Category is required to delete a specific client record.")
-    existing = await ClientService.get_by_business_key(db, client_id, category)
-    if existing is None:
-        raise HTTPException(status_code=404, detail="Client not found")
-    existing.is_deleted = True
-    await db.commit()
-    return success_response("Client deleted successfully")
-
-
-
-
-
 @router.get("/dashboard/history")
 async def get_client_history(db: AsyncSession = Depends(get_db)):
-    records = []
-    statement = "SELECT * FROM upload_history WHERE upload_type ILIKE '%CLIENT%' ORDER BY created_at DESC LIMIT 20"
-    result = await db.execute(statement)
-    for row in result:
-        records.append({
-            "upload_id": str(row[0]),
-            "source": row[1],
-            "uploaded_at": str(row[2]),
-            "total_rows": row[3],
-            "inserted_count": row[4],
-            "updated_count": row[5],
-            "skipped_count": row[6],
-            "rejected_count": row[7],
-        })
-    return success_response("Client history fetched successfully", data=records)
+    from sqlalchemy import text as sa_text
+    from app.services.dashboard_service import get_recent_activity
+    try:
+        activities = await get_recent_activity(db, scope="cfo_client")
+        return success_response("Client history fetched successfully", data=activities)
+    except Exception as e:
+        return error_response(f"Failed to fetch client history: {str(e)}", status_code=500)
 
 
 @router.get("/dashboard/history/{upload_id}/preview")
