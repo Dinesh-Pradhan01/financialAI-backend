@@ -21,7 +21,7 @@ class GeminiService:
     def extract_structured_data(text: str, schema_class: Type[BaseModel]) -> dict:
         GeminiService._initialize_client()
         
-        model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-pro")
+        model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
         logger.info(f"Using Gemini model: {model_name} for structured extraction")
 
         schema_json = schema_class.model_json_schema()

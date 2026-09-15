@@ -49,11 +49,13 @@ class ClientValidationService:
             return None
 
     @staticmethod
-    def validate_record(record: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_record(record: Dict[str, Any], is_upload: bool = False) -> Dict[str, Any]:
         errors: List[Dict[str, Any]] = []
         for field in REQUIRED_FIELDS:
             value = record.get(field)
             if ClientValidationService._is_blank(value):
+                if is_upload and field in {"contract_value", "contract_id", "contract_type", "contract_start_date", "contract_end_date"}:
+                    continue
                 errors.append({"row": record.get("sourceRow") or record.get("row"), "field": field, "error": f"{field.replace('_', ' ').title()} is required"})
                 continue
             if field in {"contract_value", "revenue"}:

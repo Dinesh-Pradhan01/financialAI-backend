@@ -152,3 +152,17 @@ Business: id=73892aa6-0b0c-4380-9c9a-407c36c1d435, company_name=Nimbus Logistics
 Saved Category: 'Retail & E-commerce'
 Normalized Category: 'retailandecommerce'
 Matched Class ID: None
+
+--- 2026-09-15 13:02:47.296424 ---
+User: id=166, email=debansi.byteiq@gmail.com
+Business: id=73892aa6-0b0c-4380-9c9a-407c36c1d435, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Retail & E-commerce'
+Normalized Category: 'retailandecommerce'
+Matched Class ID: None
+
+--- 2026-09-15 13:56:39.679262 ---
+User: id=168, email=patrodebansi0000@gmail.com
+Business: id=73892aa6-0b0c-4380-9c9a-407c36c1d435, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Retail & E-commerce'
+Normalized Category: 'retailandecommerce'
+Matched Class ID: None

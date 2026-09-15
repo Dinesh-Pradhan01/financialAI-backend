@@ -64,7 +64,7 @@ async def import_vendors(payload: dict, db: AsyncSession = Depends(get_db)):
         if not records and isinstance(payload, list):
             records = payload
 
-        # Pre-import validation: verify 11 required fields
+        # Pre-import validation: verify 10 required fields
         invalid_records = []
         for idx, rec in enumerate(records):
             val_res = VendorValidationService.validate_preview_row(rec)

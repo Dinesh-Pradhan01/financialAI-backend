@@ -156,8 +156,6 @@ async def get_recent_activity(db: AsyncSession, limit: int = 5, scope: Optional[
                     UploadHistory.upload_type.ilike("TENANT%")
                 )
             )
-        elif scope_lower == "cfo_client":
-            query = query.where(UploadHistory.upload_type.ilike("CLIENT%"))
     query = query.order_by(UploadHistory.created_at.desc()).limit(limit)
     result = await db.execute(query)
     logs = result.scalars().all()

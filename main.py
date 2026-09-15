@@ -2,7 +2,13 @@ import warnings
 # Suppress generative AI deprecation and metadata warnings during server startup
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+import os
+import certifi
 
+# Automatically bind Python's SSL certificate file if not explicitly set by the OS
+if not os.getenv("SSL_CERT_FILE"):
+    os.environ["SSL_CERT_FILE"] = certifi.where()
+    
 import logging
 # Configure logging format and level to display info/debug logs in the console
 logging.basicConfig(
