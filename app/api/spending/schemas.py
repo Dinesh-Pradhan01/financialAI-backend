@@ -94,7 +94,6 @@ class ChannelDistributionResponse(BaseModel):
 
 # ---------------------------------------------------------------------------
 # Section 5: Pure Anomaly, Risk & Domain Outliers
-# Note: Statement Arithmetic Check & Round-Number Anomalies have been removed.
 # ---------------------------------------------------------------------------
 
 class StatisticalOutlierItem(BaseModel):
@@ -141,7 +140,7 @@ class EfficiencyProjectionsResponse(BaseModel):
 # Full Combined Report
 # ---------------------------------------------------------------------------
 
-class SpotliteFullReport(BaseModel):
+class SpendingFullReport(BaseModel):
     company_name: str
     period: str
     total_transactions_analyzed: int
@@ -152,3 +151,6 @@ class SpotliteFullReport(BaseModel):
     section_4_channel_distribution: ChannelDistributionResponse
     section_5_anomaly_risk: AnomalyRiskResponse
     section_6_efficiency_projections: EfficiencyProjectionsResponse
+
+# Backward compatibility alias
+SpotliteFullReport = SpendingFullReport

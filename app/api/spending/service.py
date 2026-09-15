@@ -6,7 +6,7 @@ from typing import Optional, Dict, Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
-from app.api.spotlite.schemas import (
+from app.api.spending.schemas import (
     ExecutiveScorecardItem,
     HeaderMetadataResponse,
     MonthlyCashFlowRow,
@@ -24,26 +24,27 @@ from app.api.spotlite.schemas import (
     OperationalEfficiencyRatios,
     ProjectionsAndRunRates,
     EfficiencyProjectionsResponse,
+    SpendingFullReport,
     SpotliteFullReport
 )
 
 logger = logging.getLogger(__name__)
 
-class SpotliteService:
+class SpendingService:
     @staticmethod
-    async def compute_spotlite_report(
+    async def compute_spending_report(
         db: AsyncSession,
         user_id: Optional[str] = None,
         company_name: Optional[str] = None,
         business_id: Optional[str] = None,
         current_user: Optional[Any] = None
-    ) -> SpotliteFullReport:
+    ) -> SpendingFullReport:
         """
-        Computes all non-entity statement & cash flow analytics in a single unified execution pass,
+        Computes all statement & cash flow analytics in a single unified execution pass,
         matching the specifications in test2/non_entity_metrics_analysis.md and test2/generate_metrics.py.
         Enforces tenant isolation so users can only view their own business transaction analysis.
         """
-        logger.info(f"Computing Spotlite report for user_id='{user_id}', company_name='{company_name}', business_id='{business_id}', user='{getattr(current_user, 'email', None)}'")
+        logger.info(f"Computing Spending report for user_id='{user_id}', company_name='{company_name}', business_id='{business_id}', user='{getattr(current_user, 'email', None)}'")
         
         # Tenant Isolation & Authorization Enforcement
         if current_user and getattr(current_user, "role", "user") != "admin":
@@ -141,7 +142,7 @@ class SpotliteService:
             tx_rows = tx_result.fetchall()
 
         if not tx_rows:
-            raise ValueError("No transaction data available in database for Spotlite analysis.")
+            raise ValueError("No transaction data available in database for Spending analysis.")
 
         target_company = tx_rows[0].company_name or "Nimbus Logistics Solutions Pvt Ltd"
 
@@ -200,7 +201,6 @@ class SpotliteService:
         # Balances
         opening_bal = first_row.get("open_bal")
         if opening_bal is None:
-            # Derived from first transaction
             opening_bal = round(first_row["balance"] - first_row["credit"] + first_row["debit"], 2)
             if target_company == "Nimbus Logistics Solutions Pvt Ltd":
                 opening_bal = 6683000.00
@@ -231,7 +231,6 @@ class SpotliteService:
             net_cf = float(inf - outf)
             end_bal = float(m_df.iloc[-1]["balance"])
             
-            # Total outflow burn rate matches monthly total debits
             monthly_rows.append(MonthlyCashFlowRow(
                 month=m,
                 inflow_credits=round(inf, 2),
@@ -248,7 +247,6 @@ class SpotliteService:
         safety_reserve = round(3 * avg_monthly_burn, 2)
         idle_cash = round(max(0.0, closing_bal - safety_reserve), 2)
         
-        # Cash conversion retention %
         total_inflow_6mo = sum(r.inflow_credits for r in monthly_rows)
         total_net_6mo = sum(r.net_cash_flow for r in monthly_rows)
         retention_pct = round((total_net_6mo / total_inflow_6mo * 100), 2) if total_inflow_6mo > 0 else 0.0
@@ -268,7 +266,6 @@ class SpotliteService:
         # -------------------------------------------------------------------
         # SECTION 3: Time-Based & Temporal Pattern Analysis
         # -------------------------------------------------------------------
-        # A. Day Range Distribution (1-7, 8-15, 16-22, 23-31)
         day_ranges = [
             ("Days 1 – 7", 1, 7, "Retainer deposits + Facility & rent payments"),
             ("Days 8 – 15", 8, 15, "Inward settlements + SaaS/Equipment payments"),
@@ -288,14 +285,12 @@ class SpotliteService:
                 dominant_activity=dom_act
             ))
 
-        # B. Month-End Liquidity Dip Analysis
         dips: List[MonthEndLiquidityDip] = []
         for m in months:
             m_df = df[df["month"] == m]
             max_day = m_df["day"].max()
             last_day_df = m_df[m_df["day"] == max_day]
             
-            # Find major disbursement/payout dip at month-end
             pre_bal = float(m_df[m_df["day"] < max_day].iloc[-1]["balance"]) if len(m_df[m_df["day"] < max_day]) > 0 else float(m_df.iloc[0]["balance"])
             post_bal = float(last_day_df.iloc[-1]["balance"])
             dip_amt = round(pre_bal - post_bal, 2)
@@ -308,7 +303,6 @@ class SpotliteService:
                 instant_liquidity_dip=dip_amt
             ))
 
-        # C. Day of Week Spend Cyclicality
         total_outflow_all = float(df["debit"].sum())
         days_order = ["Saturday", "Tuesday", "Monday", "Thursday", "Wednesday", "Sunday", "Friday"]
         day_spend_list: List[DayOfWeekSpend] = []
@@ -354,7 +348,7 @@ class SpotliteService:
                 elif "ACH" in narr or "AUTO" in narr or "DEBIT" in narr or "BILL" in narr:
                     ch = "AUTO-DEBIT / ACH"
                 else:
-                    ch = "NEFT" # default bucket for non-matched electronic debits
+                    ch = "NEFT"
                 
                 channel_buckets[ch]["count"] += 1
                 channel_buckets[ch]["volume"] += tx["debit"]
@@ -379,13 +373,10 @@ class SpotliteService:
 
         # -------------------------------------------------------------------
         # SECTION 5: Pure Anomaly, Risk & Domain Outlier Analysis
-        # (REMOVED: Statement Arithmetic Check & Round-Number Anomalies)
         # -------------------------------------------------------------------
-        # C. Category Statistical Outliers (Z-Score > 2.0σ)
         outliers: List[StatisticalOutlierItem] = []
         debit_df = df[df["debit"] > 0].copy()
         
-        # Categorize by narration domain keyword
         def get_domain(narr):
             narr_l = narr.lower()
             if any(k in narr_l for k in ["makemytrip", "indigo", "air india", "flight", "airlines", "travel"]):
@@ -417,7 +408,6 @@ class SpotliteService:
                                 assessment="Extreme single-shot booking outlier" if z > 3.0 else "High-value category spike outlier"
                             ))
 
-        # D. Duplicate Transaction Check
         duplicates: List[DuplicateTransactionItem] = []
         dup_df = df[df.duplicated(subset=["date", "debit", "narration"], keep=False) & (df["debit"] > 0)]
         for _, row in dup_df.iterrows():
@@ -442,7 +432,6 @@ class SpotliteService:
         total_inflows_all = float(df["credit"].sum())
         inflow_to_outflow = round((total_inflows_all / total_outflow_all), 2) if total_outflow_all > 0 else 0.0
         
-        # June 2026 or latest month cost-to-income ratio
         latest_month_r = monthly_rows[-1]
         cost_to_income_pct = round((latest_month_r.outflow_debits / latest_month_r.inflow_credits * 100), 2) if latest_month_r.inflow_credits > 0 else 82.18
         net_margin_proxy = round((100.0 - cost_to_income_pct), 2)
@@ -507,7 +496,7 @@ class SpotliteService:
             ),
         ]
 
-        return SpotliteFullReport(
+        return SpendingFullReport(
             company_name=target_company,
             period=period_str,
             total_transactions_analyzed=total_tx_count,
@@ -519,3 +508,11 @@ class SpotliteService:
             section_5_anomaly_risk=sec5_anomalies,
             section_6_efficiency_projections=sec6_efficiency
         )
+
+    # Alias method for backward compatibility
+    @staticmethod
+    async def compute_spotlite_report(*args, **kwargs) -> SpendingFullReport:
+        return await SpendingService.compute_spending_report(*args, **kwargs)
+
+# Alias class for backward compatibility
+SpotliteService = SpendingService

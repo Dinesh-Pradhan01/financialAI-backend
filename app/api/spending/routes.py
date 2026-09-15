@@ -6,9 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.connection import get_db
 from app.auth.dependencies import get_optional_current_user
 from app.auth.model import User
-from app.api.spotlite.service import SpotliteService
-from app.api.spotlite.schemas import (
-    SpotliteFullReport,
+from app.api.spending.service import SpendingService
+from app.api.spending.schemas import (
+    SpendingFullReport,
     ExecutiveScorecardItem,
     HeaderMetadataResponse,
     MacroCashFlowResponse,
@@ -20,16 +20,16 @@ from app.api.spotlite.schemas import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="", tags=["Spotlite"])
+router = APIRouter(prefix="", tags=["Spending"])
 
 
 @router.get(
     "/report",
-    response_model=SpotliteFullReport,
-    summary="Get Complete Spotlite Non-Entity Analytics Report",
+    response_model=SpendingFullReport,
+    summary="Get Complete Spending Analytics Report",
     description="Calculates all non-entity statement & cash flow metrics at once and returns the complete analytics report."
 )
-async def get_full_spotlite_report(
+async def get_full_spending_report(
     user_id: Optional[str] = Query(None, description="User ID, Email, or Firebase ID to analyze for"),
     company_name: Optional[str] = Query(None, description="Target company name"),
     business_id: Optional[str] = Query(None, description="Business profile UUID"),
@@ -37,15 +37,15 @@ async def get_full_spotlite_report(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(
+        report = await SpendingService.compute_spending_report(
             db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
         )
         return report
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error computing Spotlite report: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to generate Spotlite report: {str(e)}")
+        logger.error(f"Error computing Spending report: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to generate Spending report: {str(e)}")
 
 
 @router.get(
@@ -62,7 +62,7 @@ async def get_executive_summary(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(
+        report = await SpendingService.compute_spending_report(
             db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
         )
         return report.executive_summary
@@ -87,7 +87,7 @@ async def get_header_metadata(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(
+        report = await SpendingService.compute_spending_report(
             db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
         )
         return report.section_1_header_metadata
@@ -112,7 +112,7 @@ async def get_macro_cash_flow(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(
+        report = await SpendingService.compute_spending_report(
             db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
         )
         return report.section_2_macro_cash_flow
@@ -137,7 +137,7 @@ async def get_temporal_patterns(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(
+        report = await SpendingService.compute_spending_report(
             db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
         )
         return report.section_3_temporal_patterns
@@ -162,7 +162,7 @@ async def get_channel_distribution(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(
+        report = await SpendingService.compute_spending_report(
             db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
         )
         return report.section_4_channel_distribution
@@ -177,7 +177,7 @@ async def get_channel_distribution(
     "/anomalies-and-outliers",
     response_model=AnomalyRiskResponse,
     summary="Section 5: Pure Anomaly, Risk & Outlier Analysis",
-    description="Returns statistical category outliers (Z-score > 2.0σ) and duplicate transaction flags. Note: Statement Arithmetic and Round-Number Anomalies have been removed."
+    description="Returns statistical category outliers (Z-score > 2.0σ) and duplicate transaction flags."
 )
 async def get_anomalies_and_outliers(
     user_id: Optional[str] = Query(None, description="User ID, Email, or Firebase ID to analyze for"),
@@ -187,7 +187,7 @@ async def get_anomalies_and_outliers(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(
+        report = await SpendingService.compute_spending_report(
             db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
         )
         return report.section_5_anomaly_risk
@@ -212,7 +212,7 @@ async def get_efficiency_and_projections(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpotliteService.compute_spotlite_report(
+        report = await SpendingService.compute_spending_report(
             db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
         )
         return report.section_6_efficiency_projections
