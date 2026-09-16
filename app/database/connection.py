@@ -59,6 +59,7 @@ class PostgreSQLConnectionManager:
         # Register HR/Vendor models
         import app.db.models.employee
         import app.db.models.vendor
+        import app.db.models.client
         import app.db.models.upload
 
         import app.risk.models  # Register risk models (RiskRule, RiskDetection, RiskDetectionTransaction)
@@ -97,6 +98,57 @@ class PostgreSQLConnectionManager:
                     check_role = await conn.execute(text(f"SELECT 1 FROM roles WHERE name = '{role_name}';"))
                     if not check_role.fetchone():
                         await conn.execute(text(f"INSERT INTO roles (name) VALUES ('{role_name}');"))
+
+                # ----- Upload history table migrations -----
+                if await table_exists("upload_history"):
+                    if not await column_exists("upload_history", "preview_data"):
+                        await conn.execute(text("ALTER TABLE upload_history ADD COLUMN IF NOT EXISTS preview_data JSON;"))
+
+                # ----- Employee table migrations -----
+                if await table_exists("employee_master"):
+                    if not await column_exists("employee_master", "version"):
+                        await conn.execute(text("ALTER TABLE employee_master ADD COLUMN IF NOT EXISTS version INTEGER NOT NULL DEFAULT 1;"))
+                    if await column_exists("employee_master", "id"):
+                        # Check existing PK
+                        pk_res = await conn.execute(text("""
+                            SELECT constraint_name 
+                            FROM information_schema.table_constraints 
+                            WHERE table_name = 'employee_master' AND constraint_type = 'PRIMARY KEY';
+                        """))
+                        pk_row = pk_res.fetchone()
+                        if pk_row:
+                            await conn.execute(text(f"ALTER TABLE employee_master DROP CONSTRAINT IF EXISTS {pk_row[0]};"))
+                        await conn.execute(text("ALTER TABLE employee_master DROP COLUMN IF EXISTS id;"))
+                        await conn.execute(text("ALTER TABLE employee_master ALTER COLUMN employee_id SET NOT NULL;"))
+                        await conn.execute(text("ALTER TABLE employee_master ADD PRIMARY KEY (employee_id);"))
+
+                # ----- Vendor table migrations -----
+                if await table_exists("vendor_master"):
+                    await conn.execute(text("DROP INDEX IF EXISTS ix_vendor_master_vendor_id;"))
+                    if not await column_exists("vendor_master", "monthly_cost"):
+                        await conn.execute(text("ALTER TABLE vendor_master ADD COLUMN IF NOT EXISTS monthly_cost NUMERIC(15, 2) DEFAULT 0;"))
+                    if await column_exists("vendor_master", "contract_id"):
+                        await conn.execute(text("ALTER TABLE vendor_master ALTER COLUMN contract_id DROP NOT NULL;"))
+                    if await column_exists("vendor_master", "recurring"):
+                        await conn.execute(text("ALTER TABLE vendor_master ALTER COLUMN recurring TYPE VARCHAR(50) USING recurring::VARCHAR;"))
+                    if await column_exists("vendor_master", "id") or await column_exists("vendor_master", "row_id"):
+                        await conn.execute(text("UPDATE vendor_master SET category = 'General' WHERE category IS NULL OR TRIM(category) = '';"))
+                        await conn.execute(text("UPDATE vendor_master SET vendor_id = 'V_UNKNOWN' WHERE vendor_id IS NULL OR TRIM(vendor_id) = '';"))
+                        pk_res = await conn.execute(text("""
+                            SELECT constraint_name 
+                            FROM information_schema.table_constraints 
+                            WHERE table_name = 'vendor_master' AND constraint_type = 'PRIMARY KEY';
+                        """))
+                        pk_row = pk_res.fetchone()
+                        if pk_row:
+                            await conn.execute(text(f"ALTER TABLE vendor_master DROP CONSTRAINT IF EXISTS {pk_row[0]};"))
+                        if await column_exists("vendor_master", "id"):
+                            await conn.execute(text("ALTER TABLE vendor_master DROP COLUMN IF EXISTS id;"))
+                        if await column_exists("vendor_master", "row_id"):
+                            await conn.execute(text("ALTER TABLE vendor_master DROP COLUMN IF EXISTS row_id;"))
+                        await conn.execute(text("ALTER TABLE vendor_master ALTER COLUMN vendor_id SET NOT NULL;"))
+                        await conn.execute(text("ALTER TABLE vendor_master ALTER COLUMN category SET NOT NULL;"))
+                        await conn.execute(text("ALTER TABLE vendor_master ADD PRIMARY KEY (vendor_id, category);"))
 
                 # ----- Document table migrations -----
                 if not await column_exists("documents", "business_id"):
@@ -258,78 +310,86 @@ async def close_db() -> None:
 # Category Seed Data
 # ---------------------------------------------------------------------------
 
-# Default intelligence groups and their categories, matching the existing
-# normalizer.py category system so backward compatibility is maintained.
+# Simplified MSME categories - 8 main categories only
 _SEED_DATA = {
-    "Revenue & Income": {
+    "Income": {
         "display_order": 1,
-        "description": "Income streams and revenue sources",
-        "categories": ["Salary"],
+        "description": "Revenue and income",
+        "categories": ["BUSINESS INCOME"],
     },
-    "Operating Expenses": {
+    "Expenses": {
         "display_order": 2,
-        "description": "Day-to-day operational costs",
-        "categories": ["Fuel", "Restaurant", "Grocery", "Utilities", "Rent"],
+        "description": "Business expenses",
+        "categories": [
+            "PAYROLL & EMPLOYEES",
+            "SUPPLIERS & PROCUREMENT",
+            "BUSINESS OPERATIONS",
+            "SALES & MARKETING",
+            "FINANCE, TAX & COMPLIANCE",
+            "ASSETS & INVESTMENTS"
+        ],
     },
-    "Travel & Transport": {
+    "Transfers": {
         "display_order": 3,
-        "description": "Travel and transportation expenses",
-        "categories": ["Airlines", "Railway"],
-    },
-    "Lifestyle & Shopping": {
-        "display_order": 4,
-        "description": "Lifestyle, entertainment and shopping",
-        "categories": ["Lifestyle", "Movies"],
-    },
-    "Investments": {
-        "display_order": 5,
-        "description": "Investment and financial instruments",
-        "categories": ["Investment"],
+        "description": "Internal and owner transactions",
+        "categories": ["TRANSFERS & OWNER TRANSACTIONS"],
     },
     "Uncategorized": {
         "display_order": 99,
-        "description": "Transactions that could not be automatically categorized",
+        "description": "Uncategorized transactions",
         "categories": ["Uncategorized"],
     },
 }
 
 
 async def _seed_categories(conn, table_exists_fn):
-    """Seed intelligence_groups and transaction_categories with defaults if empty."""
+    """Seed intelligence_groups and transaction_categories safely."""
     try:
         if not await table_exists_fn("intelligence_groups"):
-            return  # Table not created yet — Base.metadata.create_all should have done it
+            return  # Table not created yet
 
-        # Check if already seeded
-        result = await conn.execute(text("SELECT COUNT(*) FROM intelligence_groups;"))
-        count = result.scalar()
-        if count and count > 0:
-            logger.info(f"Intelligence groups already seeded ({count} rows). Skipping.")
-            return
-
-        logger.info("Seeding intelligence_groups and transaction_categories...")
+        # Clean up mixed categories if we have more than the 8 main categories
+        count_res = await conn.execute(text("SELECT COUNT(*) FROM transaction_categories;"))
+        count = count_res.scalar()
+        if count > 8:
+            logger.info("Found mixed/old categories (count > 8). Wiping to reset to 8 main categories...")
+            await conn.execute(text("DELETE FROM transaction_categories;"))
+            await conn.execute(text("DELETE FROM intelligence_groups;"))
+            
+        logger.info("Verifying intelligence_groups and transaction_categories...")
         for group_name, group_info in _SEED_DATA.items():
-            await conn.execute(text(
-                "INSERT INTO intelligence_groups (group_name, description, display_order, is_active) "
-                "VALUES (:name, :desc, :order, TRUE);"
-            ), {
-                "name": group_name,
-                "desc": group_info["description"],
-                "order": group_info["display_order"],
-            })
-
-            # Fetch the auto-generated group ID
+            # Check if group exists
             grp_result = await conn.execute(text(
                 "SELECT id FROM intelligence_groups WHERE group_name = :name;"
             ), {"name": group_name})
             group_id = grp_result.scalar()
 
-            for cat_name in group_info["categories"]:
+            if not group_id:
+                # Insert group
                 await conn.execute(text(
-                    "INSERT INTO transaction_categories (intelligence_group_id, category_name, is_system_defined, is_active) "
-                    "VALUES (:gid, :cname, TRUE, TRUE);"
-                ), {"gid": group_id, "cname": cat_name})
+                    "INSERT INTO intelligence_groups (group_name, description, display_order, is_active) "
+                    "VALUES (:name, :desc, :order, TRUE);"
+                ), {
+                    "name": group_name,
+                    "desc": group_info["description"],
+                    "order": group_info["display_order"],
+                })
+                grp_result = await conn.execute(text(
+                    "SELECT id FROM intelligence_groups WHERE group_name = :name;"
+                ), {"name": group_name})
+                group_id = grp_result.scalar()
 
-        logger.info("Intelligence groups and transaction categories seeded successfully.")
+            # Insert categories if they don't exist under this group
+            for cat_name in group_info["categories"]:
+                cat_result = await conn.execute(text(
+                    "SELECT id FROM transaction_categories WHERE category_name = :cname AND intelligence_group_id = :gid;"
+                ), {"cname": cat_name, "gid": group_id})
+                if not cat_result.scalar():
+                    await conn.execute(text(
+                        "INSERT INTO transaction_categories (intelligence_group_id, category_name, is_system_defined, is_active) "
+                        "VALUES (:gid, :cname, TRUE, TRUE);"
+                    ), {"gid": group_id, "cname": cat_name})
+
+        logger.info("Intelligence groups and transaction categories verified/seeded successfully.")
     except Exception as e:
         logger.warning(f"Could not seed categories (non-fatal): {e}")

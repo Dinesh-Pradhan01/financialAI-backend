@@ -1,8 +1,6 @@
-import uuid
 from typing import Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_
-from app.repositories.vendor import vendor_repository
 from app.db.models.vendor import VendorMaster
 from app.schemas.vendor import VendorCreate, VendorUpdate, VendorResponse
 
@@ -62,16 +60,25 @@ async def get_vendors(
         "size": limit
     }
 
-async def get_vendor_by_id(db: AsyncSession, id: uuid.UUID) -> Optional[VendorMaster]:
-    return await vendor_repository.get(db, id)
+async def get_vendor_by_key(db: AsyncSession, vendor_id: str, category: Optional[str] = None) -> Optional[VendorMaster]:
+    stmt = select(VendorMaster).where(
+        and_(
+            VendorMaster.vendor_id == vendor_id.strip(),
+            VendorMaster.is_deleted == False
+        )
+    )
+    if category:
+        stmt = stmt.where(VendorMaster.category == category.strip())
+    res = await db.execute(stmt)
+    return res.scalars().first()
 
-async def create_vendor(db: AsyncSession, vendor_in: VendorCreate) -> VendorMaster:
-    return await vendor_repository.create(db, obj_in=vendor_in)
+async def get_vendor_by_id(db: AsyncSession, id_val: Any, category: Optional[str] = None) -> Optional[VendorMaster]:
+    return await get_vendor_by_key(db, str(id_val), category)
 
-async def update_vendor(
-    db: AsyncSession, *, db_obj: VendorMaster, obj_in: VendorUpdate
-) -> VendorMaster:
-    return await vendor_repository.update(db, db_obj=db_obj, obj_in=obj_in)
-
-async def delete_vendor(db: AsyncSession, id: uuid.UUID) -> VendorMaster:
-    return await vendor_repository.remove(db, id=id)
+async def delete_vendor(db: AsyncSession, vendor_id: str, category: Optional[str] = None) -> bool:
+    vendor = await get_vendor_by_key(db, vendor_id, category)
+    if not vendor:
+        return False
+    vendor.is_deleted = True
+    await db.commit()
+    return True

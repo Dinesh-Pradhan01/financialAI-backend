@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Union
 import re
 from datetime import date
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, UUID4
@@ -7,7 +7,6 @@ class VendorBase(BaseModel):
     vendor_id: str
     vendor_name: str
     category: str
-    contract_id: str
     contract_value: float
     monthly_cost: float
     frequency: str
@@ -16,11 +15,12 @@ class VendorBase(BaseModel):
     account_number: str
     ifsc_code: str
 
+    contract_id: Optional[str] = None
     legal_name: Optional[str] = None
     industry: Optional[str] = None
     contract_type: Optional[str] = None
-    contract_start_date: Optional[str] = None
-    contract_end_date: Optional[str] = None
+    contract_start_date: Optional[Union[str, date]] = None
+    contract_end_date: Optional[Union[str, date]] = None
     currency: Optional[str] = None
     payment_type: Optional[str] = None
     recurring: Optional[str] = None
@@ -51,8 +51,8 @@ class VendorUpdate(BaseModel):
     category: Optional[str] = None
     industry: Optional[str] = None
     contract_type: Optional[str] = None
-    contract_start_date: Optional[str] = None
-    contract_end_date: Optional[str] = None
+    contract_start_date: Optional[Union[str, date]] = None
+    contract_end_date: Optional[Union[str, date]] = None
     recurring: Optional[str] = None
     bank_name: Optional[str] = None
 
@@ -64,8 +64,6 @@ class VendorUpdate(BaseModel):
         return v
 
 class VendorResponse(VendorBase):
-    id: UUID4
-
     model_config = ConfigDict(from_attributes=True)
 
 class VendorListResponse(BaseModel):

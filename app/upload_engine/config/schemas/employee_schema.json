@@ -3,95 +3,133 @@
   "fields": [
     {
       "name": "employee_id",
-      "header_variations": ["employee id", "employeeid"],
+      "header_variations": [
+        "employee id",
+        "employeeid",
+        "emp_id",
+        "emp id"
+      ],
       "required": true,
       "type": "string"
     },
     {
       "name": "employee_name",
-      "header_variations": ["employee name", "employeename"],
+      "header_variations": [
+        "employee name",
+        "employeename"
+      ],
       "required": true,
       "type": "string"
     },
     {
       "name": "email",
-      "header_variations": ["email"],
+      "header_variations": [
+        "email"
+      ],
       "required": true,
       "type": "email"
     },
     {
       "name": "joining_date",
-      "header_variations": ["joining date", "doj"],
+      "header_variations": [
+        "joining date",
+        "doj"
+      ],
       "required": true,
       "type": "date",
       "custom_rule": "not_future"
     },
     {
       "name": "department",
-      "header_variations": ["department", "dept"],
+      "header_variations": [
+        "department",
+        "dept"
+      ],
       "required": true,
       "type": "string"
     },
     {
       "name": "designation",
-      "header_variations": ["designation"],
+      "header_variations": [
+        "designation"
+      ],
       "required": true,
       "type": "string"
     },
     {
       "name": "salary",
-      "header_variations": ["salary"],
+      "header_variations": [
+        "salary"
+      ],
       "required": true,
       "type": "number",
       "min": 0
     },
     {
       "name": "account_number",
-      "header_variations": ["account number"],
+      "header_variations": [
+        "account number"
+      ],
       "required": true,
       "type": "string",
-      "min_length": 6
+      "min_length": 9
     },
     {
       "name": "ifsc_code",
-      "header_variations": ["ifsc code", "ifsc"],
+      "header_variations": [
+        "ifsc code",
+        "ifsc"
+      ],
       "required": true,
       "type": "string",
       "regex": "^[A-Z]{4}0[A-Z0-9]{6}$"
     },
     {
       "name": "bank_name",
-      "header_variations": ["bank name"],
+      "header_variations": [
+        "bank name"
+      ],
       "required": true,
       "type": "string"
     },
     {
       "name": "employment_type",
-      "header_variations": ["employment type"],
+      "header_variations": [
+        "employment type"
+      ],
       "required": false,
       "type": "string"
     },
     {
       "name": "status",
-      "header_variations": ["status"],
+      "header_variations": [
+        "status"
+      ],
       "required": false,
       "type": "string"
     },
     {
       "name": "salary_frequency",
-      "header_variations": ["salary frequency"],
+      "header_variations": [
+        "salary frequency"
+      ],
       "required": false,
       "type": "string"
     },
     {
       "name": "account_holder_name",
-      "header_variations": ["acc holder name", "account holder name"],
+      "header_variations": [
+        "acc holder name",
+        "account holder name"
+      ],
       "required": false,
       "type": "string"
     },
     {
       "name": "payment_mode",
-      "header_variations": ["payment mode"],
+      "header_variations": [
+        "payment mode"
+      ],
       "required": false,
       "type": "string"
     }

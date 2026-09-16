@@ -37,9 +37,26 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = "http://localhost:8000,http://localhost:8080"
     FRONTEND_URL: str = "http://localhost:8080"
 
+    # Groq LLM & Document Extraction Settings
+    GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY")
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    LLM_TEMPERATURE: float = 0.0
+    LLM_TIMEOUT: int = 60
+    MAX_DOCUMENT_SIZE_MB: int = 15
+    MIN_TEXT_LENGTH: int = 100
+    OCR_ENABLED: bool = True
+    OCR_LANGUAGE: str = "eng"
+    EXTRACTION_MAX_RETRIES: int = 2
+
     #SendGrid Mail-Service
     SENDER_EMAIL: str = os.getenv('SENDER_EMAIL')
     SENDGRID_API_KEY: str = os.getenv('SENDGRID_API_KEY')
+
+    # Storage settings
+    UPLOAD_DIR: str = os.getenv(
+        "UPLOAD_DIR",
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads")
+    )
 
     #absolute path
     #APP_DIR = os.path.dirname(os.path.abspath(__file__))

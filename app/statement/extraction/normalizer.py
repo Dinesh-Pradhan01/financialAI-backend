@@ -4,20 +4,17 @@ from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
-# List of standard categories matching the frontend design system
+# List of the 8 main MSME categories
 CATEGORIES = {
-    "airlines": "Airlines",
-    "fuel": "Fuel",
-    "restaurant": "Restaurant",
-    "grocery": "Grocery",
-    "lifestyle": "Lifestyle",
-    "movies": "Movies",
-    "rail": "Railway",
-    "rent": "Rent",
-    "utilities": "Utilities",
-    "investment": "Investment",
-    "salary": "Salary",
-    "uncategorized": "Uncategorized"
+    "BUSINESS INCOME",
+    "PAYROLL & EMPLOYEES",
+    "SUPPLIERS & PROCUREMENT",
+    "BUSINESS OPERATIONS",
+    "SALES & MARKETING",
+    "FINANCE, TAX & COMPLIANCE",
+    "ASSETS & INVESTMENTS",
+    "TRANSFERS & OWNER TRANSACTIONS",
+    "Uncategorized"
 }
 
 class StatementNormalizer:
@@ -65,18 +62,13 @@ class StatementNormalizer:
 
         # 6. Assign Category dynamically based on Narration keywords
         category = tx.get("category", "Uncategorized")
-        if category in ("Uncategorized", "uncategorized", None):
+        if category not in CATEGORIES or category in ("Uncategorized", "uncategorized", None):
             category = StatementNormalizer.categorize_narration(narration, tx_type)
 
-        # 7. Extract classification and merchant name
+        # 7. Extract classification 
         classification = tx.get("classification")
         if not classification:
-            if tx_type == "CREDIT":
-                classification = "income"
-            elif category == "investment":
-                classification = "investment"
-            else:
-                classification = "expense"
+            classification = "income" if tx_type == "CREDIT" else "expense"
                 
         merchant_name = tx.get("merchant_name")
 
@@ -101,48 +93,25 @@ class StatementNormalizer:
         """Heuristic rules to categorize transactions based on keywords in narration."""
         narr_lower = narration.lower()
         
-        # Income / Salary
-        if tx_type == "CREDIT" and any(k in narr_lower for k in ("salary", "sal", "payroll", "neft salary", "wages")):
-            return "salary"
+        if tx_type == "CREDIT":
+            if any(k in narr_lower for k in ("salary", "sal", "payroll", "neft salary", "wages")):
+                return "PAYROLL & EMPLOYEES"
+            if any(k in narr_lower for k in ("refund", "reversal", "cashback", "capital", "owner", "partner", "director")):
+                return "TRANSFERS & OWNER TRANSACTIONS"
+            return "BUSINESS INCOME"
             
-        # Airlines / Travel
-        if any(k in narr_lower for k in ("indigo", "air india", "makemytrip", "vistara", "emirates", "cleartrip", "airline", "flight", "irctc flights")):
-            return "airlines"
-            
-        # Railway
-        if "irctc" in narr_lower:
-            return "rail"
-            
-        # Restaurant / Food Delivery
-        if any(k in narr_lower for k in ("swiggy", "zomato", "truffles", "brewpub", "restaurant", "dining", "food", "cafe", "starbucks", "mcdonalds", "dominos", "pizza")):
-            return "restaurant"
-            
-        # Fuel
-        if any(k in narr_lower for k in ("indian oil", "hp petrol", "shell", "bharat petroleum", "iocl", "hpcl", "bpcl", "petrol", "diesel", "fuel")):
-            return "fuel"
-            
-        # Grocery / Delivery
-        if any(k in narr_lower for k in ("bigbasket", "zepto", "dmart", "blinkit", "grocer", "supermarket", "spencers", "reliance fresh")):
-            return "grocery"
-            
-        # Lifestyle / Shopping
-        if any(k in narr_lower for k in ("amazon", "flipkart", "myntra", "croma", "macbook", "apparel", "zara", "h&m", "retail", "shopping")):
-            return "lifestyle"
-            
-        # Movies / Entertainment / Subscriptions
-        if any(k in narr_lower for k in ("netflix", "spotify", "prime video", "bookmyshow", "pvr", "cinepolis", "hotstar", "youtube premium", "ticket", "disney")):
-            return "movies"
-            
-        # Rent
-        if "rent" in narr_lower:
-            return "rent"
-            
-        # Utilities
-        if any(k in narr_lower for k in ("electricity", "water bill", "power", "bescom", "airtel", "jio", "bsnl", "broadband", "mobile recharge", "recharge", "gas")):
-            return "utilities"
-            
-        # Investments
-        if any(k in narr_lower for k in ("zerodha", "groww", "mutual fund", "sip", "demat", "nps", "ppf", "mutualfund", "securities")):
-            return "investment"
-            
-        return "uncategorized"
+        else:
+            if any(k in narr_lower for k in ("tax", "gst", "tds", "itd", "income tax", "emi", "loan", "bajaj finance", "hdfc bank loan", "interest", "int", "bank charges", "processing fee", "annual fee", "bounce", "insurance", "lic", "policy")):
+                return "FINANCE, TAX & COMPLIANCE"
+            if any(k in narr_lower for k in ("salary", "sal", "payroll", "neft salary", "wages", "swiggy", "zomato", "uber", "ola", "hotel", "flight", "cleartrip", "makemytrip")):
+                return "PAYROLL & EMPLOYEES"
+            if any(k in narr_lower for k in ("rent", "lease", "electricity", "water", "bescom", "airtel", "jio", "bsnl", "broadband", "recharge", "gas", "aws", "google", "microsoft", "software", "subscription", "hosting", "domain", "amazon", "flipkart", "croma", "reliance", "stationery")):
+                return "BUSINESS OPERATIONS"
+            if any(k in narr_lower for k in ("facebook", "google ads", "instagram", "marketing", "promotion")):
+                return "SALES & MARKETING"
+            if any(k in narr_lower for k in ("vendor", "supplier", "contractor", "services")):
+                return "SUPPLIERS & PROCUREMENT"
+            if any(k in narr_lower for k in ("zerodha", "groww", "mutual fund", "sip", "demat")):
+                return "ASSETS & INVESTMENTS"
+                
+        return "Uncategorized"

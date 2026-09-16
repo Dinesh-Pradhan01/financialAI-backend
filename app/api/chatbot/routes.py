@@ -21,6 +21,7 @@ from app.services.chatbot_service import (
 )
 
 router = APIRouter()
+cfo_chatbot_router = APIRouter()
 
 class EmployeeChatRequest(BaseModel):
     questionId: str
@@ -137,7 +138,7 @@ async def process_employee_chatbot(request: EmployeeChatRequest):
     return error_response("Unknown question ID", status_code=400)
 
 
-@router.post("/vendor")
+@cfo_chatbot_router.post("/vendor")
 async def process_vendor_chatbot(request: VendorChatRequest):
     question_id = request.question_id
     rows = request.rows

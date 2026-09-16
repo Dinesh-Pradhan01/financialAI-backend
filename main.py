@@ -2,7 +2,13 @@ import warnings
 # Suppress generative AI deprecation and metadata warnings during server startup
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+import os
+import certifi
 
+# Automatically bind Python's SSL certificate file if not explicitly set by the OS
+if not os.getenv("SSL_CERT_FILE"):
+    os.environ["SSL_CERT_FILE"] = certifi.where()
+    
 import logging
 # Configure logging format and level to display info/debug logs in the console
 logging.basicConfig(
@@ -25,12 +31,15 @@ from app.company.routes import router as company_router
 from app.company.document_routes import router as document_router, package_router
 from app.industry.routes import router as industry_router
 
-# HR/Vendor Module Routers
+# HR / CFO Module Routers
 from app.api.employee.routes import router as employee_router
 from app.api.vendor.routes import router as vendor_router
-from app.api.dashboard.routes import router as dashboard_router
-from app.api.chatbot.routes import router as chatbot_router
+from app.api.cfo.clients.routes import router as cfo_client_router
+from app.api.dashboard.routes import router as dashboard_router, cfo_dashboard_router
+from app.api.chatbot.routes import router as chatbot_router, cfo_chatbot_router
+from app.api.spending.routes import router as spending_router
 
+from app.statement.upload.routes import router as statement_router
 from app.transaction.routes import router as transaction_router
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
@@ -150,12 +159,19 @@ app.include_router(document_router, prefix="/api/company")
 app.include_router(package_router, prefix="/api/company")
 app.include_router(industry_router, prefix="/api")
 
-# HR/Vendor Module Routers registered under prefix /api/v1/hr
+# HR Module Routers registered under prefix /api/v1/hr
 app.include_router(employee_router, prefix="/api/v1/hr/employees", tags=["HR-Employee"])
-app.include_router(vendor_router, prefix="/api/v1/hr/vendors", tags=["HR-Vendor"])
 app.include_router(dashboard_router, prefix="/api/v1/hr/dashboard", tags=["HR-Dashboard"])
 app.include_router(chatbot_router, prefix="/api/v1/hr/chatbot", tags=["HR-Chatbot"])
+
+# CFO Module Routers registered under prefix /api/v1/cfo
+app.include_router(vendor_router, prefix="/api/v1/cfo/vendors", tags=["CFO-Vendor"])
+app.include_router(cfo_client_router, prefix="/api/v1/cfo/clients", tags=["CFO-Client"])
+app.include_router(cfo_dashboard_router, prefix="/api/v1/cfo/dashboard", tags=["CFO-Dashboard"])
+app.include_router(cfo_chatbot_router, prefix="/api/v1/cfo/chatbot", tags=["CFO-Chatbot"])
 app.include_router(transaction_router, prefix="/api")
+app.include_router(statement_router)
+app.include_router(spending_router, prefix="/api/v1/spending", tags=["Spending"])
 
 # ---------------------------------------------------------------------------
 # Health / Root
