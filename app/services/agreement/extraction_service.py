@@ -76,6 +76,7 @@ class ExtractionService:
             extraction_record = AgreementExtractionResult(
                 document_id=doc.id,
                 preview_row_id=preview_row_id,
+                contract_id=normalized_data.get("contract_id"),
                 contract_type=normalized_data.get("contract_type"),
                 contract_start_date=normalized_data.get("contract_start_date"), # This is a string YYYY-MM-DD but mapped to Date in DB, SQLAlchemy handles cast or we can use datetime.strptime
                 contract_end_date=normalized_data.get("contract_end_date"),

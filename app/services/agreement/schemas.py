@@ -15,6 +15,7 @@ class ExtractionStatus(str, Enum):
     EXTRACTION_FAILED = "EXTRACTION_FAILED"
 
 class AgreementDataSchema(BaseModel):
+    contract_id: Optional[str] = Field(default=None, description="The unique contract or agreement identifier (e.g. Contract ID, Agreement No). Example: CTR-V-101")
     contract_value: Optional[float] = Field(default=None, description="The total financial value of the contract. Example: 150000.0")
     currency: Optional[str] = Field(default=None, description="The 3-letter currency code (e.g., USD, INR, EUR) or symbol")
     contract_start_date: Optional[str] = Field(default=None, description="The start date of the contract in YYYY-MM-DD or DD-MM-YYYY format")

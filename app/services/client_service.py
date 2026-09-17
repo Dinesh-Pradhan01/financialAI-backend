@@ -41,6 +41,9 @@ class ClientService:
 
     @staticmethod
     def normalize_for_db(record: Dict[str, Any]) -> Dict[str, Any]:
+        from datetime import datetime
+        from app.services.agreement.normalization_service import NormalizationService
+        
         normalized = dict(record)
         for field in {"contract_value", "revenue"}:
             if field in normalized and normalized[field] is not None:
@@ -48,6 +51,21 @@ class ClientService:
                     normalized[field] = float(Decimal(str(normalized[field]).replace(",", "").replace("₹", "").replace("$", "").replace("INR", "")))
                 except Exception:
                     normalized[field] = normalized[field]
+                    
+        for field in {"contract_start_date", "contract_end_date"}:
+            if field in normalized and normalized[field]:
+                norm = NormalizationService._normalize_date(str(normalized[field]))
+                if norm:
+                    try:
+                        normalized[field] = datetime.strptime(norm, "%Y-%m-%d").date()
+                    except ValueError:
+                        normalized[field] = None
+                else:
+                    normalized[field] = None
+            else:
+                if field in normalized:
+                    normalized[field] = None
+                    
         return normalized
 
     @staticmethod

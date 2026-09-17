@@ -1,0 +1,127 @@
+{
+  "module": "client",
+  "fields": [
+    {
+      "name": "client_id",
+      "header_variations": ["client id", "clientid"],
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "client_name",
+      "header_variations": ["client name"],
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "legal_name",
+      "header_variations": ["legal name"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "category",
+      "header_variations": ["category"],
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "industry",
+      "header_variations": ["industry"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "contract_id",
+      "header_variations": ["contract id", "contractid"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "contract_type",
+      "header_variations": ["contract type"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "contract_start_date",
+      "header_variations": ["contract start date"],
+      "required": false,
+      "type": "date"
+    },
+    {
+      "name": "contract_end_date",
+      "header_variations": ["contract end date"],
+      "required": false,
+      "type": "date"
+    },
+    {
+      "name": "contract_value",
+      "header_variations": ["contract value"],
+      "required": true,
+      "type": "number",
+      "min": 0
+    },
+    {
+      "name": "currency",
+      "header_variations": ["currency"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "revenue",
+      "header_variations": ["revenue"],
+      "required": true,
+      "type": "number",
+      "min": 0
+    },
+    {
+      "name": "payment_type",
+      "header_variations": ["payment type"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "frequency",
+      "header_variations": ["frequency"],
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "recurring",
+      "header_variations": ["recurring"],
+      "required": false,
+      "type": "string"
+    },
+    {
+      "name": "bank_name",
+      "header_variations": ["bank name"],
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "account_holder_name",
+      "header_variations": ["account holder name"],
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "account_number",
+      "header_variations": ["account number"],
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "ifsc_code",
+      "header_variations": ["ifsc code"],
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "status",
+      "header_variations": ["status"],
+      "required": false,
+      "type": "string"
+    }
+  ]
+}
