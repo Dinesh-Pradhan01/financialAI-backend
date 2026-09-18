@@ -32,7 +32,7 @@ class UploadEngine:
             from app.upload_engine.normalizers.base_normalizer import BaseNormalizer
             return BaseNormalizer()
             
-    async def process_file(self, file: UploadFile, db: AsyncSession, uploaded_by: str = "system") -> Dict[str, Any]:
+    async def process_file(self, file: UploadFile, db: AsyncSession, uploaded_by: str = "system", business_id: uuid.UUID = None) -> Dict[str, Any]:
         start_time = time.time()
         
         file_ext = os.path.splitext(file.filename)[1].lower()
@@ -52,13 +52,13 @@ class UploadEngine:
         except Exception as e:
             raise ValueError(f"File Parsing Error: {str(e)}")
             
-        return await self._process_records(raw_records, file.filename, file_size, db, uploaded_by, start_time, "UPLOAD")
+        return await self._process_records(raw_records, file.filename, file_size, db, uploaded_by, start_time, "UPLOAD", business_id)
 
-    async def process_manual(self, records: List[Dict[str, Any]], db: AsyncSession, uploaded_by: str = "system") -> Dict[str, Any]:
+    async def process_manual(self, records: List[Dict[str, Any]], db: AsyncSession, uploaded_by: str = "system", business_id: uuid.UUID = None) -> Dict[str, Any]:
         start_time = time.time()
-        return await self._process_records(records, "manual_entry.json", 0, db, uploaded_by, start_time, "MANUAL")
+        return await self._process_records(records, "manual_entry.json", 0, db, uploaded_by, start_time, "MANUAL", business_id)
         
-    async def _process_records(self, raw_records: List[Dict[str, Any]], filename: str, file_size: int, db: AsyncSession, uploaded_by: str, start_time: float, upload_type: str) -> Dict[str, Any]:
+    async def _process_records(self, raw_records: List[Dict[str, Any]], filename: str, file_size: int, db: AsyncSession, uploaded_by: str, start_time: float, upload_type: str, business_id: uuid.UUID = None) -> Dict[str, Any]:
         normalizer = self._get_normalizer()
         normalized_records = normalizer.normalize(raw_records)
         
@@ -85,6 +85,8 @@ class UploadEngine:
                         EmployeeMaster.employee_id.in_(emp_ids),
                         EmployeeMaster.is_deleted == False
                     )
+                    if business_id:
+                        stmt = stmt.where(EmployeeMaster.business_id == str(business_id))
                     res = await db.execute(stmt)
                     existing_emp_ids = set(res.scalars().all())
             except Exception as ex:
@@ -99,7 +101,7 @@ class UploadEngine:
                     if rec.get("isBlank"): continue
                     b_key = ClientComparisonService.business_key(rec)
                     if b_key[0] and b_key[1]:
-                        existing = await ClientService.get_by_business_key(db, b_key[0], b_key[1])
+                        existing = await ClientService.get_by_business_key(db, str(business_id) if business_id else "", b_key[0], b_key[1])
                         if existing:
                             existing_client_keys[rec["rowId"]] = existing.__dict__
             except Exception as ex:

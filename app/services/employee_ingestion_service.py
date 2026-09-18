@@ -74,7 +74,8 @@ class EmployeeIngestionService:
     async def process_ingestion(
         records: List[Dict[str, Any]], 
         db: AsyncSession, 
-        imported_by: str = "system"
+        imported_by: str = "system",
+        business_id: Optional[str] = None
     ) -> Dict[str, Any]:
         
         inserted_count = 0
@@ -123,7 +124,10 @@ class EmployeeIngestionService:
             seen_batch_emp_ids.add(emp_id)
 
             # Step 3 — Query DB by emp_id (including soft-deleted records)
-            stmt = select(EmployeeMaster).where(EmployeeMaster.employee_id == emp_id)
+            stmt = select(EmployeeMaster).where(
+                EmployeeMaster.business_id == business_id,
+                EmployeeMaster.employee_id == emp_id
+            )
             res = await db.execute(stmt)
             existing_emp = res.scalars().first()
 
@@ -136,6 +140,7 @@ class EmployeeIngestionService:
             if existing_emp is None:
                 # Case A — New Employee -> INSERT
                 new_emp = EmployeeMaster(
+                    business_id=business_id,
                     employee_id=emp_id,
                     version=1,
                     created_by=imported_by,

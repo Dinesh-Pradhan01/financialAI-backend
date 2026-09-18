@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timezone, date
 from decimal import Decimal
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 
@@ -76,7 +76,8 @@ class VendorIngestionService:
     async def process_records(
         records: List[Dict[str, Any]],
         db: AsyncSession,
-        imported_by: str = "system"
+        imported_by: str = "system",
+        business_id: Optional[str] = None
     ) -> Dict[str, Any]:
         total_records = len(records)
         inserted_count = 0
@@ -96,7 +97,10 @@ class VendorIngestionService:
             }
 
         # 1. Fetch existing vendors from DB
-        query = select(VendorMaster).where(VendorMaster.is_deleted == False)
+        query = select(VendorMaster).where(
+            VendorMaster.business_id == business_id,
+            VendorMaster.is_deleted == False
+        )
         db_result = await db.execute(query)
         existing_vendors = db_result.scalars().all()
 
@@ -252,6 +256,7 @@ class VendorIngestionService:
             else:
                 # NEW VENDOR -> INSERT
                 inserted_count += 1
+                rec_data["business_id"] = business_id
                 new_vendor = VendorMaster(
                     **rec_data,
                     created_by=imported_by,

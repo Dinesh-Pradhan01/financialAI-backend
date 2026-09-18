@@ -8,9 +8,12 @@ from app.db.models.vendor import VendorMaster
 from app.db.models.client import ClientMaster
 from app.db.models.upload import ImportLogs, UploadHistory
 
-async def get_employee_dashboard_metrics(db: AsyncSession):
+async def get_employee_dashboard_metrics(db: AsyncSession, business_id: Optional[str] = None):
     # Fetch all employees to avoid casting issues in SQLite/Postgres since numbers are stored as string
-    query = select(EmployeeMaster).where(EmployeeMaster.is_deleted == False)
+    query = select(EmployeeMaster).where(
+        EmployeeMaster.business_id == str(business_id),
+        EmployeeMaster.is_deleted == False
+    )
     result = await db.execute(query)
     employees = result.scalars().all()
 
@@ -59,8 +62,11 @@ async def get_employee_dashboard_metrics(db: AsyncSession):
         "departments": dict(departments)
     }
 
-async def get_vendor_dashboard_metrics(db: AsyncSession):
-    query = select(VendorMaster).where(VendorMaster.is_deleted == False)
+async def get_vendor_dashboard_metrics(db: AsyncSession, business_id: Optional[str] = None):
+    query = select(VendorMaster).where(
+        VendorMaster.business_id == str(business_id),
+        VendorMaster.is_deleted == False
+    )
     result = await db.execute(query)
     vendors = result.scalars().all()
 
@@ -106,8 +112,11 @@ async def get_vendor_dashboard_metrics(db: AsyncSession):
         "industries": dict(industries)
     }
 
-async def get_client_dashboard_metrics(db: AsyncSession):
-    query = select(ClientMaster).where(ClientMaster.is_deleted == False)
+async def get_client_dashboard_metrics(db: AsyncSession, business_id: Optional[str] = None):
+    query = select(ClientMaster).where(
+        ClientMaster.business_id == str(business_id),
+        ClientMaster.is_deleted == False
+    )
     result = await db.execute(query)
     clients = result.scalars().all()
 
@@ -142,8 +151,16 @@ async def get_client_dashboard_metrics(db: AsyncSession):
         "industries": dict(industries)
     }
 
-async def get_recent_activity(db: AsyncSession, limit: int = 5, scope: Optional[str] = None):
+async def get_recent_activity(db: AsyncSession, limit: int = 5, scope: Optional[str] = None, business_id: Optional[str] = None):
     query = select(UploadHistory)
+    if business_id:
+        import uuid
+        try:
+            b_uuid = uuid.UUID(business_id)
+            query = query.where(UploadHistory.business_id == b_uuid)
+        except ValueError:
+            pass
+            
     if scope:
         scope_lower = scope.lower()
         if scope_lower == "hr":
@@ -173,7 +190,7 @@ async def get_recent_activity(db: AsyncSession, limit: int = 5, scope: Optional[
         
     return activities
 
-async def get_upload_preview(db: AsyncSession, upload_id: str, scope: Optional[str] = None):
+async def get_upload_preview(db: AsyncSession, upload_id: str, scope: Optional[str] = None, business_id: Optional[str] = None):
     import uuid
     try:
         u_uuid = uuid.UUID(upload_id)
@@ -181,6 +198,13 @@ async def get_upload_preview(db: AsyncSession, upload_id: str, scope: Optional[s
         return None
 
     stmt = select(UploadHistory).where(UploadHistory.id == u_uuid)
+    if business_id:
+        try:
+            b_uuid = uuid.UUID(business_id)
+            stmt = stmt.where(UploadHistory.business_id == b_uuid)
+        except ValueError:
+            pass
+            
     res = await db.execute(stmt)
     history_record = res.scalars().first()
 

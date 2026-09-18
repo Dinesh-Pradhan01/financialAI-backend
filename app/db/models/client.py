@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
-from sqlalchemy import String, Numeric, Date, UniqueConstraint
+from sqlalchemy import String, Numeric, Date, UniqueConstraint, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
+import uuid
 from sqlalchemy.orm import Mapped, mapped_column
 from app.db.base import Base, SoftDeleteMixin, TimestampMixin
 
@@ -7,9 +9,10 @@ from app.db.base import Base, SoftDeleteMixin, TimestampMixin
 class ClientMaster(SoftDeleteMixin, TimestampMixin, Base):
     __tablename__ = "clients"
     __table_args__ = (
-        UniqueConstraint("client_id", "category", name="uq_client_id_category"),
+        UniqueConstraint("business_id", "client_id", "category", name="uq_business_client_id_category"),
     )
 
+    business_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("general_info.id", ondelete="CASCADE"), nullable=False, index=True)
     client_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     client_name: Mapped[str] = mapped_column(String, nullable=False, index=True)
     category: Mapped[str] = mapped_column(String, nullable=False, index=True)

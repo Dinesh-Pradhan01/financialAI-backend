@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.vendor.dependencies import get_db
+from app.auth.dependencies import get_current_session_user
 from app.db.models.client import ClientMaster
 from app.services.client_compare_service import ClientComparisonService
 from app.services.client_service import ClientService
@@ -114,20 +115,20 @@ def _get_client_schema_def() -> dict:
 
 
 @router.post("/upload")
-async def upload_clients(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
+async def upload_clients(file: UploadFile = File(...), db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     if not file.filename or not file.filename.lower().endswith((".xlsx", ".xls")):
         return error_response("Invalid file format. Only Excel (.xlsx, .xls) files are allowed.")
     try:
         from app.upload_engine.services.upload_engine import UploadEngine
         engine = UploadEngine("client")
-        preview_data = await engine.process_file(file, db, uploaded_by="system")
+        preview_data = await engine.process_file(file, db, uploaded_by=str(current_user.id), business_id=current_user.business_id)
         return success_response("Client Excel upload preview generated successfully", data=preview_data)
     except Exception as exc:
         return error_response(str(exc), status_code=400)
 
 
 @router.post("/manual")
-async def manual_client_entry(data: Dict[str, Any] = None, db: AsyncSession = Depends(get_db)):
+async def manual_client_entry(data: Dict[str, Any] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     if data is None:
         return error_response("Client payload is required.")
     if isinstance(data, list):
@@ -137,54 +138,54 @@ async def manual_client_entry(data: Dict[str, Any] = None, db: AsyncSession = De
     try:
         from app.upload_engine.services.upload_engine import UploadEngine
         engine = UploadEngine("client")
-        preview_data = await engine.process_manual(records, db, uploaded_by="system")
+        preview_data = await engine.process_manual(records, db, uploaded_by=str(current_user.id), business_id=current_user.business_id)
         return success_response("Client manual entry preview generated successfully", data=preview_data)
     except Exception as exc:
         return error_response(str(exc), status_code=400)
 
 
 @router.post("/preview")
-async def preview_clients(data: List[Dict[str, Any]] = None, db: AsyncSession = Depends(get_db)):
+async def preview_clients(data: List[Dict[str, Any]] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     if data is None:
         return error_response("Preview payload is required.")
     try:
         from app.upload_engine.services.upload_engine import UploadEngine
         engine = UploadEngine("client")
-        preview_data = await engine.process_manual(data, db, uploaded_by="system")
+        preview_data = await engine.process_manual(data, db, uploaded_by=str(current_user.id), business_id=current_user.business_id)
         return success_response("Client preview generated successfully", data=preview_data)
     except Exception as exc:
         return error_response(str(exc), status_code=400)
 
 
 @router.post("/import")
-async def import_clients(payload: Dict[str, Any] = None, db: AsyncSession = Depends(get_db)):
+async def import_clients(payload: Dict[str, Any] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     records = payload.get("records", []) if isinstance(payload, dict) else payload
     if not records:
         return error_response("No records to import.")
     if isinstance(records, dict):
         records = [records]
-    import_result = await ClientService.import_records(db, records)
+    import_result = await ClientService.import_records(db, records, imported_by=str(current_user.id), business_id=current_user.business_id)
     return success_response("Clients import completed successfully", data=import_result)
 
 
 @router.get("")
-async def list_clients(db: AsyncSession = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(50, ge=1, le=1000)):
-    items = await ClientService.list_clients(db, skip=(page - 1) * size, limit=size)
+async def list_clients(db: AsyncSession = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(50, ge=1, le=1000), current_user = Depends(get_current_session_user)):
+    items = await ClientService.list_clients(db, business_id=str(current_user.business_id), skip=(page - 1) * size, limit=size)
     return success_response("Clients fetched successfully", data={"items": [i.__dict__ for i in items], "total": len(items), "page": page, "size": size})
 
 
 @router.get("/{client_id}")
-async def get_client(client_id: str, category: Optional[str] = Query(None), db: AsyncSession = Depends(get_db)):
-    client = await ClientService.get_client(db, client_id, category)
+async def get_client(client_id: str, category: Optional[str] = Query(None), db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
+    client = await ClientService.get_client(db, str(current_user.business_id), client_id, category)
     if client is None:
         raise HTTPException(status_code=404, detail="Client not found")
     return success_response("Client fetched successfully", data=client.__dict__)
 
 
 @router.delete("/{client_id}")
-async def delete_client(client_id: str, category: Optional[str] = None, db: AsyncSession = Depends(get_db)):
+async def delete_client(client_id: str, category: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     try:
-        success = await ClientService.delete_client(db, client_id, category)
+        success = await ClientService.delete_client(db, str(current_user.business_id), client_id, category)
         if not success:
             return error_response(message="Client not found", status_code=404)
         return success_response(message="Client deleted successfully")

@@ -1,14 +1,17 @@
 from datetime import date, datetime, timezone
-from sqlalchemy import String, Boolean, Date, Numeric, Text, UniqueConstraint, DateTime
+from sqlalchemy import String, Boolean, Date, Numeric, Text, UniqueConstraint, DateTime, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
+import uuid
 from sqlalchemy.orm import Mapped, mapped_column
 from app.db.base import Base, SoftDeleteMixin
 
 class VendorMaster(SoftDeleteMixin, Base):
     __tablename__ = "vendor_master"
     __table_args__ = (
-        UniqueConstraint("vendor_id", "category", name="uq_vendor_id_category"),
+        UniqueConstraint("business_id", "vendor_id", "category", name="uq_business_vendor_id_category"),
     )
 
+    business_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("general_info.id", ondelete="CASCADE"), primary_key=True, nullable=False)
     vendor_id: Mapped[str] = mapped_column(String, primary_key=True, nullable=False)
     category: Mapped[str] = mapped_column(String, primary_key=True, nullable=False)
 

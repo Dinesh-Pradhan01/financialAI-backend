@@ -6,6 +6,7 @@ from app.schemas.vendor import VendorCreate, VendorUpdate, VendorResponse
 
 async def get_vendors(
     db: AsyncSession,
+    business_id: str,
     skip: int = 0,
     limit: int = 10,
     search: Optional[str] = None,
@@ -17,7 +18,10 @@ async def get_vendors(
     payment_type: Optional[str] = None
 ) -> Dict[str, Any]:
     
-    query = select(VendorMaster).where(VendorMaster.is_deleted == False)
+    query = select(VendorMaster).where(
+        VendorMaster.business_id == business_id,
+        VendorMaster.is_deleted == False
+    )
     
     filters = []
     if search:
@@ -60,9 +64,10 @@ async def get_vendors(
         "size": limit
     }
 
-async def get_vendor_by_key(db: AsyncSession, vendor_id: str, category: Optional[str] = None) -> Optional[VendorMaster]:
+async def get_vendor_by_key(db: AsyncSession, business_id: str, vendor_id: str, category: Optional[str] = None) -> Optional[VendorMaster]:
     stmt = select(VendorMaster).where(
         and_(
+            VendorMaster.business_id == business_id,
             VendorMaster.vendor_id == vendor_id.strip(),
             VendorMaster.is_deleted == False
         )
@@ -72,11 +77,11 @@ async def get_vendor_by_key(db: AsyncSession, vendor_id: str, category: Optional
     res = await db.execute(stmt)
     return res.scalars().first()
 
-async def get_vendor_by_id(db: AsyncSession, id_val: Any, category: Optional[str] = None) -> Optional[VendorMaster]:
-    return await get_vendor_by_key(db, str(id_val), category)
+async def get_vendor_by_id(db: AsyncSession, business_id: str, id_val: Any, category: Optional[str] = None) -> Optional[VendorMaster]:
+    return await get_vendor_by_key(db, str(business_id), str(id_val), category)
 
-async def delete_vendor(db: AsyncSession, vendor_id: str, category: Optional[str] = None) -> bool:
-    vendor = await get_vendor_by_key(db, vendor_id, category)
+async def delete_vendor(db: AsyncSession, business_id: str, vendor_id: str, category: Optional[str] = None) -> bool:
+    vendor = await get_vendor_by_key(db, str(business_id), vendor_id, category)
     if not vendor:
         return False
     vendor.is_deleted = True
