@@ -13,8 +13,9 @@ from app.services.client_validation_service import ClientValidationService
 
 class ClientService:
     @staticmethod
-    async def get_by_business_key(db: AsyncSession, client_id: str, category: str) -> Optional[ClientMaster]:
+    async def get_by_business_key(db: AsyncSession, business_id: str, client_id: str, category: str) -> Optional[ClientMaster]:
         stmt = select(ClientMaster).where(
+            ClientMaster.business_id == business_id,
             ClientMaster.client_id == client_id,
             ClientMaster.category == category,
             ClientMaster.is_deleted == False,
@@ -23,16 +24,20 @@ class ClientService:
         return result.scalars().first()
 
     @staticmethod
-    async def list_clients(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[ClientMaster]:
-        stmt = select(ClientMaster).where(ClientMaster.is_deleted == False).offset(skip).limit(limit)
+    async def list_clients(db: AsyncSession, business_id: str, skip: int = 0, limit: int = 100) -> List[ClientMaster]:
+        stmt = select(ClientMaster).where(
+            ClientMaster.business_id == business_id,
+            ClientMaster.is_deleted == False
+        ).offset(skip).limit(limit)
         result = await db.execute(stmt)
         return result.scalars().all()
 
     @staticmethod
-    async def get_client(db: AsyncSession, client_id: str, category: Optional[str] = None) -> Optional[ClientMaster]:
+    async def get_client(db: AsyncSession, business_id: str, client_id: str, category: Optional[str] = None) -> Optional[ClientMaster]:
         if category:
-            return await ClientService.get_by_business_key(db, client_id, category)
+            return await ClientService.get_by_business_key(db, business_id, client_id, category)
         stmt = select(ClientMaster).where(
+            ClientMaster.business_id == business_id,
             ClientMaster.client_id == client_id,
             ClientMaster.is_deleted == False,
         )
@@ -69,7 +74,7 @@ class ClientService:
         return normalized
 
     @staticmethod
-    async def import_records(db: AsyncSession, records: List[Dict[str, Any]], imported_by: str = "system") -> Dict[str, Any]:
+    async def import_records(db: AsyncSession, records: List[Dict[str, Any]], imported_by: str = "system", business_id: Optional[str] = None) -> Dict[str, Any]:
         results = {"inserted": 0, "updated": 0, "skipped": 0, "rejected": 0, "records": []}
         for idx, record in enumerate(records, start=1):
             validation = ClientValidationService.validate_record(record)
@@ -79,10 +84,11 @@ class ClientService:
                 continue
 
             key = ClientComparisonService.business_key(record)
-            existing = await ClientService.get_by_business_key(db, key[0], key[1])
+            existing = await ClientService.get_by_business_key(db, str(business_id), key[0], key[1])
             if existing is None:
                 payload = ClientService.normalize_for_db(record)
                 obj = ClientMaster(
+                    business_id=business_id,
                     client_id=payload.get("client_id"),
                     client_name=payload.get("client_name"),
                     category=payload.get("category"),
@@ -128,3 +134,12 @@ class ClientService:
 
         await db.commit()
         return results
+
+    @staticmethod
+    async def delete_client(db: AsyncSession, business_id: str, client_id: str, category: Optional[str] = None) -> bool:
+        client = await ClientService.get_client(db, business_id, client_id, category)
+        if client:
+            client.is_deleted = True
+            await db.commit()
+            return True
+        return False

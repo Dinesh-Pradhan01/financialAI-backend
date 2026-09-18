@@ -1,11 +1,11 @@
 import uuid
-from typing import Union, Dict, Any
+from typing import Union, Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.employee import EmployeePreviewResponse
 from app.services.employee_ingestion_service import EmployeeIngestionService
 from app.repositories.upload import upload_history_repository
 
-async def import_employees(preview_data: Union[EmployeePreviewResponse, Dict[str, Any], list], db: AsyncSession, imported_by: str = "system") -> dict:
+async def import_employees(preview_data: Union[EmployeePreviewResponse, Dict[str, Any], list], db: AsyncSession, imported_by: str = "system", business_id: Optional[str] = None) -> dict:
     if isinstance(preview_data, list):
         p_dict = {"records": preview_data}
     elif isinstance(preview_data, EmployeePreviewResponse):
@@ -23,10 +23,10 @@ async def import_employees(preview_data: Union[EmployeePreviewResponse, Dict[str
     summary = p_dict.get("summary", {})
     
     error_row_ids = set()
-    if isinstance(summary, dict):
-        error_row_ids = set(summary.get("errorRowIds", []))
-    elif hasattr(summary, "errorRowIds"):
-        error_row_ids = set(summary.errorRowIds)
+    if summary and isinstance(summary, dict) and summary.get("errors"):
+        for err in summary["errors"]:
+            if isinstance(err, dict) and "rowId" in err:
+                error_row_ids.add(err["rowId"])
 
     valid_records = []
     for record in records:
@@ -46,7 +46,7 @@ async def import_employees(preview_data: Union[EmployeePreviewResponse, Dict[str
             if (r if isinstance(r, dict) else r.model_dump()).get("validation_status") != "invalid"
         ]
 
-    res = await EmployeeIngestionService.process_ingestion(valid_records, db, imported_by)
+    res = await EmployeeIngestionService.process_ingestion(valid_records, db, imported_by, business_id)
 
     if upload_id:
         try:

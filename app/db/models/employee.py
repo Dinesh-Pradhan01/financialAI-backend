@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Integer, DateTime
+from sqlalchemy import String, Integer, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from app.db.base import Base, SoftDeleteMixin
@@ -8,6 +8,7 @@ from app.db.base import Base, SoftDeleteMixin
 class EmployeeMaster(SoftDeleteMixin, Base):
     __tablename__ = "employee_master"
 
+    business_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("general_info.id", ondelete="CASCADE"), primary_key=True, nullable=False)
     employee_id: Mapped[str] = mapped_column(String, primary_key=True, nullable=False)
     employee_name: Mapped[str] = mapped_column(String, nullable=False)
     email: Mapped[str] = mapped_column(String, index=True, nullable=False)

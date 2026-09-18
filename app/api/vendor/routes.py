@@ -10,6 +10,7 @@ from loguru import logger
 import openpyxl
 
 from app.api.vendor.dependencies import get_db
+from app.auth.dependencies import get_current_session_user
 from app.utils.response import success_response, error_response
 from app.schemas.vendor import VendorUpdate, VendorResponse, VendorPreview
 from app.services import vendor_service
@@ -28,37 +29,37 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 
 @router.post("/upload")
-async def upload_vendors(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
+async def upload_vendors(file: UploadFile = File(...), db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     if not file.filename.lower().endswith((".xlsx", ".xls")):
         return error_response(message="Invalid file format. Only Excel (.xlsx, .xls) files are allowed.")
         
     try:
-        result = await process_vendor_excel_upload(file, db, uploaded_by="system_upload")
+        result = await process_vendor_excel_upload(file, db, uploaded_by=str(current_user.id), business_id=current_user.business_id)
         return success_response(message="Vendor Excel upload preview generated successfully", data=result)
     except Exception as e:
         logger.exception("Error processing vendor upload")
         return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
 
 @router.post("/manual")
-async def manual_vendors(data: list[dict], db: AsyncSession = Depends(get_db)):
+async def manual_vendors(data: list[dict], db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     try:
-        result = await process_vendor_manual_entry(data, db, uploaded_by="system_manual")
+        result = await process_vendor_manual_entry(data, db, uploaded_by=str(current_user.id), business_id=current_user.business_id)
         return success_response(message="Vendor manual entry preview generated successfully", data=result)
     except Exception as e:
         logger.exception("Error processing vendor manual entry")
         return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
 
 @router.post("/preview")
-async def preview_vendors(data: list[dict], db: AsyncSession = Depends(get_db)):
+async def preview_vendors(data: list[dict], db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     try:
-        result = await process_vendor_manual_entry(data, db, uploaded_by="system_preview")
+        result = await process_vendor_manual_entry(data, db, uploaded_by=str(current_user.id), business_id=current_user.business_id)
         return success_response(message="Preview generated successfully", data=result)
     except Exception as e:
         logger.exception("Error processing vendor preview")
         return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
 
 @router.post("/import")
-async def import_vendors(payload: dict, db: AsyncSession = Depends(get_db)):
+async def import_vendors(payload: dict, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     try:
         records = payload.get("records", []) if isinstance(payload, dict) else []
         if not records and isinstance(payload, list):
@@ -83,7 +84,7 @@ async def import_vendors(payload: dict, db: AsyncSession = Depends(get_db)):
             )
 
         # Execute final import into vendor_master
-        result = await VendorIngestionService.process_records(records, db, imported_by="system_import")
+        result = await VendorIngestionService.process_records(records, db, imported_by=str(current_user.id), business_id=str(current_user.business_id))
         return success_response(message="Vendor import completed successfully", data=result)
     except Exception as e:
         logger.exception("Critical error during vendor import")
@@ -302,11 +303,12 @@ async def list_vendors(
     currency: Optional[str] = None,
     contract_type: Optional[str] = None,
     payment_type: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_session_user)
 ):
     try:
         result = await vendor_service.get_vendors(
-            db=db, skip=skip, limit=limit, search=search,
+            db=db, business_id=str(current_user.business_id), skip=skip, limit=limit, search=search,
             industry=industry, status=status, recurring=recurring,
             currency=currency, contract_type=contract_type, payment_type=payment_type
         )
@@ -316,9 +318,9 @@ async def list_vendors(
         return error_response(message=str(e), status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @router.get("/{vendor_id}")
-async def get_vendor(vendor_id: str, category: Optional[str] = None, db: AsyncSession = Depends(get_db)):
+async def get_vendor(vendor_id: str, category: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     try:
-        vendor = await vendor_service.get_vendor_by_key(db, vendor_id, category)
+        vendor = await vendor_service.get_vendor_by_key(db, str(current_user.business_id), vendor_id, category)
         if not vendor:
             return error_response(message="Vendor not found", status_code=http_status.HTTP_404_NOT_FOUND)
         
@@ -330,9 +332,9 @@ async def get_vendor(vendor_id: str, category: Optional[str] = None, db: AsyncSe
         return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
 
 @router.put("/{vendor_id}")
-async def update_vendor(vendor_id: str, vendor_in: VendorUpdate, category: Optional[str] = None, db: AsyncSession = Depends(get_db)):
+async def update_vendor(vendor_id: str, vendor_in: VendorUpdate, category: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     try:
-        vendor = await vendor_service.get_vendor_by_key(db, vendor_id, category or vendor_in.category)
+        vendor = await vendor_service.get_vendor_by_key(db, str(current_user.business_id), vendor_id, category or vendor_in.category)
         if not vendor:
             return error_response(message="Vendor not found", status_code=http_status.HTTP_404_NOT_FOUND)
         
@@ -350,9 +352,9 @@ async def update_vendor(vendor_id: str, vendor_in: VendorUpdate, category: Optio
         return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
 
 @router.delete("/{vendor_id}")
-async def delete_vendor(vendor_id: str, category: Optional[str] = None, db: AsyncSession = Depends(get_db)):
+async def delete_vendor(vendor_id: str, category: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     try:
-        success = await vendor_service.delete_vendor(db, vendor_id, category)
+        success = await vendor_service.delete_vendor(db, str(current_user.business_id), vendor_id, category)
         if not success:
             return error_response(message="Vendor not found", status_code=http_status.HTTP_404_NOT_FOUND)
         return success_response(message="Vendor deleted successfully")

@@ -8,6 +8,7 @@ from app.db.models.employee import EmployeeMaster
 
 async def get_employees(
     db: AsyncSession, 
+    business_id: str,
     skip: int = 0, 
     limit: int = 100,
     search: Optional[str] = None,
@@ -16,7 +17,10 @@ async def get_employees(
     employment_type: Optional[str] = None
 ) -> EmployeeListResponse:
     
-    query = select(EmployeeMaster).where(EmployeeMaster.is_deleted == False)
+    query = select(EmployeeMaster).where(
+        EmployeeMaster.business_id == business_id,
+        EmployeeMaster.is_deleted == False
+    )
     
     if search:
         query = query.where(
@@ -36,13 +40,18 @@ async def get_employees(
     query = query.order_by(EmployeeMaster.created_at.desc())
     
     # count total
-    total_query = select(EmployeeMaster).where(EmployeeMaster.is_deleted == False)
+    total_query = select(EmployeeMaster).where(
+        EmployeeMaster.business_id == business_id,
+        EmployeeMaster.is_deleted == False
+    )
     if search or department or status or employment_type:
         # Just use the filtered query but without offset/limit
         count_result = await db.execute(select(query.subquery()))
         total = len(count_result.scalars().all()) # not the most efficient for big tables, but works. A true count query is better.
     else:
-        total = await employee_repository.count(db)
+        # Instead of `await employee_repository.count(db)`, count on total_query
+        count_result = await db.execute(select(total_query.subquery()))
+        total = len(count_result.scalars().all())
 
     # Apply pagination
     query = query.offset(skip).limit(limit)
@@ -56,14 +65,14 @@ async def get_employees(
         size=limit
     )
 
-async def get_employee_by_id(db: AsyncSession, emp_id: str) -> Optional[EmployeeResponse]:
-    obj = await employee_repository.get_by_emp_id(db, emp_id)
+async def get_employee_by_id(db: AsyncSession, business_id: str, emp_id: str) -> Optional[EmployeeResponse]:
+    obj = await employee_repository.get_by_emp_id(db, business_id, emp_id)
     if obj:
         return EmployeeResponse.model_validate(obj)
     return None
 
-async def update_employee(db: AsyncSession, emp_id: str, emp_in: EmployeeUpdate) -> Optional[EmployeeResponse]:
-    db_obj = await employee_repository.get_by_emp_id(db, emp_id)
+async def update_employee(db: AsyncSession, business_id: str, emp_id: str, emp_in: EmployeeUpdate) -> Optional[EmployeeResponse]:
+    db_obj = await employee_repository.get_by_emp_id(db, business_id, emp_id)
     if not db_obj:
         return None
     
@@ -95,13 +104,13 @@ async def update_employee(db: AsyncSession, emp_id: str, emp_in: EmployeeUpdate)
     }
 
     from app.services.employee_ingestion_service import EmployeeIngestionService
-    ingest_res = await EmployeeIngestionService.process_ingestion([full_dict], db)
+    ingest_res = await EmployeeIngestionService.process_ingestion([full_dict], db, business_id=business_id)
     
-    updated_obj = await employee_repository.get_by_emp_id(db, emp_id)
+    updated_obj = await employee_repository.get_by_emp_id(db, business_id, emp_id)
     if updated_obj:
         return EmployeeResponse.model_validate(updated_obj)
     return None
 
-async def delete_employee(db: AsyncSession, emp_id: str) -> bool:
-    obj = await employee_repository.soft_delete_by_emp_id(db, emp_id=emp_id)
+async def delete_employee(db: AsyncSession, business_id: str, emp_id: str) -> bool:
+    obj = await employee_repository.soft_delete_by_emp_id(db, business_id=business_id, emp_id=emp_id)
     return obj is not None
