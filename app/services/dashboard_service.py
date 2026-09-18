@@ -206,13 +206,18 @@ async def get_upload_preview(db: AsyncSession, upload_id: str, scope: Optional[s
         p_data = history_record.preview_data
         records = []
         if isinstance(p_data, dict):
-            records = p_data.get("records", [])
+            return {
+                "upload_type": module_type,
+                "records": p_data.get("records", []),
+                "schema_def": p_data.get("schema_def"),
+                "summary": p_data.get("summary"),
+                "validation": p_data.get("validation", p_data.get("summary"))
+            }
         elif isinstance(p_data, list):
-            records = p_data
-        return {
-            "upload_type": module_type,
-            "records": records
-        }
+            return {
+                "upload_type": module_type,
+                "records": p_data
+            }
 
     # Fallback to ImportLogs for legacy imports if preview_data was not saved
     query = select(ImportLogs).where(ImportLogs.upload_history_id == u_uuid)

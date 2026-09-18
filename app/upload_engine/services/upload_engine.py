@@ -25,6 +25,9 @@ class UploadEngine:
         elif self.module_name == "vendor":
             from app.upload_engine.normalizers.vendor_normalizer import VendorNormalizer
             return VendorNormalizer()
+        elif self.module_name == "client":
+            from app.upload_engine.normalizers.client_normalizer import ClientNormalizer
+            return ClientNormalizer()
         else:
             from app.upload_engine.normalizers.base_normalizer import BaseNormalizer
             return BaseNormalizer()
@@ -71,6 +74,7 @@ class UploadEngine:
         all_issues.extend(dup_issues)
         
         existing_emp_ids = set()
+        existing_client_keys = {}
         if self.module_name == "employee" and db is not None:
             try:
                 from sqlalchemy import select
@@ -85,6 +89,21 @@ class UploadEngine:
                     existing_emp_ids = set(res.scalars().all())
             except Exception as ex:
                 print("Error checking existing employees in preview:", ex)
+                pass
+                
+        if self.module_name == "client" and db is not None:
+            try:
+                from app.services.client_service import ClientService
+                from app.services.client_compare_service import ClientComparisonService
+                for rec in normalized_records:
+                    if rec.get("isBlank"): continue
+                    b_key = ClientComparisonService.business_key(rec)
+                    if b_key[0] and b_key[1]:
+                        existing = await ClientService.get_by_business_key(db, b_key[0], b_key[1])
+                        if existing:
+                            existing_client_keys[rec["rowId"]] = existing.__dict__
+            except Exception as ex:
+                print("Error checking existing clients in preview:", ex)
                 pass
 
         row_errors_map = {}
@@ -102,8 +121,28 @@ class UploadEngine:
             errs = row_errors_map.get(rec.get("rowId"), [])
             rec["validation_errors"] = errs
             rec["validation_status"] = "invalid" if errs else "valid"
-            if e_id in existing_emp_ids:
-                rec["preview_status"] = "existing_employee"
+            
+            if self.module_name == "employee":
+                if e_id in existing_emp_ids:
+                    rec["preview_status"] = "existing_employee"
+                else:
+                    rec["preview_status"] = "valid"
+            elif self.module_name == "client":
+                if rec["validation_status"] == "invalid":
+                    rec["preview_status"] = "rejected"
+                    rec["action"] = "REJECT"
+                else:
+                    existing = existing_client_keys.get(rec.get("rowId"))
+                    if existing:
+                        from app.services.client_compare_service import ClientComparisonService
+                        comp = ClientComparisonService.compare_record(existing, rec)
+                        rec["preview_status"] = "existing"
+                        rec["action"] = comp["action"]
+                        rec["changed_fields"] = comp.get("changed_fields", [])
+                        rec["existing_record"] = existing
+                    else:
+                        rec["preview_status"] = "new"
+                        rec["action"] = "INSERT"
             else:
                 rec["preview_status"] = "valid"
 

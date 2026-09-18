@@ -46,8 +46,8 @@ def _normalize_key(value: Any) -> str:
     if value is None:
         return ""
     s = str(value).strip()
-    # Insert space before capital letters to handle camelCase (e.g. contractValue -> contract Value)
-    s = re.sub(r'(?<!^)(?=[A-Z])', ' ', s)
+    # Insert space before capital letters to handle camelCase safely
+    s = re.sub(r'([a-z])([A-Z])', r'\1 \2', s)
     return s.lower().replace("_", " ").replace("-", " ")
 
 
@@ -61,8 +61,16 @@ def _normalize_row(record: Dict[str, Any]) -> Dict[str, Any]:
                 canonical = canonical_key
                 break
         if canonical is None:
+            normalized[key] = val
             continue
-        normalized[canonical] = val
+            
+        if canonical in {"account_number", "ifsc_code", "client_id", "client_name", "legal_name", "category", "industry", "contract_id", "contract_type", "currency", "payment_type", "frequency", "recurring", "bank_name", "account_holder_name", "status"}:
+            if val is not None:
+                normalized[canonical] = str(val)
+            else:
+                normalized[canonical] = None
+        else:
+            normalized[canonical] = val
     return normalized
 
 
@@ -110,72 +118,9 @@ async def upload_clients(file: UploadFile = File(...), db: AsyncSession = Depend
     if not file.filename or not file.filename.lower().endswith((".xlsx", ".xls")):
         return error_response("Invalid file format. Only Excel (.xlsx, .xls) files are allowed.")
     try:
-        import openpyxl
-
-        import io
-        contents = await file.read()
-        workbook = openpyxl.load_workbook(filename=io.BytesIO(contents), read_only=True)
-        sheet = workbook.active
-        rows = []
-        headers = []
-        import math
-        for row in sheet.iter_rows(values_only=True):
-            if not headers:
-                headers = [str(cell).strip() if cell is not None else "" for cell in row]
-                continue
-            if all((cell is None or str(cell).strip() == "") for cell in row):
-                continue
-            clean_row = [None if isinstance(cell, float) and math.isnan(cell) else cell for cell in row]
-            rows.append(dict(zip(headers, clean_row)))
-
-        preview_records = []
-        for idx, record in enumerate(rows, start=2):
-            normalized = _normalize_row(record)
-            validated = ClientValidationService.validate_record(normalized, is_upload=True)
-            preview_records.append({
-                **normalized,
-                "row": idx,
-                "source_row": idx,
-                "validation_status": "valid" if validated["valid"] else "invalid",
-                "validation_errors": validated["errors"],
-                "action": "REJECT" if not validated["valid"] else "INSERT",
-                "preview_status": "new",
-                "existing_status": "new",
-                "duplicate_status": "new",
-                "changed_fields": [],
-                "is_blank": False,
-            })
-
-        import uuid
-        import time
-        from app.db.models.upload import UploadHistory
-        
-        upload_uuid = uuid.uuid4()
-        upload_id = str(upload_uuid)
-        
-        preview_data = {
-            "upload_id": upload_id,
-            "records": preview_records,
-            "schema_def": _get_client_schema_def(),
-            "summary": {"validRecords": sum(1 for r in preview_records if r["validation_status"] == "valid"), "errors": sum(1 for r in preview_records if r["validation_status"] != "valid")},
-        }
-        
-        history_record = UploadHistory(
-            id=upload_uuid,
-            upload_type="CLIENT_UPLOAD",
-            file_name=file.filename,
-            file_size=file.size,
-            uploaded_by="system",
-            total_records=len(preview_records),
-            success_records=preview_data["summary"]["validRecords"],
-            failed_records=preview_data["summary"]["errors"],
-            processing_time=0,
-            status="PREVIEW",
-            preview_data=preview_data
-        )
-        db.add(history_record)
-        await db.commit()
-
+        from app.upload_engine.services.upload_engine import UploadEngine
+        engine = UploadEngine("client")
+        preview_data = await engine.process_file(file, db, uploaded_by="system")
         return success_response("Client Excel upload preview generated successfully", data=preview_data)
     except Exception as exc:
         return error_response(str(exc), status_code=400)
@@ -189,86 +134,26 @@ async def manual_client_entry(data: Dict[str, Any] = None, db: AsyncSession = De
         records = data
     else:
         records = [data]
-    preview = []
-    for row_idx, item in enumerate(records, start=1):
-        preview.append(await _preview_record(item, db, is_upload=True))
-        
-    import uuid
-    from app.db.models.upload import UploadHistory
-    
-    upload_uuid = uuid.uuid4()
-    upload_id = str(upload_uuid)
-    
-    preview_data = {
-        "upload_id": upload_id,
-        "records": preview, 
-        "schema_def": _get_client_schema_def(),
-        "summary": {
-            "validRecords": sum(1 for r in preview if r.get("action") != "REJECT"), 
-            "errors": sum(1 for r in preview if r.get("action") == "REJECT")
-        }
-    }
-    
-    history_record = UploadHistory(
-        id=upload_uuid,
-        upload_type="CLIENT_MANUAL",
-        file_name="manual_entry.json",
-        file_size=0,
-        uploaded_by="system",
-        total_records=len(preview),
-        success_records=preview_data["summary"]["validRecords"],
-        failed_records=preview_data["summary"]["errors"],
-        processing_time=0,
-        status="PREVIEW",
-        preview_data=preview_data
-    )
-    db.add(history_record)
-    await db.commit()
-    
-    return success_response("Client manual entry preview generated successfully", data=preview_data)
+    try:
+        from app.upload_engine.services.upload_engine import UploadEngine
+        engine = UploadEngine("client")
+        preview_data = await engine.process_manual(records, db, uploaded_by="system")
+        return success_response("Client manual entry preview generated successfully", data=preview_data)
+    except Exception as exc:
+        return error_response(str(exc), status_code=400)
 
 
 @router.post("/preview")
 async def preview_clients(data: List[Dict[str, Any]] = None, db: AsyncSession = Depends(get_db)):
     if data is None:
         return error_response("Preview payload is required.")
-    preview = []
-    for row_idx, item in enumerate(data, start=1):
-        preview.append(await _preview_record(item, db, is_upload=True))
-        
-    import uuid
-    from app.db.models.upload import UploadHistory
-    
-    upload_uuid = uuid.uuid4()
-    upload_id = str(upload_uuid)
-    
-    preview_data = {
-        "upload_id": upload_id,
-        "records": preview, 
-        "schema_def": _get_client_schema_def(),
-        "summary": {
-            "validRecords": sum(1 for r in preview if r.get("action") != "REJECT"), 
-            "errors": sum(1 for r in preview if r.get("action") == "REJECT")
-        }
-    }
-    
-    history_record = UploadHistory(
-        id=upload_uuid,
-        upload_type="CLIENT_PREVIEW",
-        file_name="preview.json",
-        file_size=0,
-        uploaded_by="system",
-        total_records=len(preview),
-        success_records=preview_data["summary"]["validRecords"],
-        failed_records=preview_data["summary"]["errors"],
-        processing_time=0,
-        status="PREVIEW",
-        preview_data=preview_data
-    )
-    db.add(history_record)
-    await db.commit()
-    
-    return success_response("Client preview generated successfully", data=preview_data)
+    try:
+        from app.upload_engine.services.upload_engine import UploadEngine
+        engine = UploadEngine("client")
+        preview_data = await engine.process_manual(data, db, uploaded_by="system")
+        return success_response("Client preview generated successfully", data=preview_data)
+    except Exception as exc:
+        return error_response(str(exc), status_code=400)
 
 
 @router.post("/import")

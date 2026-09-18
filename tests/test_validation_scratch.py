@@ -1,8 +1,7 @@
 import re
+from typing import Any, Dict, List
 from datetime import date
 from decimal import Decimal
-from typing import Any, Dict, List
-
 
 REQUIRED_FIELDS = [
     "client_id",
@@ -28,7 +27,57 @@ OPTIONAL_FIELDS = [
     "recurring",
     "status",
 ]
+REQUIRED_CLIENT_COLUMNS = {
+    "client_id": "client_id",
+    "client_name": "client_name",
+    "legal_name": "legal_name",
+    "category": "category",
+    "industry": "industry",
+    "contract_id": "contract_id",
+    "contract_type": "contract_type",
+    "contract_start_date": "contract_start_date",
+    "contract_end_date": "contract_end_date",
+    "contract_value": "contract_value",
+    "currency": "currency",
+    "revenue": "revenue",
+    "payment_type": "payment_type",
+    "frequency": "frequency",
+    "recurring": "recurring",
+    "bank_name": "bank_name",
+    "account_holder_name": "account_holder_name",
+    "account_number": "account_number",
+    "ifsc_code": "ifsc_code",
+    "status": "status",
+}
 
+def _normalize_key(value: Any) -> str:
+    if value is None:
+        return ""
+    s = str(value).strip()
+    s = re.sub(r'([a-z])([A-Z])', r'\1 \2', s)
+    return s.lower().replace("_", " ").replace("-", " ")
+
+def _normalize_row(record: Dict[str, Any]) -> Dict[str, Any]:
+    normalized: Dict[str, Any] = {}
+    for key, val in record.items():
+        canonical = None
+        cleaned = _normalize_key(key)
+        for canonical_key, variations in REQUIRED_CLIENT_COLUMNS.items():
+            if cleaned == canonical_key.replace("_", " ") or cleaned == variations.replace("_", " "):
+                canonical = canonical_key
+                break
+        if canonical is None:
+            normalized[key] = val
+            continue
+            
+        if canonical in {"account_number", "ifsc_code", "client_id", "client_name", "legal_name", "category", "industry", "contract_id", "contract_type", "currency", "payment_type", "frequency", "recurring", "bank_name", "account_holder_name", "status"}:
+            if val is not None:
+                normalized[canonical] = str(val)
+            else:
+                normalized[canonical] = None
+        else:
+            normalized[canonical] = val
+    return normalized
 
 class ClientValidationService:
     @staticmethod
@@ -54,8 +103,6 @@ class ClientValidationService:
         for field in REQUIRED_FIELDS:
             value = record.get(field)
             if ClientValidationService._is_blank(value):
-                if is_upload and field in {"contract_id", "contract_type", "contract_start_date", "contract_end_date"}:
-                    continue
                 errors.append({"row": record.get("sourceRow") or record.get("row"), "field": field, "error": f"{field.replace('_', ' ').title()} is required"})
                 continue
             if field in {"contract_value", "revenue"}:
@@ -63,28 +110,13 @@ class ClientValidationService:
                     errors.append({"row": record.get("sourceRow") or record.get("row"), "field": field, "error": f"{field.replace('_', ' ').title()} must be numeric"})
 
         for key in record.keys():
-            if key not in REQUIRED_FIELDS and key not in OPTIONAL_FIELDS and key not in {"row", "sourceRow", "source_row", "rowId", "isBlank", "validation_errors", "validation_status", "preview_status", "action", "monthly_cost", "monthlyCost", "cost"}:
+            if key not in REQUIRED_FIELDS and key not in OPTIONAL_FIELDS and key not in {"row", "sourceRow", "source_row"}:
                 errors.append({"row": record.get("sourceRow") or record.get("row"), "field": key, "error": f"Unsupported Excel column"})
-
+                
         if not ClientValidationService._is_blank(record.get("ifsc_code")):
             if not re.match(r"^[A-Z]{4}0[A-Z0-9]{6}$", str(record.get("ifsc_code")).upper()):
                 errors.append({"row": record.get("sourceRow") or record.get("row"), "field": "ifsc_code", "error": "IFSC code is invalid"})
 
-        start_date = record.get("contract_start_date")
-        end_date = record.get("contract_end_date")
-        if start_date and end_date:
-            try:
-                if isinstance(start_date, str):
-                    parsed_start = date.fromisoformat(start_date[:10])
-                else:
-                    parsed_start = start_date
-                if isinstance(end_date, str):
-                    parsed_end = date.fromisoformat(end_date[:10])
-                else:
-                    parsed_end = end_date
-                if parsed_end < parsed_start:
-                    errors.append({"row": record.get("sourceRow") or record.get("row"), "field": "contract_end_date", "error": "Contract end date cannot be before contract start date"})
-            except Exception:
-                pass
-
         return {"valid": not errors, "errors": errors}
+
+print("Test 1 (Unsupported column):", ClientValidationService.validate_record(_normalize_row({"CLIENT ID": "123", "contract_value": 100, "UnknownCol": "yes"})))

@@ -61,6 +61,16 @@ def is_field_changed(existing_val: Any, incoming_val: Any) -> bool:
         return False
     return norm_exist != norm_inc
 
+def _to_date_obj(date_str: Any) -> Any:
+    if not date_str: return None
+    norm = NormalizationService._normalize_date(str(date_str))
+    if norm:
+        try:
+            return datetime.strptime(norm, "%Y-%m-%d").date()
+        except ValueError:
+            return None
+    return None
+
 class VendorIngestionService:
     @staticmethod
     async def process_records(
@@ -171,8 +181,8 @@ class VendorIngestionService:
                 "legal_name": str(c_row.get("legal_name", "")).strip() if c_row.get("legal_name") else None,
                 "industry": str(c_row.get("industry", "")).strip() if c_row.get("industry") else None,
                 "contract_type": str(c_row.get("contract_type", "")).strip() if c_row.get("contract_type") else None,
-                "contract_start_date": NormalizationService._normalize_date(str(c_row.get("contract_start_date", ""))) if c_row.get("contract_start_date") else None,
-                "contract_end_date": NormalizationService._normalize_date(str(c_row.get("contract_end_date", ""))) if c_row.get("contract_end_date") else None,
+                "contract_start_date": _to_date_obj(c_row.get("contract_start_date")),
+                "contract_end_date": _to_date_obj(c_row.get("contract_end_date")),
                 "currency": str(c_row.get("currency", "")).strip() if c_row.get("currency") else None,
                 "payment_type": str(c_row.get("payment_type", "")).strip() if c_row.get("payment_type") else None,
                 "recurring": str(c_row.get("recurring", "")).strip() if c_row.get("recurring") else None,
