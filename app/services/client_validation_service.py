@@ -11,10 +11,6 @@ REQUIRED_FIELDS = [
     "contract_value",
     "revenue",
     "frequency",
-    "bank_name",
-    "account_holder_name",
-    "account_number",
-    "ifsc_code",
 ]
 OPTIONAL_FIELDS = [
     "legal_name",
@@ -30,61 +26,38 @@ OPTIONAL_FIELDS = [
 ]
 
 
+class ClientValidationResult:
+    def __init__(self, ready_to_import: bool, missing_required_fields: List[str]):
+        self.ready_to_import = ready_to_import
+        self.missing_required_fields = missing_required_fields
+
 class ClientValidationService:
     @staticmethod
-    def _is_blank(value: Any) -> bool:
-        if value is None:
-            return True
-        if isinstance(value, str):
-            return value.strip() == ""
-        return False
-
-    @staticmethod
-    def _parse_decimal(value: Any) -> Decimal | None:
-        if value is None or value == "":
-            return None
-        try:
-            return Decimal(str(value).replace(",", "").replace("₹", "").replace("$", "").replace("INR", "").strip())
-        except Exception:
-            return None
-
-    @staticmethod
-    def validate_record(record: Dict[str, Any], is_upload: bool = False) -> Dict[str, Any]:
-        errors: List[Dict[str, Any]] = []
+    def validate_preview_row(record: Dict[str, Any]) -> ClientValidationResult:
+        missing_fields = []
         for field in REQUIRED_FIELDS:
-            value = record.get(field)
-            if ClientValidationService._is_blank(value):
-                if is_upload and field in {"contract_id", "contract_type", "contract_start_date", "contract_end_date"}:
-                    continue
-                errors.append({"row": record.get("sourceRow") or record.get("row"), "field": field, "error": f"{field.replace('_', ' ').title()} is required"})
-                continue
-            if field in {"contract_value", "revenue"}:
-                if ClientValidationService._parse_decimal(value) is None:
-                    errors.append({"row": record.get("sourceRow") or record.get("row"), "field": field, "error": f"{field.replace('_', ' ').title()} must be numeric"})
-
-        for key in record.keys():
-            if key not in REQUIRED_FIELDS and key not in OPTIONAL_FIELDS and key not in {"row", "sourceRow", "source_row", "rowId", "isBlank", "validation_errors", "validation_status", "preview_status", "action", "monthly_cost", "monthlyCost", "cost"}:
-                errors.append({"row": record.get("sourceRow") or record.get("row"), "field": key, "error": f"Unsupported Excel column"})
-
-        if not ClientValidationService._is_blank(record.get("ifsc_code")):
-            if not re.match(r"^[A-Z]{4}0[A-Z0-9]{6}$", str(record.get("ifsc_code")).upper()):
-                errors.append({"row": record.get("sourceRow") or record.get("row"), "field": "ifsc_code", "error": "IFSC code is invalid"})
-
-        start_date = record.get("contract_start_date")
-        end_date = record.get("contract_end_date")
-        if start_date and end_date:
-            try:
-                if isinstance(start_date, str):
-                    parsed_start = date.fromisoformat(start_date[:10])
-                else:
-                    parsed_start = start_date
-                if isinstance(end_date, str):
-                    parsed_end = date.fromisoformat(end_date[:10])
-                else:
-                    parsed_end = end_date
-                if parsed_end < parsed_start:
-                    errors.append({"row": record.get("sourceRow") or record.get("row"), "field": "contract_end_date", "error": "Contract end date cannot be before contract start date"})
-            except Exception:
-                pass
-
-        return {"valid": not errors, "errors": errors}
+            if field == "revenue":
+                val = record.get("revenue")
+                if val is None or str(val).strip() == "":
+                    c_type = str(record.get("contract_type") or record.get("contractType") or "").lower()
+                    c_val = record.get("contract_value") or record.get("contractValue")
+                    is_sub = "sub" in c_type or str(record.get("recurring", "")).lower() in ["true", "yes", "1"]
+                    if is_sub and c_val:
+                        try:
+                            val = round(float(c_val) / 12.0, 2)
+                            record["revenue"] = val
+                        except (ValueError, TypeError):
+                            pass
+            else:
+                val = record.get(field)
+                if val is None and "_" in field:
+                    parts = field.split("_")
+                    camel = parts[0] + "".join(p.title() for p in parts[1:])
+                    val = record.get(camel)
+            if val is None or str(val).strip() == "":
+                missing_fields.append(field)
+                
+        return ClientValidationResult(
+            ready_to_import=len(missing_fields) == 0,
+            missing_required_fields=missing_fields
+        )

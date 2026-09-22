@@ -104,10 +104,6 @@ class ClientService:
                     payment_type=payload.get("payment_type"),
                     frequency=payload.get("frequency"),
                     recurring=payload.get("recurring"),
-                    bank_name=payload.get("bank_name"),
-                    account_holder_name=payload.get("account_holder_name"),
-                    account_number=payload.get("account_number"),
-                    ifsc_code=payload.get("ifsc_code"),
                     status=payload.get("status"),
                     created_by=imported_by,
                     updated_by=imported_by,
@@ -124,7 +120,7 @@ class ClientService:
                 for field in [
                     "client_name", "legal_name", "industry", "contract_id", "contract_type", "contract_start_date",
                     "contract_end_date", "contract_value", "currency", "revenue", "payment_type", "frequency",
-                    "recurring", "bank_name", "account_holder_name", "account_number", "ifsc_code", "status",
+                    "recurring", "status",
                 ]:
                     if field in record:
                         setattr(existing, field, record.get(field))

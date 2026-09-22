@@ -73,40 +73,8 @@ class UploadEngine:
         dup_issues = DuplicateValidator.validate_duplicates(normalized_records, self.schema)
         all_issues.extend(dup_issues)
         
-        existing_emp_ids = set()
-        existing_client_keys = {}
-        if self.module_name == "employee" and db is not None:
-            try:
-                from sqlalchemy import select
-                from app.db.models.employee import EmployeeMaster
-                emp_ids = [r.get("emp_id") or r.get("employee_id") for r in normalized_records if r.get("emp_id") or r.get("employee_id")]
-                if emp_ids:
-                    stmt = select(EmployeeMaster.employee_id).where(
-                        EmployeeMaster.employee_id.in_(emp_ids),
-                        EmployeeMaster.is_deleted == False
-                    )
-                    if business_id:
-                        stmt = stmt.where(EmployeeMaster.business_id == str(business_id))
-                    res = await db.execute(stmt)
-                    existing_emp_ids = set(res.scalars().all())
-            except Exception as ex:
-                print("Error checking existing employees in preview:", ex)
-                pass
-                
-        if self.module_name == "client" and db is not None:
-            try:
-                from app.services.client_service import ClientService
-                from app.services.client_compare_service import ClientComparisonService
-                for rec in normalized_records:
-                    if rec.get("isBlank"): continue
-                    b_key = ClientComparisonService.business_key(rec)
-                    if b_key[0] and b_key[1]:
-                        existing = await ClientService.get_by_business_key(db, str(business_id) if business_id else "", b_key[0], b_key[1])
-                        if existing:
-                            existing_client_keys[rec["rowId"]] = existing.__dict__
-            except Exception as ex:
-                print("Error checking existing clients in preview:", ex)
-                pass
+        # Removed module-specific preview existing-record check logic to align with standard Vendor architecture.
+        # Existing record and duplicate detection is exclusively handled downstream during the final import batch processing.
 
         row_errors_map = {}
         for issue in all_issues:
@@ -123,30 +91,7 @@ class UploadEngine:
             errs = row_errors_map.get(rec.get("rowId"), [])
             rec["validation_errors"] = errs
             rec["validation_status"] = "invalid" if errs else "valid"
-            
-            if self.module_name == "employee":
-                if e_id in existing_emp_ids:
-                    rec["preview_status"] = "existing_employee"
-                else:
-                    rec["preview_status"] = "valid"
-            elif self.module_name == "client":
-                if rec["validation_status"] == "invalid":
-                    rec["preview_status"] = "rejected"
-                    rec["action"] = "REJECT"
-                else:
-                    existing = existing_client_keys.get(rec.get("rowId"))
-                    if existing:
-                        from app.services.client_compare_service import ClientComparisonService
-                        comp = ClientComparisonService.compare_record(existing, rec)
-                        rec["preview_status"] = "existing"
-                        rec["action"] = comp["action"]
-                        rec["changed_fields"] = comp.get("changed_fields", [])
-                        rec["existing_record"] = existing
-                    else:
-                        rec["preview_status"] = "new"
-                        rec["action"] = "INSERT"
-            else:
-                rec["preview_status"] = "valid"
+            rec["preview_status"] = "invalid" if errs else "valid"
 
         preview_obj = PreviewBuilder.build("", normalized_records, all_issues, module_name=self.module_name)
         summary_info = preview_obj["summary"]

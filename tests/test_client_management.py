@@ -13,10 +13,6 @@ def test_required_client_fields_validation():
         "contract_value": 100000,
         "revenue": 200000,
         "frequency": "Monthly",
-        "bank_name": "HDFC",
-        "account_holder_name": "Test User",
-        "account_number": "1234567890",
-        "ifsc_code": "HDFC0001234",
     }
     result = ClientValidationService.validate_record(record)
     assert result["valid"] is True
@@ -30,10 +26,6 @@ def test_missing_required_client_id_rejected():
         "contract_value": 100000,
         "revenue": 200000,
         "frequency": "Monthly",
-        "bank_name": "HDFC",
-        "account_holder_name": "Test User",
-        "account_number": "1234567890",
-        "ifsc_code": "HDFC0001234",
     }
     result = ClientValidationService.validate_record(record)
     assert result["valid"] is False
@@ -48,10 +40,6 @@ def test_duplicate_key_same_client_and_category_is_skipped():
         "contract_value": 100000,
         "revenue": 500000,
         "frequency": "Monthly",
-        "bank_name": "HDFC",
-        "account_holder_name": "Test User",
-        "account_number": "1234567890",
-        "ifsc_code": "HDFC0001234",
     }
     incoming = {**existing}
     status = ClientComparisonService.compare_record(existing, incoming)
@@ -67,10 +55,6 @@ def test_changed_client_revenue_is_update():
         "contract_value": 100000,
         "revenue": 500000,
         "frequency": "Monthly",
-        "bank_name": "HDFC",
-        "account_holder_name": "Test User",
-        "account_number": "1234567890",
-        "ifsc_code": "HDFC0001234",
     }
     incoming = {**existing, "revenue": 600000}
     status = ClientComparisonService.compare_record(existing, incoming)
