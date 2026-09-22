@@ -168,6 +168,80 @@ async def import_clients(payload: Dict[str, Any] = None, db: AsyncSession = Depe
     return success_response("Clients import completed successfully", data=import_result)
 
 
+# ---------------------------------------------------------------------------
+# 3. Client Info & Revenue Metrics Analytics API
+# ---------------------------------------------------------------------------
+from app.services.spotlite_service import SpotliteEngine
+
+@router.get("/metrics", summary="Get Client Info, Metrics & Revenue Matrix")
+@router.get("/analytics", summary="Get Client Analytics")
+async def get_client_metrics_and_analytics(
+    business_id: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns complete Client Information & Revenue Metrics (Section A & Section D):
+    - Master Client Directory & Info
+    - Monthly Revenue per Client Matrix
+    - Client Concentration Radar (Top 1 & Top 3)
+    - Payment Date Drift (DSO Median & Std Dev)
+    - Client Tenure & Churn Risk Scanner
+    - Annualized Revenue Run-Rate
+    """
+    try:
+        data = await SpotliteEngine.compute_client_analytics(db, business_id=business_id)
+        return success_response("Client metrics and revenue matrix fetched successfully", data=data)
+    except Exception as e:
+        return error_response(f"Failed to fetch client metrics: {str(e)}", status_code=500)
+
+
+@router.get("/bubble", summary="Get Client Bubble Network Graph Data & Transactions (client bubble)")
+async def get_cfo_client_bubble_graph(
+    business_id: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns Client Bubble Network Graph Payload (client bubble API):
+    - Central Hub: My Company ("Nimbus Logistics")
+    - Connected Client Nodes with bubble diameters proportional to generated revenue
+    - Embedded itemized transaction records per client for drilldown
+    """
+    try:
+        data = await SpotliteEngine.compute_client_bubble_data(db, business_id=business_id)
+        return success_response("Client bubble graph fetched successfully", data=data)
+    except Exception as e:
+        return error_response(f"Failed to fetch client bubble graph: {str(e)}", status_code=500)
+
+
+
+@router.get("/dashboard/history")
+async def get_client_history(db: AsyncSession = Depends(get_db)):
+    from app.services.dashboard_service import get_recent_activity
+    try:
+        activities = await get_recent_activity(db, scope="cfo")
+        client_history = [item for item in activities if item.get("upload_type") == "Client"]
+        return success_response("Client history fetched successfully", data=client_history)
+    except Exception as e:
+        return error_response(f"Failed to fetch client history: {str(e)}", status_code=500)
+
+
+@router.get("/dashboard/history/{upload_id}/preview")
+async def get_client_history_preview(upload_id: str, db: AsyncSession = Depends(get_db)):
+    from app.services.dashboard_service import get_recent_activity
+    activities = await get_recent_activity(db, scope="cfo")
+    for item in activities:
+        if item.get("upload_id") == upload_id and item.get("upload_type") == "Client":
+            from sqlalchemy import select
+            from app.db.models.upload import UploadHistory
+            obj = await db.execute(select(UploadHistory).where(UploadHistory.id == upload_id))
+            history = obj.scalars().first()
+            if history:
+                data = history.preview_data or {"records": [], "summary": {}}
+                data["schema_def"] = _get_client_schema_def()
+                return success_response("Client upload preview fetched successfully", data=data)
+    return error_response("Upload not found", status_code=404)
+
+
 @router.get("")
 async def list_clients(db: AsyncSession = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(50, ge=1, le=1000), current_user = Depends(get_current_session_user)):
     items = await ClientService.list_clients(db, business_id=str(current_user.business_id), skip=(page - 1) * size, limit=size)
@@ -194,7 +268,7 @@ async def delete_client(client_id: str, category: Optional[str] = None, db: Asyn
 
 
 # ---------------------------------------------------------------------------
-# 3. Agreement Document Extraction APIs
+# 4. Agreement Document Extraction APIs
 # ---------------------------------------------------------------------------
 
 from app.services.agreement import (
@@ -408,30 +482,3 @@ async def update_client(client_id: str, payload: Dict[str, Any] = None, category
     await db.commit()
     return success_response("Client updated successfully", data=existing.__dict__)
 
-
-@router.get("/dashboard/history")
-async def get_client_history(db: AsyncSession = Depends(get_db)):
-    from app.services.dashboard_service import get_recent_activity
-    try:
-        activities = await get_recent_activity(db, scope="cfo")
-        client_history = [item for item in activities if item.get("upload_type") == "Client"]
-        return success_response("Client history fetched successfully", data=client_history)
-    except Exception as e:
-        return error_response(f"Failed to fetch client history: {str(e)}", status_code=500)
-
-
-@router.get("/dashboard/history/{upload_id}/preview")
-async def get_client_history_preview(upload_id: str, db: AsyncSession = Depends(get_db)):
-    from app.services.dashboard_service import get_recent_activity
-    activities = await get_recent_activity(db, scope="cfo")
-    for item in activities:
-        if item.get("upload_id") == upload_id and item.get("upload_type") == "Client":
-            from sqlalchemy import select
-            from app.db.models.upload import UploadHistory
-            obj = await db.execute(select(UploadHistory).where(UploadHistory.id == upload_id))
-            history = obj.scalars().first()
-            if history:
-                data = history.preview_data or {"records": [], "summary": {}}
-                data["schema_def"] = _get_client_schema_def()
-                return success_response("Client upload preview fetched successfully", data=data)
-    return error_response("Upload not found", status_code=404)

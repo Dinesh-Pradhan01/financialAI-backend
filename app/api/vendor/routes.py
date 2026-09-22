@@ -289,7 +289,33 @@ async def get_agreement_file(
         return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
 
 # ---------------------------------------------------------------------------
-# 3. Existing Vendor Management CRUD APIs (List, Get, Update, Delete)
+# 3. Vendor Info & Fixed/Variable Debits Classification Analytics API
+# ---------------------------------------------------------------------------
+from app.services.spotlite_service import SpotliteEngine
+
+@router.get("/metrics", summary="Get Vendor Info, Metrics & Fixed/Variable Debits Classification")
+@router.get("/analytics", summary="Get Vendor Analytics")
+async def get_vendor_metrics_and_analytics(
+    business_id: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns complete Vendor Information & Vendor Metrics (Section C):
+    - Master Vendor Info & Directory
+    - Fixed vs Variable Debits Classification Breakdown
+    - Vendor Spend Creep & Rate Inflation vs Contract Baseline
+    - Vendor Concentration Index (Top 2 & Top 3)
+    - Single-Vendor Dependency Risks
+    """
+    try:
+        data = await SpotliteEngine.compute_vendor_analytics(db, business_id=business_id)
+        return success_response("Vendor metrics and fixed/variable debits classification fetched successfully", data=data)
+    except Exception as e:
+        logger.exception("Error fetching vendor analytics metrics")
+        return error_response(message=f"Failed to fetch vendor metrics: {str(e)}", status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# ---------------------------------------------------------------------------
+# 4. Existing Vendor Management CRUD APIs (List, Get, Update, Delete)
 # ---------------------------------------------------------------------------
 
 @router.get("", response_model=None)
@@ -360,3 +386,4 @@ async def delete_vendor(vendor_id: str, category: Optional[str] = None, db: Asyn
         return success_response(message="Vendor deleted successfully")
     except Exception as e:
         return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
+

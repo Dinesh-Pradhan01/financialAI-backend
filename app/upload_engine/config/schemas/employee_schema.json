@@ -24,7 +24,10 @@
     {
       "name": "email",
       "header_variations": [
-        "email"
+        "email",
+        "employee email",
+        "employee_email",
+        "email address"
       ],
       "required": true,
       "type": "email"

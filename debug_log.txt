@@ -244,3 +244,159 @@ Business: id=73892aa6-0b0c-4380-9c9a-407c36c1d435, company_name=Nimbus Logistics
 Saved Category: 'Retail & E-commerce'
 Normalized Category: 'retailandecommerce'
 Matched Class ID: None
+
+--- 2026-09-17 15:23:08.957780 ---
+User: id=165, email=nisikant.byteiq@gmail.com
+Business: id=5ebe391a-f270-4c92-beb5-41f797068aa7, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Computers - Software & Consulting'
+Normalized Category: 'computerssoftwareandconsulting'
+Matched Class ID: 1452
+Matched Basic Industry Name: 'Computers - Software & Consulting'
+Companies found in DB: 3
+  - TCS (889597.32)
+  - Infosys (482507.03)
+  - HCL Technologies (369669.09)
+
+--- 2026-09-17 16:54:10.096203 ---
+User: id=165, email=nisikant.byteiq@gmail.com
+Business: id=5ebe391a-f270-4c92-beb5-41f797068aa7, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Computers - Software & Consulting'
+Normalized Category: 'computerssoftwareandconsulting'
+Matched Class ID: 1452
+Matched Basic Industry Name: 'Computers - Software & Consulting'
+Companies found in DB: 3
+  - TCS (889597.32)
+  - Infosys (482507.03)
+  - HCL Technologies (369669.09)
+
+--- 2026-09-18 11:12:37.274875 ---
+User: id=156, email=nisikantmaharana668@gmail.com
+Business: id=5ebe391a-f270-4c92-beb5-41f797068aa7, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Computers - Software & Consulting'
+Normalized Category: 'computerssoftwareandconsulting'
+Matched Class ID: 1452
+Matched Basic Industry Name: 'Computers - Software & Consulting'
+Companies found in DB: 3
+  - TCS (889597.32)
+  - Infosys (482507.03)
+  - HCL Technologies (369669.09)
+
+--- 2026-09-18 11:14:38.388661 ---
+User: id=165, email=nisikant.byteiq@gmail.com
+Business: id=5ebe391a-f270-4c92-beb5-41f797068aa7, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Computers - Software & Consulting'
+Normalized Category: 'computerssoftwareandconsulting'
+Matched Class ID: 1452
+Matched Basic Industry Name: 'Computers - Software & Consulting'
+Companies found in DB: 3
+  - TCS (889597.32)
+  - Infosys (482507.03)
+  - HCL Technologies (369669.09)
+
+--- 2026-09-18 11:19:46.696071 ---
+User: id=165, email=nisikant.byteiq@gmail.com
+Business: id=5ebe391a-f270-4c92-beb5-41f797068aa7, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Computers - Software & Consulting'
+Normalized Category: 'computerssoftwareandconsulting'
+Matched Class ID: 1452
+Matched Basic Industry Name: 'Computers - Software & Consulting'
+Companies found in DB: 3
+  - TCS (889597.32)
+  - Infosys (482507.03)
+  - HCL Technologies (369669.09)
+
+--- 2026-09-19 23:00:59.868883 ---
+User: id=156, email=nisikantmaharana668@gmail.com
+Business: id=5ebe391a-f270-4c92-beb5-41f797068aa7, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Computers - Software & Consulting'
+Normalized Category: 'computerssoftwareandconsulting'
+Matched Class ID: 1452
+Matched Basic Industry Name: 'Computers - Software & Consulting'
+Companies found in DB: 3
+  - TCS (889597.32)
+  - Infosys (482507.03)
+  - HCL Technologies (369669.09)
+
+--- 2026-09-21 02:29:53.783747 ---
+User: id=156, email=nisikantmaharana668@gmail.com
+Business: id=5ebe391a-f270-4c92-beb5-41f797068aa7, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Computers - Software & Consulting'
+Normalized Category: 'computerssoftwareandconsulting'
+Matched Class ID: 1452
+Matched Basic Industry Name: 'Computers - Software & Consulting'
+Companies found in DB: 3
+  - TCS (889597.32)
+  - Infosys (482507.03)
+  - HCL Technologies (369669.09)
+
+--- 2026-09-21 10:17:28.268255 ---
+User: id=156, email=nisikantmaharana668@gmail.com
+Business: id=5ebe391a-f270-4c92-beb5-41f797068aa7, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Computers - Software & Consulting'
+Normalized Category: 'computerssoftwareandconsulting'
+Matched Class ID: 1452
+Matched Basic Industry Name: 'Computers - Software & Consulting'
+Companies found in DB: 3
+  - TCS (889597.32)
+  - Infosys (482507.03)
+  - HCL Technologies (369669.09)
+
+--- 2026-09-21 13:32:29.817272 ---
+User: id=156, email=nisikantmaharana668@gmail.com
+Business: id=5ebe391a-f270-4c92-beb5-41f797068aa7, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Computers - Software & Consulting'
+Normalized Category: 'computerssoftwareandconsulting'
+Matched Class ID: 1452
+Matched Basic Industry Name: 'Computers - Software & Consulting'
+Companies found in DB: 3
+  - TCS (889597.32)
+  - Infosys (482507.03)
+  - HCL Technologies (369669.09)
+
+--- 2026-09-21 16:36:20.301934 ---
+User: id=156, email=nisikantmaharana668@gmail.com
+Business: id=5ebe391a-f270-4c92-beb5-41f797068aa7, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Computers - Software & Consulting'
+Normalized Category: 'computerssoftwareandconsulting'
+Matched Class ID: 1452
+Matched Basic Industry Name: 'Computers - Software & Consulting'
+Companies found in DB: 3
+  - TCS (889597.32)
+  - Infosys (482507.03)
+  - HCL Technologies (369669.09)
+
+--- 2026-09-21 17:55:44.089984 ---
+User: id=156, email=nisikantmaharana668@gmail.com
+Business: id=5ebe391a-f270-4c92-beb5-41f797068aa7, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Computers - Software & Consulting'
+Normalized Category: 'computerssoftwareandconsulting'
+Matched Class ID: 1452
+Matched Basic Industry Name: 'Computers - Software & Consulting'
+Companies found in DB: 3
+  - TCS (889597.32)
+  - Infosys (482507.03)
+  - HCL Technologies (369669.09)
+
+--- 2026-09-22 02:17:09.235079 ---
+User: id=156, email=nisikantmaharana668@gmail.com
+Business: id=5ebe391a-f270-4c92-beb5-41f797068aa7, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Computers - Software & Consulting'
+Normalized Category: 'computerssoftwareandconsulting'
+Matched Class ID: 1452
+Matched Basic Industry Name: 'Computers - Software & Consulting'
+Companies found in DB: 3
+  - TCS (889597.32)
+  - Infosys (482507.03)
+  - HCL Technologies (369669.09)
+
+--- 2026-09-22 03:31:26.808281 ---
+User: id=156, email=nisikantmaharana668@gmail.com
+Business: id=5ebe391a-f270-4c92-beb5-41f797068aa7, company_name=Nimbus Logistics Solutions Pvt Ltd
+Saved Category: 'Computers - Software & Consulting'
+Normalized Category: 'computerssoftwareandconsulting'
+Matched Class ID: 1452
+Matched Basic Industry Name: 'Computers - Software & Consulting'
+Companies found in DB: 3
+  - TCS (889597.32)
+  - Infosys (482507.03)
+  - HCL Technologies (369669.09)
