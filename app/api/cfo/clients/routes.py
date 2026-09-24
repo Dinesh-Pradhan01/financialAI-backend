@@ -5,6 +5,7 @@ import tempfile
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, BackgroundTasks, Depends, UploadFile, File, HTTPException, Form, status as http_status
 from fastapi.responses import FileResponse
+from fastapi.param_functions import Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from loguru import logger
@@ -13,7 +14,7 @@ import openpyxl
 from app.api.vendor.dependencies import get_db
 from app.auth.dependencies import get_current_session_user
 from app.utils.response import success_response, error_response
-from app.schemas.client import ClientUpdate, ClientResponse, ClientPreview
+from app.schemas.client import ClientUpdate, ClientPreview
 from app.services.client_service import ClientService
 from app.services.client_compare_service import ClientComparisonService
 from app.services.client_ingestion_service import ClientIngestionService
@@ -165,40 +166,118 @@ async def preview_clients(data: list[dict], db: AsyncSession = Depends(get_db), 
         return error_response(str(exc), status_code=400)
 
 @router.post("/import")
-async def import_clients(payload: dict, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
+async def import_clients(payload: Dict[str, Any] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
+    records = payload.get("records", []) if isinstance(payload, dict) else payload
+    if not records:
+        return error_response("No records to import.")
+    if isinstance(records, dict):
+        records = [records]
+    import_result = await ClientService.import_records(db, records, imported_by=str(current_user.id), business_id=current_user.business_id)
+    return success_response("Clients import completed successfully", data=import_result)
+
+
+# ---------------------------------------------------------------------------
+# 3. Client Info & Revenue Metrics Analytics API
+# ---------------------------------------------------------------------------
+from app.services.spotlite_service import SpotliteEngine
+
+@router.get("/metrics", summary="Get Client Info, Metrics & Revenue Matrix")
+@router.get("/analytics", summary="Get Client Analytics")
+async def get_client_metrics_and_analytics(
+    business_id: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns complete Client Information & Revenue Metrics (Section A & Section D):
+    - Master Client Directory & Info
+    - Monthly Revenue per Client Matrix
+    - Client Concentration Radar (Top 1 & Top 3)
+    - Payment Date Drift (DSO Median & Std Dev)
+    - Client Tenure & Churn Risk Scanner
+    - Annualized Revenue Run-Rate
+    """
     try:
-        records = payload.get("records", []) if isinstance(payload, dict) else []
-        if not records and isinstance(payload, list):
-            records = payload
+        data = await SpotliteEngine.compute_client_analytics(db, business_id=business_id)
+        return success_response("Client metrics and revenue matrix fetched successfully", data=data)
+    except Exception as e:
+        return error_response(f"Failed to fetch client metrics: {str(e)}", status_code=500)
 
-        # Pre-import validation: verify required fields
-        invalid_records = []
-        for idx, rec in enumerate(records):
-            val_res = ClientValidationService.validate_preview_row(rec)
-            if not val_res.ready_to_import:
-                invalid_records.append({
-                    "row_id": rec.get("rowId") or f"ROW_{idx+1}",
-                    "client_id": rec.get("client_id"),
-                    "missing_required_fields": val_res.missing_required_fields
-                })
 
-        if invalid_records:
-            return error_response(
-                message=f"Import blocked. Missing required fields in preview records.",
-                errors=invalid_records,
-                status_code=http_status.HTTP_400_BAD_REQUEST
-            )
+@router.get("/bubble", summary="Get Client Bubble Network Graph Data & Transactions (client bubble)")
+async def get_cfo_client_bubble_graph(
+    business_id: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns Client Bubble Network Graph Payload (client bubble API):
+    - Central Hub: My Company ("Nimbus Logistics")
+    - Connected Client Nodes with bubble diameters proportional to generated revenue
+    - Embedded itemized transaction records per client for drilldown
+    """
+    try:
+        data = await SpotliteEngine.compute_client_bubble_data(db, business_id=business_id)
+        return success_response("Client bubble graph fetched successfully", data=data)
+    except Exception as e:
+        return error_response(f"Failed to fetch client bubble graph: {str(e)}", status_code=500)
 
-        # Execute final import into client_master
-        result = await ClientIngestionService.process_records(records, db, imported_by=str(current_user.id), business_id=str(current_user.business_id))
-        return success_response(message="Client import completed successfully", data=result)
+
+
+@router.get("/dashboard/history")
+async def get_client_history(db: AsyncSession = Depends(get_db)):
+    from app.services.dashboard_service import get_recent_activity
+    try:
+        activities = await get_recent_activity(db, scope="cfo")
+        client_history = [item for item in activities if item.get("upload_type") == "Client"]
+        return success_response("Client history fetched successfully", data=client_history)
+    except Exception as e:
+        return error_response(f"Failed to fetch client history: {str(e)}", status_code=500)
+
+
+@router.get("/dashboard/history/{upload_id}/preview")
+async def get_client_history_preview(upload_id: str, db: AsyncSession = Depends(get_db)):
+    from app.services.dashboard_service import get_recent_activity
+    activities = await get_recent_activity(db, scope="cfo")
+    for item in activities:
+        if item.get("upload_id") == upload_id and item.get("upload_type") == "Client":
+            from sqlalchemy import select
+            from app.db.models.upload import UploadHistory
+            obj = await db.execute(select(UploadHistory).where(UploadHistory.id == upload_id))
+            history = obj.scalars().first()
+            if history:
+                data = history.preview_data or {"records": [], "summary": {}}
+                data["schema_def"] = _get_client_schema_def()
+                return success_response("Client upload preview fetched successfully", data=data)
+    return error_response("Upload not found", status_code=404)
+
+
+@router.get("")
+async def list_clients(db: AsyncSession = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(50, ge=1, le=1000), current_user = Depends(get_current_session_user)):
+    items = await ClientService.list_clients(db, business_id=str(current_user.business_id), skip=(page - 1) * size, limit=size)
+    return success_response("Clients fetched successfully", data={"items": [i.__dict__ for i in items], "total": len(items), "page": page, "size": size})
+
+
+@router.get("/{client_id}")
+async def get_client(client_id: str, category: Optional[str] = Query(None), db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
+    client = await ClientService.get_client(db, str(current_user.business_id), client_id, category)
+    if client is None:
+        raise HTTPException(status_code=404, detail="Client not found")
+    return success_response("Client fetched successfully", data=client.__dict__)
+
+
+@router.delete("/{client_id}")
+async def delete_client(client_id: str, category: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
+    try:
+        success = await ClientService.delete_client(db, str(current_user.business_id), client_id, category)
+        if not success:
+            return error_response(message="Client not found", status_code=404)
+        return success_response(message="Client deleted successfully")
     except Exception as e:
         logger.exception("Critical error during client import")
         return error_response(message=f"Critical Import Error: {str(e)}", status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ---------------------------------------------------------------------------
-# 2. Agreement Document Extraction APIs
+# 4. Agreement Document Extraction APIs
 # ---------------------------------------------------------------------------
 
 from app.services.agreement import (
@@ -451,68 +530,26 @@ async def get_client(client_id: str, category: Optional[str] = None, db: AsyncSe
         return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
 
 @router.put("/{client_id}")
-async def update_client(client_id: str, client_in: ClientUpdate, category: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
-    try:
-        client = await ClientService.get_by_business_key(db, client_id, category or client_in.category)
-        if not client:
-            return error_response(message="Client not found", status_code=http_status.HTTP_404_NOT_FOUND)
-        
-        update_data = client_in.model_dump(exclude_unset=True)
-        for k, v in update_data.items():
-            if hasattr(client, k):
-                setattr(client, k, v)
-        await db.commit()
-        await db.refresh(client)
-        data = client.__dict__.copy()
-        if "_sa_instance_state" in data:
-            del data["_sa_instance_state"]
-        return success_response(
-            message="Client updated successfully",
-            data=data
-        )
-    except Exception as e:
-        return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
-
-@router.delete("/{client_id}")
-async def delete_client(client_id: str, category: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
-    try:
-        success = await ClientService.delete_client(db, str(current_user.business_id), client_id, category)
-        if not success:
-            return error_response(message="Client not found", status_code=http_status.HTTP_404_NOT_FOUND)
-        return success_response(message="Client deleted successfully")
-    except Exception as e:
-        return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
-
-@router.get("/dashboard/history")
-async def get_client_history(db: AsyncSession = Depends(get_db)):
-    from app.services.dashboard_service import get_recent_activity
-    try:
-        activities = await get_recent_activity(db, scope="cfo")
-        client_history = [item for item in activities if item.get("upload_type") == "Client"]
-        return success_response("Client history fetched successfully", data=client_history)
-    except Exception as e:
-        return error_response(f"Failed to fetch client history: {str(e)}", status_code=500)
-
-@router.get("/dashboard/history/{upload_id}/preview")
-async def get_client_history_preview(upload_id: str, db: AsyncSession = Depends(get_db)):
-    from app.services.dashboard_service import get_recent_activity
-    activities = await get_recent_activity(db, scope="cfo")
-    for item in activities:
-        if item.get("upload_id") == upload_id and item.get("upload_type") == "Client":
-            from sqlalchemy import select
-            from app.db.models.upload import UploadHistory
-            import json
-            import os
-            obj = await db.execute(select(UploadHistory).where(UploadHistory.id == upload_id))
-            history = obj.scalars().first()
-            if history:
-                data = history.preview_data or {"records": [], "summary": {}}
-                schema_path = os.path.join(os.path.dirname(__file__), "..", "..", "upload_engine", "config", "schemas", "client_schema.json")
-                try:
-                    with open(schema_path, "r") as f:
-                        data["schema_def"] = json.load(f)
-                except Exception:
-                    data["schema_def"] = {"fields": []}
-                return success_response("Client upload preview fetched successfully", data=data)
-    return error_response("Upload not found", status_code=404)
+async def update_client(client_id: str, payload: Dict[str, Any] = None, category: Optional[str] = Query(None), db: AsyncSession = Depends(get_db)):
+    if payload is None:
+        return error_response("Client payload is required.")
+    target_category = payload.get("category") or category
+    if not target_category:
+        return error_response("Category is required to identify the client because the business key is client_id + category.")
+    existing = await ClientService.get_by_business_key(db, client_id, target_category)
+    if existing is None:
+        raise HTTPException(status_code=404, detail="Client not found")
+    update_payload = payload.copy()
+    validation = ClientValidationService.validate_record({**existing.__dict__, **update_payload})
+    if not validation["valid"]:
+        return error_response("Client update validation failed", errors=validation["errors"], status_code=400)
+    for field in [
+        "client_name", "legal_name", "category", "industry", "contract_id", "contract_type", "contract_start_date",
+        "contract_end_date", "contract_value", "currency", "revenue", "payment_type", "frequency", "recurring",
+        "bank_name", "account_holder_name", "account_number", "ifsc_code", "status",
+    ]:
+        if field in update_payload:
+            setattr(existing, field, update_payload[field])
+    await db.commit()
+    return success_response("Client updated successfully", data=existing.__dict__)
 
