@@ -30,33 +30,43 @@ router = APIRouter()
 
 @router.post("/upload")
 async def upload_clients(file: UploadFile = File(...), db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
-    if not file.filename.lower().endswith((".xlsx", ".xls")):
-        return error_response(message="Invalid file format. Only Excel (.xlsx, .xls) files are allowed.")
-        
+    if not file.filename or not file.filename.lower().endswith((".xlsx", ".xls")):
+        return error_response("Invalid file format. Only Excel (.xlsx, .xls) files are allowed.")
     try:
-        result = await process_client_excel_upload(file, db, uploaded_by=str(current_user.id), business_id=current_user.business_id)
-        return success_response(message="Client Excel upload preview generated successfully", data=result)
-    except Exception as e:
-        logger.exception("Error processing client upload")
-        return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
-
+        from app.upload_engine.services.upload_engine import UploadEngine
+        engine = UploadEngine("client")
+        preview_data = await engine.process_file(file, db, uploaded_by=str(current_user.id), business_id=current_user.business_id)
+        return success_response("Client Excel upload preview generated successfully", data=preview_data)
+    except Exception as exc:
+        return error_response(str(exc), status_code=400)
+    
 @router.post("/manual")
 async def manual_clients(data: list[dict], db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
+    if data is None:
+        return error_response("Client payload is required.")
+    if isinstance(data, list):
+        records = data
+    else:
+        records = [data]
     try:
-        result = await process_client_manual_entry(data, db, uploaded_by=str(current_user.id), business_id=current_user.business_id)
-        return success_response(message="Client manual entry preview generated successfully", data=result)
-    except Exception as e:
-        logger.exception("Error processing client manual entry")
-        return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
+        from app.upload_engine.services.upload_engine import UploadEngine
+        engine = UploadEngine("client")
+        preview_data = await engine.process_manual(records, db, uploaded_by=str(current_user.id), business_id=current_user.business_id)
+        return success_response("Client manual entry preview generated successfully", data=preview_data)
+    except Exception as exc:
+        return error_response(str(exc), status_code=400)
 
 @router.post("/preview")
 async def preview_clients(data: list[dict], db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
+    if data is None:
+        return error_response("Preview payload is required.")
     try:
-        result = await process_client_manual_entry(data, db, uploaded_by=str(current_user.id), business_id=current_user.business_id)
-        return success_response(message="Preview generated successfully", data=result)
-    except Exception as e:
-        logger.exception("Error processing client preview")
-        return error_response(message=str(e), status_code=http_status.HTTP_400_BAD_REQUEST)
+        from app.upload_engine.services.upload_engine import UploadEngine
+        engine = UploadEngine("client")
+        preview_data = await engine.process_manual(data, db, uploaded_by=str(current_user.id), business_id=current_user.business_id)
+        return success_response("Client preview generated successfully", data=preview_data)
+    except Exception as exc:
+        return error_response(str(exc), status_code=400)
 
 @router.post("/import")
 async def import_clients(payload: dict, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):

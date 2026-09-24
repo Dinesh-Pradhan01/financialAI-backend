@@ -23,11 +23,13 @@ def test_space_headers():
 
 def test_mixed_case():
     """Test 3 — Mixed case"""
-    data = {"Client ID": "C-001", "Client Name": "Acme", "Status": "Active"}
+    data = {"Client ID": "C-001", "Client Name": "Acme", "Status": "Active", "Bank Name": "HDFC", "Account Number": "123"}
     normalized = get_normalized(data)
     assert normalized["client_id"] == "C-001"
     assert normalized["client_name"] == "Acme"
     assert normalized["status"] == "Active"
+    assert normalized["bank_name"] == "HDFC"
+    assert normalized["account_number"] == "123"
 
 def test_blank_optional_agreement_fields():
     """Test 4 — Blank optional agreement fields"""
@@ -37,6 +39,10 @@ def test_blank_optional_agreement_fields():
         "category": "Cat",
         "revenue": 100,
         "frequency": "Monthly",
+        "bank_name": "Bank",
+        "account_holder_name": "Holder",
+        "account_number": "123",
+        "ifsc_code": "SBIN0001234",
         "contract_value": 100, # valid for now to test optional fields
         "contract_id": "",
         "contract_type": "",
@@ -56,6 +62,10 @@ def test_blank_contract_value():
         "category": "Cat",
         "revenue": 100,
         "frequency": "Monthly",
+        "bank_name": "Bank",
+        "account_holder_name": "Holder",
+        "account_number": "123",
+        "ifsc_code": "SBIN0001234",
         "contract_value": "", # blank
     }
     res = ClientValidationService.validate_record(record, is_upload=True)
@@ -73,6 +83,20 @@ def test_status_string():
     normalized = get_normalized(data)
     assert isinstance(normalized["status"], str)
     assert normalized["status"] == "pending"
+
+def test_account_number_string():
+    """Test 7 — Account number with leading zero"""
+    # Simulate openpyxl returning a float or int or string
+    # Wait, _normalize_row should convert numeric to string for account_number
+    data = {"Account Number": 12345678901, "IFSC CODE": "SBIN0001234"}
+    normalized = get_normalized(data)
+    assert isinstance(normalized["account_number"], str)
+    assert normalized["account_number"] == "12345678901"
+
+    data = {"Account Number": "012345678901"}
+    normalized = get_normalized(data)
+    assert isinstance(normalized["account_number"], str)
+    assert normalized["account_number"] == "012345678901"
 
 def test_unsupported_column():
     data = {"CLIENT ID": "C-001", "UnknownCol": "yes"}
