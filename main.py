@@ -38,6 +38,7 @@ from app.api.cfo.clients.routes import router as cfo_client_router
 from app.api.dashboard.routes import router as dashboard_router, cfo_dashboard_router
 from app.api.chatbot.routes import router as chatbot_router, cfo_chatbot_router
 from app.api.spending.routes import router as spending_router
+from app.api.spotlite.routes import router as spotlite_router
 
 from app.statement.upload.routes import router as statement_router
 from app.transaction.routes import router as transaction_router
@@ -164,14 +165,15 @@ app.include_router(employee_router, prefix="/api/v1/hr/employees", tags=["HR-Emp
 app.include_router(dashboard_router, prefix="/api/v1/hr/dashboard", tags=["HR-Dashboard"])
 app.include_router(chatbot_router, prefix="/api/v1/hr/chatbot", tags=["HR-Chatbot"])
 
-# CFO Module Routers registered under prefix /api/v1/cfo
-app.include_router(vendor_router, prefix="/api/v1/cfo/vendors", tags=["CFO-Vendor"])
-app.include_router(cfo_client_router, prefix="/api/v1/cfo/clients", tags=["CFO-Client"])
-app.include_router(cfo_dashboard_router, prefix="/api/v1/cfo/dashboard", tags=["CFO-Dashboard"])
-app.include_router(cfo_chatbot_router, prefix="/api/v1/cfo/chatbot", tags=["CFO-Chatbot"])
+# Analysis Module Router registered under prefix /api/v1/analysis (Overview, Income, Expenditure, Client, Vendor)
+from app.api.analysis.routes import router as analysis_router
+app.include_router(analysis_router, prefix="/api/v1/analysis", tags=["Analysis"])
+
+# Spotlite Module Router registered under prefix /api/v1/spotlite (Tier 1 & Augmented AI)
+app.include_router(spotlite_router, prefix="/api/v1/spotlite", tags=["Spotlite"])
+
 app.include_router(transaction_router, prefix="/api")
 app.include_router(statement_router)
-app.include_router(spending_router, prefix="/api/v1/spending", tags=["Spending"])
 
 # ---------------------------------------------------------------------------
 # Health / Root

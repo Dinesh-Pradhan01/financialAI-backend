@@ -31,10 +31,6 @@ BUSINESS_FIELDS = [
     "payment_type",
     "frequency",
     "recurring",
-    "bank_name",
-    "account_holder_name",
-    "account_number",
-    "ifsc_code",
     "status",
 ]
 

@@ -9,6 +9,9 @@ Provides:
 """
 
 import logging
+import socket
+import json
+import urllib.request
 from typing import AsyncGenerator
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -17,6 +20,38 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
+_dns_patched = False
+
+def _patch_dns_if_needed():
+    """Patches socket.getaddrinfo to fallback to Google HTTPS DNS API if local ISP DNS refuses query for Neon DB."""
+    global _dns_patched
+    if _dns_patched:
+        return
+    _orig_getaddrinfo = socket.getaddrinfo
+
+    def custom_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+        try:
+            return _orig_getaddrinfo(host, port, family, type, proto, flags)
+        except socket.gaierror as e:
+            if host and "neon.tech" in str(host):
+                try:
+                    url = f"https://dns.google/resolve?name={host}&type=A"
+                    req = urllib.request.Request(url, headers={"User-Agent": "Spotlite-DNS-Fallback"})
+                    with urllib.request.urlopen(req, timeout=3) as resp:
+                        data = json.loads(resp.read().decode())
+                        answers = data.get("Answer", [])
+                        ips = [ans["data"] for ans in answers if ans.get("type") == 1]
+                        if ips:
+                            logger.warning(f"Local ISP DNS failed for '{host}'. Resolved to {ips[0]} via Google DNS API.")
+                            return _orig_getaddrinfo(ips[0], port, family, type, proto, flags)
+                except Exception as fallback_err:
+                    logger.error(f"Fallback DNS resolution error: {fallback_err}")
+            raise e
+
+    socket.getaddrinfo = custom_getaddrinfo
+    _dns_patched = True
+
+
 class PostgreSQLConnectionManager:
     def __init__(self):
         self.engine = None
@@ -24,7 +59,9 @@ class PostgreSQLConnectionManager:
 
     def connect(self):
         try:
+            _patch_dns_if_needed()
             logger.info("Initializing PostgreSQL database engine...")
+
             connect_args = {
                 "statement_cache_size": 0
             }

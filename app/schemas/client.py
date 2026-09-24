@@ -22,20 +22,7 @@ class ClientBase(BaseModel):
     payment_type: Optional[str] = None
     frequency: str
     recurring: Optional[str] = None
-    bank_name: str
-    account_holder_name: str
-    account_number: str
-    ifsc_code: str
     status: Optional[str] = None
-
-    @field_validator("ifsc_code")
-    @classmethod
-    def validate_ifsc(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return v
-        if not re.match(r"^[A-Z]{4}0[A-Z0-9]{6}$", str(v).upper()):
-            raise ValueError("Invalid IFSC code")
-        return str(v).upper()
 
 
 class ClientCreate(ClientBase):
@@ -58,20 +45,7 @@ class ClientUpdate(BaseModel):
     payment_type: Optional[str] = None
     frequency: Optional[str] = None
     recurring: Optional[str] = None
-    bank_name: Optional[str] = None
-    account_holder_name: Optional[str] = None
-    account_number: Optional[str] = None
-    ifsc_code: Optional[str] = None
     status: Optional[str] = None
-
-    @field_validator("ifsc_code")
-    @classmethod
-    def validate_ifsc(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return v
-        if not re.match(r"^[A-Z]{4}0[A-Z0-9]{6}$", str(v).upper()):
-            raise ValueError("Invalid IFSC code")
-        return str(v).upper()
 
 
 class ClientPreview(BaseModel):

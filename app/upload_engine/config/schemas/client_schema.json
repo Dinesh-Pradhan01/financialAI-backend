@@ -94,30 +94,6 @@
       "type": "string"
     },
     {
-      "name": "bank_name",
-      "header_variations": ["bank name"],
-      "required": true,
-      "type": "string"
-    },
-    {
-      "name": "account_holder_name",
-      "header_variations": ["account holder name"],
-      "required": true,
-      "type": "string"
-    },
-    {
-      "name": "account_number",
-      "header_variations": ["account number"],
-      "required": true,
-      "type": "string"
-    },
-    {
-      "name": "ifsc_code",
-      "header_variations": ["ifsc code"],
-      "required": true,
-      "type": "string"
-    },
-    {
       "name": "status",
       "header_variations": ["status"],
       "required": false,

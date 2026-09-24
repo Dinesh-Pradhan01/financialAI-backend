@@ -29,10 +29,6 @@ class ClientMaster(SoftDeleteMixin, TimestampMixin, Base):
     payment_type: Mapped[str | None] = mapped_column(String, nullable=True)
     frequency: Mapped[str] = mapped_column(String, nullable=False)
     recurring: Mapped[str | None] = mapped_column(String, nullable=True)
-    bank_name: Mapped[str] = mapped_column(String, nullable=False)
-    account_holder_name: Mapped[str] = mapped_column(String, nullable=False)
-    account_number: Mapped[str] = mapped_column(String, nullable=False)
-    ifsc_code: Mapped[str] = mapped_column(String, nullable=False)
     status: Mapped[str | None] = mapped_column(String, nullable=True)
 
     agreement_document_id: Mapped[str | None] = mapped_column(String, nullable=True)

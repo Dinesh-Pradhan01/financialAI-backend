@@ -23,10 +23,11 @@ def test_space_headers():
 
 def test_mixed_case():
     """Test 3 — Mixed case"""
-    data = {"Client ID": "C-001", "Client Name": "Acme", "Bank Name": "HDFC", "Account Number": "123"}
+    data = {"Client ID": "C-001", "Client Name": "Acme", "Status": "Active", "Bank Name": "HDFC", "Account Number": "123"}
     normalized = get_normalized(data)
     assert normalized["client_id"] == "C-001"
     assert normalized["client_name"] == "Acme"
+    assert normalized["status"] == "Active"
     assert normalized["bank_name"] == "HDFC"
     assert normalized["account_number"] == "123"
 
@@ -70,6 +71,18 @@ def test_blank_contract_value():
     res = ClientValidationService.validate_record(record, is_upload=True)
     assert res["valid"] is False
     assert any(e["field"] == "contract_value" for e in res["errors"])
+
+def test_status_string():
+    """Test 7 — Status string"""
+    data = {"Status": "ACTIVE"}
+    normalized = get_normalized(data)
+    assert isinstance(normalized["status"], str)
+    assert normalized["status"] == "ACTIVE"
+
+    data = {"Status": "pending"}
+    normalized = get_normalized(data)
+    assert isinstance(normalized["status"], str)
+    assert normalized["status"] == "pending"
 
 def test_account_number_string():
     """Test 7 — Account number with leading zero"""
