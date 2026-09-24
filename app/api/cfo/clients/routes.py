@@ -1,8 +1,9 @@
 import os
+import re
 import uuid
 import tempfile
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, BackgroundTasks, Depends, UploadFile, File, Form, status as http_status
+from fastapi import APIRouter, BackgroundTasks, Depends, UploadFile, File, HTTPException, Form, status as http_status
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -13,7 +14,8 @@ from app.api.vendor.dependencies import get_db
 from app.auth.dependencies import get_current_session_user
 from app.utils.response import success_response, error_response
 from app.schemas.client import ClientUpdate, ClientResponse, ClientPreview
-from app.services import client_service
+from app.services.client_service import ClientService
+from app.services.client_compare_service import ClientComparisonService
 from app.services.client_ingestion_service import ClientIngestionService
 from app.services.client_upload_service import process_client_excel_upload, process_client_manual_entry
 from app.services.client_validation_service import ClientValidationService
@@ -27,6 +29,100 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 # 1. Existing Client Ingestion APIs (Excel Upload, Manual, Preview, Import)
 # ---------------------------------------------------------------------------
+
+REQUIRED_CLIENT_COLUMNS = {
+    "client_id": "client_id",
+    "client_name": "client_name",
+    "legal_name": "legal_name",
+    "category": "category",
+    "industry": "industry",
+    "contract_id": "contract_id",
+    "contract_type": "contract_type",
+    "contract_start_date": "contract_start_date",
+    "contract_end_date": "contract_end_date",
+    "contract_value": "contract_value",
+    "currency": "currency",
+    "revenue": "revenue",
+    "payment_type": "payment_type",
+    "frequency": "frequency",
+    "recurring": "recurring",
+    "bank_name": "bank_name",
+    "account_holder_name": "account_holder_name",
+    "account_number": "account_number",
+    "ifsc_code": "ifsc_code",
+    "status": "status",
+}
+
+
+def _normalize_key(value: Any) -> str:
+    if value is None:
+        return ""
+    s = str(value).strip()
+    # Insert space before capital letters to handle camelCase safely
+    s = re.sub(r'([a-z])([A-Z])', r'\1 \2', s)
+    return s.lower().replace("_", " ").replace("-", " ")
+
+
+def _normalize_row(record: Dict[str, Any]) -> Dict[str, Any]:
+    normalized: Dict[str, Any] = {}
+    for key, val in record.items():
+        canonical = None
+        cleaned = _normalize_key(key)
+        for canonical_key, variations in REQUIRED_CLIENT_COLUMNS.items():
+            if cleaned == canonical_key.replace("_", " ") or cleaned == variations.replace("_", " "):
+                canonical = canonical_key
+                break
+        if canonical is None:
+            normalized[key] = val
+            continue
+            
+        if canonical in {"account_number", "ifsc_code", "client_id", "client_name", "legal_name", "category", "industry", "contract_id", "contract_type", "currency", "payment_type", "frequency", "recurring", "bank_name", "account_holder_name", "status"}:
+            if val is not None:
+                normalized[canonical] = str(val)
+            else:
+                normalized[canonical] = None
+        else:
+            normalized[canonical] = val
+    return normalized
+
+
+async def _preview_record(record: Dict[str, Any], db: AsyncSession, is_upload: bool = False) -> Dict[str, Any]:
+    normalized = _normalize_row(record)
+    validation = ClientValidationService.validate_record(normalized, is_upload=is_upload)
+    business_key = ClientComparisonService.business_key(normalized)
+    existing = await ClientService.get_by_business_key(db, business_key[0], business_key[1]) if business_key[0] and business_key[1] else None
+    if not validation["valid"]:
+        return {
+            **normalized,
+            "validation_status": "invalid",
+            "validation_errors": validation["errors"],
+            "preview_status": "rejected",
+            "action": "REJECT",
+        }
+    if existing is None:
+        return {**normalized, "validation_status": "valid", "validation_errors": [], "preview_status": "new", "action": "INSERT"}
+    comparison = ClientComparisonService.compare_record(existing.__dict__, normalized)
+    return {
+        **normalized,
+        "validation_status": "valid",
+        "validation_errors": [],
+        "preview_status": "existing",
+        "action": comparison["action"],
+        "changed_fields": comparison.get("changed_fields", []),
+        "existing_record": existing.__dict__,
+    }
+
+
+def _get_client_schema_def() -> dict:
+    from app.services.client_validation_service import REQUIRED_FIELDS
+    fields = []
+    for k in REQUIRED_CLIENT_COLUMNS.keys():
+        fields.append({
+            "name": k,
+            "required": k in REQUIRED_FIELDS,
+            "type": "number" if k in {"contract_value", "revenue"} else "string"
+        })
+    return {"fields": fields}
 
 @router.post("/upload")
 async def upload_clients(file: UploadFile = File(...), db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
@@ -317,7 +413,7 @@ async def list_clients(
     current_user = Depends(get_current_session_user)
 ):
     try:
-        result = await client_service.get_clients(
+        result = await ClientService.get_client(
             db=db, business_id=str(current_user.business_id), skip=skip, limit=limit, search=search,
             industry=industry, status=status, recurring=recurring,
             currency=currency, contract_type=contract_type, payment_type=payment_type
@@ -326,7 +422,7 @@ async def list_clients(
     except AttributeError:
         # Fallback if get_clients doesn't exist on client_service and uses list_clients instead
         try:
-            items = await client_service.ClientService.list_clients(db, business_id=str(current_user.business_id), skip=skip, limit=limit)
+            items = await ClientService.list_clients(db, business_id=str(current_user.business_id), skip=skip, limit=limit)
             return success_response("Clients fetched successfully", data={"items": [i.__dict__ for i in items], "total": len(items), "page": (skip//limit)+1, "size": limit})
         except Exception as e:
             logger.exception("Error fetching clients")
@@ -339,7 +435,7 @@ async def list_clients(
 async def get_client(client_id: str, category: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     try:
         # Use ClientService.get_client 
-        client = await client_service.ClientService.get_client(db, str(current_user.business_id), client_id, category)
+        client = await ClientService.get_client(db, str(current_user.business_id), client_id, category)
         if not client:
             return error_response(message="Client not found", status_code=http_status.HTTP_404_NOT_FOUND)
         
@@ -357,7 +453,7 @@ async def get_client(client_id: str, category: Optional[str] = None, db: AsyncSe
 @router.put("/{client_id}")
 async def update_client(client_id: str, client_in: ClientUpdate, category: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     try:
-        client = await client_service.ClientService.get_by_business_key(db, client_id, category or client_in.category)
+        client = await ClientService.get_by_business_key(db, client_id, category or client_in.category)
         if not client:
             return error_response(message="Client not found", status_code=http_status.HTTP_404_NOT_FOUND)
         
@@ -380,7 +476,7 @@ async def update_client(client_id: str, client_in: ClientUpdate, category: Optio
 @router.delete("/{client_id}")
 async def delete_client(client_id: str, category: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     try:
-        success = await client_service.ClientService.delete_client(db, str(current_user.business_id), client_id, category)
+        success = await ClientService.delete_client(db, str(current_user.business_id), client_id, category)
         if not success:
             return error_response(message="Client not found", status_code=http_status.HTTP_404_NOT_FOUND)
         return success_response(message="Client deleted successfully")
