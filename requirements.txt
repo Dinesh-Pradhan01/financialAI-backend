@@ -25,3 +25,4 @@ python-docx
 pytesseract
 pdf2image
 numpy==2.5.2
+pytest=9.1.1
