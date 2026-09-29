@@ -6,7 +6,7 @@ from typing import Optional, Dict, Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
-from app.api.spending.schemas import (
+from app.api.analysis.schemas import (
     ExecutiveScorecardItem,
     HeaderMetadataResponse,
     MonthlyCashFlowRow,
@@ -24,27 +24,26 @@ from app.api.spending.schemas import (
     OperationalEfficiencyRatios,
     ProjectionsAndRunRates,
     EfficiencyProjectionsResponse,
-    SpendingFullReport,
     SpotliteFullReport
 )
 
 logger = logging.getLogger(__name__)
 
-class SpendingService:
+class SpotliteService:
     @staticmethod
-    async def compute_spending_report(
+    async def compute_spotlite_report(
         db: AsyncSession,
         user_id: Optional[str] = None,
         company_name: Optional[str] = None,
         business_id: Optional[str] = None,
         current_user: Optional[Any] = None
-    ) -> SpendingFullReport:
+    ) -> SpotliteFullReport:
         """
         Computes all statement & cash flow analytics in a single unified execution pass,
         matching the specifications in test2/non_entity_metrics_analysis.md and test2/generate_metrics.py.
         Enforces tenant isolation so users can only view their own business transaction analysis.
         """
-        logger.info(f"Computing Spending report for user_id='{user_id}', company_name='{company_name}', business_id='{business_id}', user='{getattr(current_user, 'email', None)}'")
+        logger.info(f"Computing Spotlite report for user_id='{user_id}', company_name='{company_name}', business_id='{business_id}', user='{getattr(current_user, 'email', None)}'")
         
         # Tenant Isolation & Authorization Enforcement
         if current_user and getattr(current_user, "role", "user") != "admin":
@@ -142,7 +141,7 @@ class SpendingService:
             tx_rows = tx_result.fetchall()
 
         if not tx_rows:
-            raise ValueError("No transaction data available in database for Spending analysis.")
+            raise ValueError("No transaction data available in database for Spotlite analysis.")
 
         target_company = tx_rows[0].company_name or "Nimbus Logistics Solutions Pvt Ltd"
 
@@ -496,7 +495,7 @@ class SpendingService:
             ),
         ]
 
-        return SpendingFullReport(
+        return SpotliteFullReport(
             company_name=target_company,
             period=period_str,
             total_transactions_analyzed=total_tx_count,
@@ -509,10 +508,3 @@ class SpendingService:
             section_6_efficiency_projections=sec6_efficiency
         )
 
-    # Alias method for backward compatibility
-    @staticmethod
-    async def compute_spotlite_report(*args, **kwargs) -> SpendingFullReport:
-        return await SpendingService.compute_spending_report(*args, **kwargs)
-
-# Alias class for backward compatibility
-SpotliteService = SpendingService

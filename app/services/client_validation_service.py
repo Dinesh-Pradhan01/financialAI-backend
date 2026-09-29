@@ -63,7 +63,7 @@ class ClientValidationService:
         )
 
     @staticmethod
-    def validate_record(record: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_record(record: Dict[str, Any], is_upload: bool = False) -> Dict[str, Any]:
         res = ClientValidationService.validate_preview_row(record)
         return {
             "valid": res.ready_to_import,

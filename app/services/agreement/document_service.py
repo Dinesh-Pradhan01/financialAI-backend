@@ -121,10 +121,14 @@ class DocumentService:
         return result.scalars().first()
 
     @staticmethod
-    async def get_latest_extraction(document_id: uuid.UUID, db: AsyncSession) -> AgreementExtractionResult | None:
+    async def get_latest_extraction(document_id: uuid.UUID | str, db: AsyncSession) -> AgreementExtractionResult | None:
+        try:
+            doc_uuid = uuid.UUID(str(document_id)) if not isinstance(document_id, uuid.UUID) else document_id
+        except (ValueError, TypeError):
+            return None
         result = await db.execute(
             select(AgreementExtractionResult)
-            .where(AgreementExtractionResult.document_id == document_id)
+            .where(AgreementExtractionResult.document_id == doc_uuid)
             .order_by(AgreementExtractionResult.created_at.desc())
         )
         return result.scalars().first()

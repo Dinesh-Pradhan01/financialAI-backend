@@ -18,8 +18,8 @@ from app.database.connection import get_db
 from app.auth.dependencies import get_optional_current_user
 from app.auth.model import User
 from app.utils.response import success_response, error_response
-from app.api.spending.service import SpendingService
-from app.api.spending.schemas import SpendingFullReport
+from app.api.analysis.service import SpotliteService
+from app.api.analysis.schemas import SpotliteFullReport
 from app.services.spotlite_service import SpotliteEngine
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ router = APIRouter(tags=["Analysis"])
 # ---------------------------------------------------------------------------
 @router.get(
     "/overview",
-    response_model=SpendingFullReport,
+    response_model=SpotliteFullReport,
     summary="Get Overview Analysis & Financial Intelligence Report",
     description="Returns complete Overview analysis including executive scorecard, header metadata, macro cash flow, and temporal patterns."
 )
@@ -44,7 +44,7 @@ async def get_overview_analysis(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpendingService.compute_spending_report(
+        report = await SpotliteService.compute_spotlite_report(
             db, user_id=user_id, company_name=company_name, business_id=business_id, current_user=current_user
         )
         return report
@@ -70,7 +70,7 @@ async def get_income_analysis(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpendingService.compute_spending_report(
+        report = await SpotliteService.compute_spotlite_report(
             db, user_id=user_id, business_id=business_id, current_user=current_user
         )
         return success_response("Income analysis generated successfully", data={
@@ -99,7 +99,7 @@ async def get_expenditure_analysis(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        report = await SpendingService.compute_spending_report(
+        report = await SpotliteService.compute_spotlite_report(
             db, user_id=user_id, business_id=business_id, current_user=current_user
         )
         return success_response("Expenditure analysis generated successfully", data={

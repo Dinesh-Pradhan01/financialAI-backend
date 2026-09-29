@@ -231,7 +231,7 @@ async def get_client_history(db: AsyncSession = Depends(get_db)):
     from app.services.dashboard_service import get_recent_activity
     try:
         activities = await get_recent_activity(db, scope="cfo")
-        client_history = [item for item in activities if item.get("upload_type", "").upper().startswith("CLIENT")]
+        client_history = [item for item in activities if (item.get("upload_type") or "").upper().startswith("CLIENT")]
         return success_response("Client history fetched successfully", data=client_history)
     except Exception as e:
         return error_response(f"Failed to fetch client history: {str(e)}", status_code=500)
