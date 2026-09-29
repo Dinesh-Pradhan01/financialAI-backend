@@ -108,8 +108,16 @@ class UploadEngine:
 
         if db is not None:
             from app.db.models.upload import UploadHistory
+            biz_uuid = None
+            if business_id:
+                try:
+                    biz_uuid = uuid.UUID(str(business_id)) if not isinstance(business_id, uuid.UUID) else business_id
+                except (ValueError, TypeError):
+                    pass
+
             history_record = UploadHistory(
                 id=upload_uuid,
+                business_id=biz_uuid,
                 upload_type=f"{self.module_name.upper()}_{upload_type}",
                 file_name=filename,
                 file_size=file_size,

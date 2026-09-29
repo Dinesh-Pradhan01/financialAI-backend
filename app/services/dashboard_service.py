@@ -156,9 +156,9 @@ async def get_recent_activity(db: AsyncSession, limit: int = 5, scope: Optional[
     if business_id:
         import uuid
         try:
-            b_uuid = uuid.UUID(business_id)
-            query = query.where(UploadHistory.business_id == b_uuid)
-        except ValueError:
+            b_uuid = uuid.UUID(str(business_id)) if not isinstance(business_id, uuid.UUID) else business_id
+            query = query.where(or_(UploadHistory.business_id == b_uuid, UploadHistory.business_id.is_(None)))
+        except (ValueError, TypeError):
             pass
             
     if scope:

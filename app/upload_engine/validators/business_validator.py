@@ -56,10 +56,13 @@ class BusinessValidator:
         if not validation_result.get("valid"):
             for err in validation_result.get("errors", []):
                 # We skip missing field errors because the generic schema engine already handles required field errors!
-                # We only want to bubble up business/formatting rules (like IFSC code invalid)
-                if "is required" not in err.get("error", ""):
-                    issues.append(_create_issue(record_id, source_row, err.get("field"), err.get("error"), "BUSINESS_RULE_ERROR"))
-                elif err.get("error") == "Unsupported Excel column":
-                    # Let the generic schema engine handle unknown columns if necessary, but actually the engine ignores them or we can flag them here.
-                    issues.append(_create_issue(record_id, source_row, err.get("field"), err.get("error"), "UNSUPPORTED_COLUMN"))
+                # We only want to bubble up business/formatting rules
+                if isinstance(err, str):
+                    if "Missing required field" not in err:
+                        issues.append(_create_issue(record_id, source_row, "unknown", err, "BUSINESS_RULE_ERROR"))
+                elif isinstance(err, dict):
+                    if "is required" not in err.get("error", ""):
+                        issues.append(_create_issue(record_id, source_row, err.get("field", "unknown"), err.get("error", ""), "BUSINESS_RULE_ERROR"))
+                    elif err.get("error") == "Unsupported Excel column":
+                        issues.append(_create_issue(record_id, source_row, err.get("field", "unknown"), err.get("error", ""), "UNSUPPORTED_COLUMN"))
         return issues

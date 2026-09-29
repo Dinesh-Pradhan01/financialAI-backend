@@ -222,3 +222,55 @@ async def simulate_compound_scenario(
         return error_response(f"Compound scenario simulation failed: {str(e)}", status_code=500)
 
 
+# ---------------------------------------------------------------------------
+# Convenience Aliases for Spotlite Client & Vendor Analytics / Bubble Graphs
+# ---------------------------------------------------------------------------
+@router.get("/vendors/analytics", summary="Get Vendor Analytics Matrix (Spotlite Convenience Alias)")
+async def get_spotlite_vendor_analytics(
+    business_id: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        data = await SpotliteEngine.compute_vendor_analytics(db, business_id=business_id)
+        return success_response("Vendor analytics fetched successfully", data=data)
+    except Exception as e:
+        return error_response(f"Failed to fetch vendor analytics: {str(e)}", status_code=500)
+
+
+@router.get("/clients/analytics", summary="Get Client Analytics Matrix (Spotlite Convenience Alias)")
+async def get_spotlite_client_analytics(
+    business_id: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        data = await SpotliteEngine.compute_client_analytics(db, business_id=business_id)
+        return success_response("Client analytics fetched successfully", data=data)
+    except Exception as e:
+        return error_response(f"Failed to fetch client analytics: {str(e)}", status_code=500)
+
+
+@router.get("/vendors/bubble", summary="Get Vendor Radial Bubble Graph Data (Spotlite Convenience Alias)")
+async def get_spotlite_vendor_bubble(
+    business_id: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        data = await SpotliteEngine.compute_vendor_bubble_data(db, business_id=business_id)
+        return success_response("Vendor bubble graph fetched successfully", data=data)
+    except Exception as e:
+        return error_response(f"Failed to fetch vendor bubble graph: {str(e)}", status_code=500)
+
+
+@router.get("/clients/bubble", summary="Get Client Radial Bubble Graph Data (Spotlite Convenience Alias)")
+async def get_spotlite_client_bubble(
+    business_id: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        data = await SpotliteEngine.compute_client_bubble_data(db, business_id=business_id)
+        return success_response("Client bubble graph fetched successfully", data=data)
+    except Exception as e:
+        return error_response(f"Failed to fetch client bubble graph: {str(e)}", status_code=500)
+
+
+

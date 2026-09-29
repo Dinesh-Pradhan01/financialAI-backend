@@ -140,7 +140,7 @@ class EfficiencyProjectionsResponse(BaseModel):
 # Full Combined Report
 # ---------------------------------------------------------------------------
 
-class SpendingFullReport(BaseModel):
+class SpotliteFullReport(BaseModel):
     company_name: str
     period: str
     total_transactions_analyzed: int
@@ -153,4 +153,3 @@ class SpendingFullReport(BaseModel):
     section_6_efficiency_projections: EfficiencyProjectionsResponse
 
 # Backward compatibility alias
-SpotliteFullReport = SpendingFullReport
