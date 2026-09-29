@@ -140,6 +140,8 @@ class PostgreSQLConnectionManager:
                 if await table_exists("upload_history"):
                     if not await column_exists("upload_history", "preview_data"):
                         await conn.execute(text("ALTER TABLE upload_history ADD COLUMN IF NOT EXISTS preview_data JSON;"))
+                    if not await column_exists("upload_history", "business_id"):
+                        await conn.execute(text("ALTER TABLE upload_history ADD COLUMN IF NOT EXISTS business_id UUID;"))
 
                 # ----- Employee table migrations -----
                 if await table_exists("employee_master"):
@@ -187,7 +189,14 @@ class PostgreSQLConnectionManager:
                         await conn.execute(text("ALTER TABLE vendor_master ALTER COLUMN category SET NOT NULL;"))
                         await conn.execute(text("ALTER TABLE vendor_master ADD PRIMARY KEY (vendor_id, category);"))
 
-                # ----- Document table migrations -----
+                # ----- Client table migrations -----
+                if await table_exists("clients"):
+                    for col in ["bank_name", "account_holder_name", "account_number", "ifsc_code", "contract_id", "legal_name", "industry", "contract_type"]:
+                        if await column_exists("clients", col):
+                            try:
+                                await conn.execute(text(f"ALTER TABLE clients ALTER COLUMN {col} DROP NOT NULL;"))
+                            except Exception:
+                                pass
                 if not await column_exists("documents", "business_id"):
                     await conn.execute(text("ALTER TABLE documents ADD COLUMN business_id UUID REFERENCES general_info(id) ON DELETE CASCADE;"))
                 if not await column_exists("documents", "account_id"):

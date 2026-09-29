@@ -12,7 +12,7 @@ class ClientMaster(SoftDeleteMixin, TimestampMixin, Base):
         UniqueConstraint("business_id", "client_id", "category", name="uq_business_client_id_category"),
     )
 
-    business_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("general_info.id", ondelete="CASCADE"), nullable=False, index=True)
+    business_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
     client_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     client_name: Mapped[str] = mapped_column(String, nullable=False, index=True)
     category: Mapped[str] = mapped_column(String, nullable=False, index=True)
@@ -30,6 +30,11 @@ class ClientMaster(SoftDeleteMixin, TimestampMixin, Base):
     frequency: Mapped[str] = mapped_column(String, nullable=False)
     recurring: Mapped[str | None] = mapped_column(String, nullable=True)
     status: Mapped[str | None] = mapped_column(String, nullable=True)
+
+    bank_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    account_holder_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    account_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    ifsc_code: Mapped[str | None] = mapped_column(String, nullable=True)
 
     agreement_document_id: Mapped[str | None] = mapped_column(String, nullable=True)
     agreement_file_name: Mapped[str | None] = mapped_column(String, nullable=True)

@@ -297,7 +297,8 @@ from app.services.spotlite_service import SpotliteEngine
 @router.get("/analytics", summary="Get Vendor Analytics")
 async def get_vendor_metrics_and_analytics(
     business_id: Optional[str] = Query(None),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_session_user)
 ):
     """
     Returns complete Vendor Information & Vendor Metrics (Section C):
@@ -308,7 +309,8 @@ async def get_vendor_metrics_and_analytics(
     - Single-Vendor Dependency Risks
     """
     try:
-        data = await SpotliteEngine.compute_vendor_analytics(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and current_user.business_id else business_id
+        data = await SpotliteEngine.compute_vendor_analytics(db, business_id=biz_id)
         return success_response("Vendor metrics and fixed/variable debits classification fetched successfully", data=data)
     except Exception as e:
         logger.exception("Error fetching vendor analytics metrics")

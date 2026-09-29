@@ -7,6 +7,7 @@ from app.db.base import Base, TimestampMixin
 class UploadHistory(TimestampMixin, Base):
     __tablename__ = "upload_history"
 
+    business_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True, nullable=True)
     upload_type: Mapped[str | None] = mapped_column(String, nullable=True)
     file_name: Mapped[str | None] = mapped_column(String, nullable=True)
     file_size: Mapped[int | None] = mapped_column(Integer, nullable=True)

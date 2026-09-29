@@ -565,21 +565,51 @@ class SpotliteEngine:
             "Courier Services", "Hardware/Equipment", "Cleaning/Maintenance"
         ]
 
-        vendors_data = [
-            {
-                "vendor_id": f"VEN-00{i+1}",
-                "name": v["name"],
-                "category": v["category"],
-                "cost_classification": "Fixed Opex" if v["category"] in fixed_categories else "Variable Opex",
-                "contracted_monthly_rate": v["contracted_monthly_rate"],
-                "avg_actual_monthly_billed": v["avg_actual_monthly"],
-                "monthly_overbill_amount": v.get("overbill_amount_monthly", 0.0),
-                "annualized_overbill_amount": v.get("overbill_amount_monthly", 0.0) * 12,
-                "is_overbilling": v.get("is_overbilling", False),
-                "note": v["note"]
-            }
-            for i, v in enumerate(data["vendors"])
-        ]
+        vendors_data = []
+        if db and business_id:
+            from app.db.models.vendor import VendorMaster
+            try:
+                stmt = select(VendorMaster).where(
+                    VendorMaster.business_id == str(business_id),
+                    VendorMaster.is_deleted == False
+                )
+                res = await db.execute(stmt)
+                db_vendors = res.scalars().all()
+                for v in db_vendors:
+                    c_val = float(v.contract_value or 0)
+                    m_cost = float(v.monthly_cost or 0)
+                    cat = v.category or "General"
+                    vendors_data.append({
+                        "vendor_id": v.vendor_id,
+                        "name": v.vendor_name,
+                        "category": cat,
+                        "cost_classification": "Fixed Opex" if cat in fixed_categories else "Variable Opex",
+                        "contracted_monthly_rate": round(c_val / 12.0, 2) if c_val > 0 else m_cost,
+                        "avg_actual_monthly_billed": m_cost if m_cost > 0 else round(c_val / 12.0, 2),
+                        "monthly_overbill_amount": 0.0,
+                        "annualized_overbill_amount": 0.0,
+                        "is_overbilling": False,
+                        "note": f"Industry: {v.industry or 'N/A'}"
+                    })
+            except Exception as ex:
+                logger.warning(f"Could not load dynamic DB vendors: {ex}")
+
+        if not vendors_data:
+            vendors_data = [
+                {
+                    "vendor_id": f"VEN-00{i+1}",
+                    "name": v["name"],
+                    "category": v["category"],
+                    "cost_classification": "Fixed Opex" if v["category"] in fixed_categories else "Variable Opex",
+                    "contracted_monthly_rate": v["contracted_monthly_rate"],
+                    "avg_actual_monthly_billed": v["avg_actual_monthly"],
+                    "monthly_overbill_amount": v.get("overbill_amount_monthly", 0.0),
+                    "annualized_overbill_amount": v.get("overbill_amount_monthly", 0.0) * 12,
+                    "is_overbilling": v.get("is_overbilling", False),
+                    "note": v["note"]
+                }
+                for i, v in enumerate(data["vendors"])
+            ]
 
         total_fixed_monthly = sum(v["avg_actual_monthly_billed"] for v in vendors_data if v["cost_classification"] == "Fixed Opex")
         total_variable_monthly = sum(v["avg_actual_monthly_billed"] for v in vendors_data if v["cost_classification"] == "Variable Opex")
@@ -590,23 +620,23 @@ class SpotliteEngine:
 
         # Monthly Fixed vs Variable Breakdown Trend
         fixed_vs_variable_monthly_trend = {
-            "2026-01": {"fixed": 760000.0, "variable": 210000.0},
-            "2026-02": {"fixed": 760000.0, "variable": 205000.0},
-            "2026-03": {"fixed": 760000.0, "variable": 220000.0},
-            "2026-04": {"fixed": 760000.0, "variable": 215000.0},
-            "2026-05": {"fixed": 760000.0, "variable": 218000.0},
-            "2026-06": {"fixed": 760000.0, "variable": 212000.0}
+            "2026-01": {"fixed": round(total_fixed_monthly, 2), "variable": round(total_variable_monthly, 2)},
+            "2026-02": {"fixed": round(total_fixed_monthly, 2), "variable": round(total_variable_monthly, 2)},
+            "2026-03": {"fixed": round(total_fixed_monthly, 2), "variable": round(total_variable_monthly, 2)},
+            "2026-04": {"fixed": round(total_fixed_monthly, 2), "variable": round(total_variable_monthly, 2)},
+            "2026-05": {"fixed": round(total_fixed_monthly, 2), "variable": round(total_variable_monthly, 2)},
+            "2026-06": {"fixed": round(total_fixed_monthly, 2), "variable": round(total_variable_monthly, 2)}
         }
 
-        # Concentration (AWS 245k + WeWork 280k = 525k / 865k total vendor opex = ~60.7%)
-        top2_vendor_pct = 60.7
-        top3_vendor_pct = 78.6
+        sorted_vendors = sorted(vendors_data, key=lambda x: x["avg_actual_monthly_billed"], reverse=True)
+        top2_val = sum(v["avg_actual_monthly_billed"] for v in sorted_vendors[:2])
+        top3_val = sum(v["avg_actual_monthly_billed"] for v in sorted_vendors[:3])
+        top2_vendor_pct = round((top2_val / total_vendor_monthly * 100), 1) if total_vendor_monthly > 0 else 0.0
+        top3_vendor_pct = round((top3_val / total_vendor_monthly * 100), 1) if total_vendor_monthly > 0 else 0.0
 
-        # Single vendor dependency categories (zero redundancy suppliers)
         single_vendor_dependencies = [
-            {"category": "Cloud Infrastructure", "sole_supplier": "AWS Infrastructure", "risk_level": "HIGH_DEPENDENCY"},
-            {"category": "Building Maintenance", "sole_supplier": "WeWork Office Space", "risk_level": "MEDIUM_DEPENDENCY"},
-            {"category": "Office Supplies", "sole_supplier": "Office Depot Supplies", "risk_level": "OVERBILLING_RISK"}
+            {"category": v["category"], "sole_supplier": v["name"], "risk_level": "DEPENDENCY_RISK"}
+            for v in sorted_vendors[:3]
         ]
 
         return {
@@ -652,20 +682,50 @@ class SpotliteEngine:
         months = data["months"]
         latest_month = months[-1]
 
-        clients_data = [
-            {
-                "client_id": f"CLI-00{i+1}",
-                "company_name": c["name"],
-                "revenue_6mo": c["revenue_6mo"],
-                "avg_monthly_revenue": round(c["revenue_6mo"] / len(months), 2),
-                "revenue_share_pct": c["share_pct"],
-                "status": c["status"],
-                "payment_drift_median_day": c["pay_drift_days"],
-                "payment_drift_std_dev_days": c["std_dev"],
-                "payment_drift_status": "Zero / Minimal Drift (Good Health)"
-            }
-            for i, c in enumerate(data["clients"])
-        ]
+        clients_data = []
+        if db and business_id:
+            from app.db.models.client import ClientMaster
+            try:
+                stmt = select(ClientMaster).where(
+                    ClientMaster.business_id == str(business_id),
+                    ClientMaster.is_deleted == False
+                )
+                res = await db.execute(stmt)
+                db_clients = res.scalars().all()
+                total_rev_all = sum(float(c.revenue or 0) for c in db_clients)
+                for c in db_clients:
+                    rev = float(c.revenue or 0)
+                    c_val = float(c.contract_value or 0)
+                    share = round((rev / total_rev_all * 100), 2) if total_rev_all > 0 else 0.0
+                    clients_data.append({
+                        "client_id": c.client_id,
+                        "company_name": c.client_name,
+                        "revenue_6mo": rev * 6.0 if rev > 0 else c_val,
+                        "avg_monthly_revenue": rev if rev > 0 else round(c_val / 12.0, 2),
+                        "revenue_share_pct": share,
+                        "status": c.status or "Active",
+                        "payment_drift_median_day": 10,
+                        "payment_drift_std_dev_days": 0.5,
+                        "payment_drift_status": "Zero / Minimal Drift (Good Health)"
+                    })
+            except Exception as ex:
+                logger.warning(f"Could not load dynamic DB clients: {ex}")
+
+        if not clients_data:
+            clients_data = [
+                {
+                    "client_id": f"CLI-00{i+1}",
+                    "company_name": c["name"],
+                    "revenue_6mo": c["revenue_6mo"],
+                    "avg_monthly_revenue": round(c["revenue_6mo"] / len(months), 2),
+                    "revenue_share_pct": c["share_pct"],
+                    "status": c["status"],
+                    "payment_drift_median_day": c["pay_drift_days"],
+                    "payment_drift_std_dev_days": c["std_dev"],
+                    "payment_drift_status": "Zero / Minimal Drift (Good Health)"
+                }
+                for i, c in enumerate(data["clients"])
+            ]
 
         total_rev_6mo = sum(c["revenue_6mo"] for c in clients_data)
         avg_monthly_rev = round(total_rev_6mo / len(months), 2)
@@ -734,8 +794,53 @@ class SpotliteEngine:
         data = cls.get_baseline_dataset()
         months = data["months"]
         
-        # Base client list & annual contract values
-        client_configs = [
+        client_configs = []
+        if db and business_id:
+            from app.db.models.client import ClientMaster
+            try:
+                stmt = select(ClientMaster).where(
+                    ClientMaster.business_id == str(business_id),
+                    ClientMaster.is_deleted == False
+                )
+                res = await db.execute(stmt)
+                db_clients = res.scalars().all()
+                total_rev_all = sum(float(c.revenue or 0) for c in db_clients)
+                colors = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316", "#14b8a6"]
+                for i, c in enumerate(db_clients):
+                    rev = float(c.revenue or 0)
+                    c_val = float(c.contract_value or 0)
+                    share = round((rev / total_rev_all * 100), 2) if total_rev_all > 0 else 0.0
+                    monthly = rev if rev > 0 else round(c_val / 12.0, 2)
+                    client_configs.append({
+                        "id": c.client_id,
+                        "name": c.client_name,
+                        "category": c.category or "General",
+                        "acv": c_val if c_val > 0 else (rev * 12.0),
+                        "monthly": monthly,
+                        "share_pct": share,
+                        "dso": 10,
+                        "status": c.status or "Active",
+                        "color": colors[i % len(colors)],
+                        "start_date": str(c.contract_start_date) if c.contract_start_date else "2024-01-01",
+                        "contract_number": c.contract_id or f"CTR-{c.client_id}",
+                        "rfm_segment": "Active Customer",
+                        "project_summary": f"Client Account ({c.category or 'General'}).",
+                        "monthly_trend": [
+                            {"month": "Jan", "val": monthly},
+                            {"month": "Feb", "val": monthly},
+                            {"month": "Mar", "val": monthly},
+                            {"month": "Apr", "val": monthly},
+                            {"month": "May", "val": monthly},
+                            {"month": "Jun", "val": monthly}
+                        ],
+                        "ai_relationship_summary": f"{c.client_name} generates {share}% revenue share with active contract terms."
+                    })
+            except Exception as ex:
+                logger.warning(f"Could not load dynamic DB bubble graph clients: {ex}")
+
+        if not client_configs:
+            # Base client list & annual contract values
+            client_configs = [
             {
                 "id": "CLI-001",
                 "name": "Technova Solutions",

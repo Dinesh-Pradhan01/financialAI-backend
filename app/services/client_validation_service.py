@@ -61,3 +61,11 @@ class ClientValidationService:
             ready_to_import=len(missing_fields) == 0,
             missing_required_fields=missing_fields
         )
+
+    @staticmethod
+    def validate_record(record: Dict[str, Any]) -> Dict[str, Any]:
+        res = ClientValidationService.validate_preview_row(record)
+        return {
+            "valid": res.ready_to_import,
+            "errors": [f"Missing required field: {f}" for f in res.missing_required_fields]
+        }

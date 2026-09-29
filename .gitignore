@@ -46,6 +46,7 @@ firebase-service-account*.json
 # Project specific uploads & logs
 uploads/
 *.log
+debug_log.txt
 
 # OS & Editor files
 .vscode/

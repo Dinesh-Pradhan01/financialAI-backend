@@ -185,7 +185,8 @@ from app.services.spotlite_service import SpotliteEngine
 @router.get("/analytics", summary="Get Client Analytics")
 async def get_client_metrics_and_analytics(
     business_id: Optional[str] = Query(None),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_session_user)
 ):
     """
     Returns complete Client Information & Revenue Metrics (Section A & Section D):
@@ -197,7 +198,8 @@ async def get_client_metrics_and_analytics(
     - Annualized Revenue Run-Rate
     """
     try:
-        data = await SpotliteEngine.compute_client_analytics(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and current_user.business_id else business_id
+        data = await SpotliteEngine.compute_client_analytics(db, business_id=biz_id)
         return success_response("Client metrics and revenue matrix fetched successfully", data=data)
     except Exception as e:
         return error_response(f"Failed to fetch client metrics: {str(e)}", status_code=500)
@@ -206,7 +208,8 @@ async def get_client_metrics_and_analytics(
 @router.get("/bubble", summary="Get Client Bubble Network Graph Data & Transactions (client bubble)")
 async def get_cfo_client_bubble_graph(
     business_id: Optional[str] = Query(None),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_session_user)
 ):
     """
     Returns Client Bubble Network Graph Payload (client bubble API):
@@ -215,7 +218,8 @@ async def get_cfo_client_bubble_graph(
     - Embedded itemized transaction records per client for drilldown
     """
     try:
-        data = await SpotliteEngine.compute_client_bubble_data(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and current_user.business_id else business_id
+        data = await SpotliteEngine.compute_client_bubble_data(db, business_id=biz_id)
         return success_response("Client bubble graph fetched successfully", data=data)
     except Exception as e:
         return error_response(f"Failed to fetch client bubble graph: {str(e)}", status_code=500)
@@ -227,7 +231,7 @@ async def get_client_history(db: AsyncSession = Depends(get_db)):
     from app.services.dashboard_service import get_recent_activity
     try:
         activities = await get_recent_activity(db, scope="cfo")
-        client_history = [item for item in activities if item.get("upload_type") == "Client"]
+        client_history = [item for item in activities if item.get("upload_type", "").upper().startswith("CLIENT")]
         return success_response("Client history fetched successfully", data=client_history)
     except Exception as e:
         return error_response(f"Failed to fetch client history: {str(e)}", status_code=500)
@@ -238,7 +242,7 @@ async def get_client_history_preview(upload_id: str, db: AsyncSession = Depends(
     from app.services.dashboard_service import get_recent_activity
     activities = await get_recent_activity(db, scope="cfo")
     for item in activities:
-        if item.get("upload_id") == upload_id and item.get("upload_type") == "Client":
+        if item.get("upload_id") == upload_id and item.get("upload_type", "").upper().startswith("CLIENT"):
             from sqlalchemy import select
             from app.db.models.upload import UploadHistory
             obj = await db.execute(select(UploadHistory).where(UploadHistory.id == upload_id))
@@ -248,32 +252,6 @@ async def get_client_history_preview(upload_id: str, db: AsyncSession = Depends(
                 data["schema_def"] = _get_client_schema_def()
                 return success_response("Client upload preview fetched successfully", data=data)
     return error_response("Upload not found", status_code=404)
-
-
-@router.get("")
-async def list_clients(db: AsyncSession = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(50, ge=1, le=1000), current_user = Depends(get_current_session_user)):
-    items = await ClientService.list_clients(db, business_id=str(current_user.business_id), skip=(page - 1) * size, limit=size)
-    return success_response("Clients fetched successfully", data={"items": [i.__dict__ for i in items], "total": len(items), "page": page, "size": size})
-
-
-@router.get("/{client_id}")
-async def get_client(client_id: str, category: Optional[str] = Query(None), db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
-    client = await ClientService.get_client(db, str(current_user.business_id), client_id, category)
-    if client is None:
-        raise HTTPException(status_code=404, detail="Client not found")
-    return success_response("Client fetched successfully", data=client.__dict__)
-
-
-@router.delete("/{client_id}")
-async def delete_client(client_id: str, category: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
-    try:
-        success = await ClientService.delete_client(db, str(current_user.business_id), client_id, category)
-        if not success:
-            return error_response(message="Client not found", status_code=404)
-        return success_response(message="Client deleted successfully")
-    except Exception as e:
-        logger.exception("Critical error during client import")
-        return error_response(message=f"Critical Import Error: {str(e)}", status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ---------------------------------------------------------------------------
@@ -492,20 +470,22 @@ async def list_clients(
     current_user = Depends(get_current_session_user)
 ):
     try:
-        result = await ClientService.get_client(
-            db=db, business_id=str(current_user.business_id), skip=skip, limit=limit, search=search,
-            industry=industry, status=status, recurring=recurring,
-            currency=currency, contract_type=contract_type, payment_type=payment_type
+        items = await ClientService.list_clients(db, business_id=str(current_user.business_id), skip=skip, limit=limit)
+        client_dicts = []
+        for item in items:
+            d = item.__dict__.copy()
+            if "_sa_instance_state" in d:
+                del d["_sa_instance_state"]
+            client_dicts.append(d)
+        return success_response(
+            message="Clients fetched successfully",
+            data={
+                "items": client_dicts,
+                "total": len(client_dicts),
+                "page": (skip // limit) + 1 if limit > 0 else 1,
+                "size": limit
+            }
         )
-        return success_response(message="Clients fetched successfully", data=result)
-    except AttributeError:
-        # Fallback if get_clients doesn't exist on client_service and uses list_clients instead
-        try:
-            items = await ClientService.list_clients(db, business_id=str(current_user.business_id), skip=skip, limit=limit)
-            return success_response("Clients fetched successfully", data={"items": [i.__dict__ for i in items], "total": len(items), "page": (skip//limit)+1, "size": limit})
-        except Exception as e:
-            logger.exception("Error fetching clients")
-            return error_response(message=str(e), status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR)
     except Exception as e:
         logger.exception("Error fetching clients")
         return error_response(message=str(e), status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR)
