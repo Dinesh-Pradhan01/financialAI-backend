@@ -2,12 +2,13 @@ import logging
 import os
 import uuid
 import datetime
-from typing import List
+from typing import List, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.company.competitor_service import competitors
 from app.auth.dependencies import get_current_session_user
 from app.auth.model import User
 from app.database.connection import get_db
@@ -334,4 +335,19 @@ async def generate_company_ai_view(
     
     return CompanyAIViewResponse(markdown_content=markdown)
 
+@router.get("/get-competitors", response_model=Dict)
+async def get_competitors(
+    current_user: User = Depends(get_current_session_user),
+    db: AsyncSession = Depends(get_db),
+):
+    company = await get_user_business(current_user,db)
 
+    name = company.company_name
+    location = f"{company.city}, {company.state} - {company.pincode}"
+    type = company.business_type
+    category = company.business_category
+
+    res = await competitors(name, location, type, category)
+    if res["type"] == "Null":
+        return {"status": "Failed - Error occured"}
+    return {"status": "success", "type": res["type"], "content": res["content"]}
