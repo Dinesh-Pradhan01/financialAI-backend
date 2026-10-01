@@ -30,6 +30,7 @@ from app.business.invite_routes import router as invite_router
 from app.company.routes import router as company_router
 from app.company.document_routes import router as document_router, package_router
 from app.industry.routes import router as industry_router
+from development.routes import router as development_router
 
 # HR / CFO Module Routers
 from app.api.employee.routes import router as employee_router
@@ -158,6 +159,7 @@ app.include_router(company_router, prefix="/api")
 app.include_router(document_router, prefix="/api/company")
 app.include_router(package_router, prefix="/api/company")
 app.include_router(industry_router, prefix="/api")
+app.include_router(development_router, prefix="/api/v1/developments")
 
 # HR Module Routers registered under prefix /api/v1/hr
 app.include_router(employee_router, prefix="/api/v1/hr/employees", tags=["HR-Employee"])
