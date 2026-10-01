@@ -145,7 +145,22 @@ SENDER_EMAIL="your-registered-sender@domain.com"
 
 ---
 
-## 🗄️ Database Schema & Migrations
+## Real-Time Company Developments
+
+The developments API searches for external news and business events relevant to a company's profile, sector, and location.
+
+```http
+GET /api/v1/developments/{company_id}?limit=10&days=7
+```
+
+The service reads the company from the existing `general_info` table, builds company/domain and location-aware searches, fetches enabled news providers concurrently, then normalizes, deduplicates, classifies, scores, date-filters, and diversifies the results. When Gemini is available, it enriches selected items in one batch; evidence-based fallback implications are used if enrichment fails. Development records are not persisted.
+
+`limit` defaults to 10 and caps results at 20; it is an upper bound, so fewer items can be returned when sources are unavailable or too few articles meet relevance/date filters. GDELT and Google News RSS are enabled by default. NewsAPI and Guardian are optional and require API keys. Nearby city resolution is optional and uses OpenStreetMap.
+
+For the full request/response flow, configuration variables, source behavior, ranking/filtering rules, and low-result troubleshooting, see [development/README.md](development/README.md). Source and scoring configuration is in [development/india_developments_data_sources.json](development/india_developments_data_sources.json).
+
+---
+## �🗄️ Database Schema & Migrations
 
 ### Database Migrations (Alembic)
 If you make changes to the SQLAlchemy models, you can run Alembic migrations:

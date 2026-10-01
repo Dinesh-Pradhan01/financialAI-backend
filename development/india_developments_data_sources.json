@@ -1,0 +1,735 @@
+{
+  "config_name": "india_developments_data_sources",
+  "version": "1.0.0",
+  "last_reviewed": "2026-09-29",
+  "purpose": "Discovery configuration for news and government procurement developments across all Indian states and union territories.",
+  "important_notes": [
+    "These are source landing pages and feed/API endpoints, not a guarantee that every source offers a public REST API.",
+    "Most e-procurement portals require HTML page parsing, search-form interaction, downloads, or manual integration; verify each portal's terms, robots rules, rate limits, and technical access before automating.",
+    "Do not assume the 15-minute update notices on individual portals guarantee event-to-detection latency.",
+    "Google News RSS is included as an optional discovery feed; review applicable usage and licensing terms before using it in a commercial product.",
+    "Gemini is an enrichment/normalization service, not an independent news source. Store its output separately from source evidence.",
+    "Some official NIC directory links are legacy links or separate portals for regions now combined into one Union Territory. Confirm current operational status before production use."
+  ],
+  "global_sources": [
+    {
+      "source_id": "gdelt_doc",
+      "name": "GDELT DOC API",
+      "source_type": "news_search_api",
+      "base_url": "https://api.gdeltproject.org/api/v2/doc/doc",
+      "request_template": "https://api.gdeltproject.org/api/v2/doc/doc?query={URL_ENCODED_QUERY}&mode=ArtList&format=json&sort=DateDesc",
+      "default_query_template": "(Bhubaneswar OR Odisha OR {STATE_OR_UT}) AND (development OR project OR investment OR tender OR surveillance OR CCTV)",
+      "auth": "none_known",
+      "recommended_poll_interval_minutes": 15,
+      "latency_sla": null,
+      "retrieval_mode": "http_api",
+      "notes": "Use query parameters and response fields supported by the current GDELT DOC API. Validate rate limits and result coverage."
+    },
+    {
+      "source_id": "google_news_rss",
+      "name": "Google News RSS",
+      "source_type": "news_rss",
+      "base_url": "https://news.google.com/rss/search",
+      "request_template": "https://news.google.com/rss/search?q={URL_ENCODED_QUERY}&hl=en-IN&gl=IN&ceid=IN:en",
+      "default_query_template": "\"{STATE_OR_UT}\" (government OR project OR investment OR tender OR CCTV OR surveillance)",
+      "auth": "none_for_feed_access",
+      "recommended_poll_interval_minutes": 15,
+      "latency_sla": null,
+      "retrieval_mode": "rss",
+      "notes": "Optional discovery layer. No guaranteed publication-to-feed latency; check applicable usage/licensing terms before commercial use."
+    },
+    {
+      "source_id": "newsapi",
+      "name": "NewsAPI",
+      "source_type": "news_search_api",
+      "base_url": "https://newsapi.org/v2/everything",
+      "request_template": "https://newsapi.org/v2/everything?q={URL_ENCODED_QUERY}&language=en&sortBy=relevancy&pageSize=5&from={FROM_DATE}",
+      "default_query_template": "\"{COMPANY_NAME}\" OR \"{BUSINESS_CATEGORY}\" AND \"{STATE_OR_UT}\"",
+      "auth": "api_key_required",
+      "recommended_poll_interval_minutes": 30,
+      "latency_sla": null,
+      "retrieval_mode": "http_api",
+      "notes": "Optional source enabled when NEWSAPI_KEY is configured. This adds broader company-specific discovery coverage beyond the public RSS feeds."
+    },
+    {
+      "source_id": "guardian_api",
+      "name": "The Guardian API",
+      "source_type": "news_search_api",
+      "base_url": "https://content.guardianapis.com/search",
+      "request_template": "https://content.guardianapis.com/search?q={URL_ENCODED_QUERY}&api-key={API_KEY}&page-size=5&show-fields=trailText&order-by=relevance",
+      "default_query_template": "\"{COMPANY_NAME}\" OR \"{BUSINESS_CATEGORY}\" AND \"{STATE_OR_UT}\"",
+      "auth": "api_key_required",
+      "recommended_poll_interval_minutes": 30,
+      "latency_sla": null,
+      "retrieval_mode": "http_api",
+      "notes": "Optional source enabled when THE_GUARDIAN_API_KEY or GUARDIAN_API_KEY is configured. Useful for business and policy coverage that complements the local/regional sources."
+    },
+    {
+      "source_id": "central_cppp",
+      "name": "Central Public Procurement Portal / Government eProcurement",
+      "source_type": "government_procurement_portal",
+      "base_url": "https://eprocure.gov.in/eprocure/app",
+      "related_links_url": "https://www.eprocure.gov.in/epublish/app?page=FrontEndParticipatingSites&service=page",
+      "recommended_poll_interval_minutes": 15,
+      "latency_sla": null,
+      "retrieval_mode": "portal_html_or_download",
+      "notes": "Useful for central ministries, CPSEs, autonomous bodies, and central procurement. The portal is not represented here as a general-purpose public REST API."
+    },
+    {
+      "source_id": "india_government_services_active_tenders",
+      "name": "National Government Services Portal - Active Tenders",
+      "source_type": "government_discovery_portal",
+      "base_url": "https://services.india.gov.in/service/detail/search-active-tenders-of-state-and-central-government-organisations-1",
+      "recommended_poll_interval_minutes": 30,
+      "latency_sla": null,
+      "retrieval_mode": "portal_html_or_user_search",
+      "notes": "Discovery/search portal; confirm automation support before scraping."
+    },
+    {
+      "source_id": "gemini_enrichment",
+      "name": "Gemini API",
+      "source_type": "ai_enrichment",
+      "base_url": "https://generativelanguage.googleapis.com",
+      "documentation_url": "https://ai.google.dev/gemini-api/docs",
+      "auth": "api_key_required",
+      "recommended_poll_interval_minutes": null,
+      "latency_sla": null,
+      "retrieval_mode": "api_after_source_ingestion",
+      "notes": "Use after source retrieval to summarize, classify, extract entities/dates/locations, deduplicate, and generate company-specific relevance. Never use model output as sole evidence."
+    }
+  ],
+  "states_and_union_territories": [
+    {
+      "code": "AN",
+      "name": "Andaman and Nicobar Islands",
+      "type": "union_territory",
+      "procurement_sources": [
+        {
+          "name": "Central ePublishing portal (listed as ePublishing only)",
+          "url": "https://eprocure.gov.in/epublish/app",
+          "retrieval_mode": "portal_html_or_download",
+          "status": "directory_listed_verify_current"
+        }
+      ]
+    },
+    {
+      "code": "AP",
+      "name": "Andhra Pradesh",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Government eProcurement portal (legacy directory entry)",
+          "url": "https://www.eprocurement.gov.in/",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed_verify_state_specific_portal"
+        }
+      ]
+    },
+    {
+      "code": "AR",
+      "name": "Arunachal Pradesh",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Arunachal Pradesh eProcurement",
+          "url": "https://arunachaltenders.gov.in/nicgep/app",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "AS",
+      "name": "Assam",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Assam eProcurement",
+          "url": "https://assamtenders.gov.in/nicgep/app",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "BR",
+      "name": "Bihar",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Bihar eProcurement",
+          "url": "https://www.eproc.bihar.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "CH",
+      "name": "Chandigarh",
+      "type": "union_territory",
+      "procurement_sources": [
+        {
+          "name": "Chandigarh eTenders",
+          "url": "https://etenders.chd.nic.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "CG",
+      "name": "Chhattisgarh",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Chhattisgarh eProcurement",
+          "url": "https://cgeprocurement.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "DN",
+      "name": "Dadra and Nagar Haveli and Daman and Diu",
+      "type": "union_territory",
+      "procurement_sources": [
+        {
+          "name": "Dadra and Nagar Haveli eProcurement (legacy regional portal)",
+          "url": "https://dnhtenders.gov.in/nicgep/app",
+          "retrieval_mode": "portal_html",
+          "status": "legacy_region_link_verify_current"
+        },
+        {
+          "name": "Daman and Diu eProcurement (legacy regional portal)",
+          "url": "https://ddtenders.gov.in/nicgep/app",
+          "retrieval_mode": "portal_html",
+          "status": "legacy_region_link_verify_current"
+        }
+      ]
+    },
+    {
+      "code": "DL",
+      "name": "Delhi",
+      "type": "union_territory",
+      "procurement_sources": [
+        {
+          "name": "Government of NCT of Delhi procurement",
+          "url": "https://govtprocurement.delhi.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "GA",
+      "name": "Goa",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Goa eTender",
+          "url": "https://www.etender.goa.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed_verify_current"
+        }
+      ]
+    },
+    {
+      "code": "GJ",
+      "name": "Gujarat",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Gujarat nProcure",
+          "url": "https://www.nprocure.com/asp/home/new_home_tenders.asp",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "HR",
+      "name": "Haryana",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Haryana eTenders",
+          "url": "https://etenders.hry.nic.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        },
+        {
+          "name": "Haryana PHED eTenders",
+          "url": "https://haryanaphed.etenders.in",
+          "retrieval_mode": "portal_html",
+          "status": "department_specific_directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "HP",
+      "name": "Himachal Pradesh",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Himachal Pradesh eTenders",
+          "url": "https://hptenders.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "JK",
+      "name": "Jammu and Kashmir",
+      "type": "union_territory",
+      "procurement_sources": [
+        {
+          "name": "Jammu and Kashmir eTenders",
+          "url": "https://jktenders.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "JH",
+      "name": "Jharkhand",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Jharkhand eProcurement",
+          "url": "https://jharkhandtenders.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "KA",
+      "name": "Karnataka",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Karnataka eProcurement",
+          "url": "https://eproc.karnataka.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "KL",
+      "name": "Kerala",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Kerala eTenders",
+          "url": "https://etenders.kerala.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "LA",
+      "name": "Ladakh",
+      "type": "union_territory",
+      "procurement_sources": [
+        {
+          "name": "Government of India ePublishing participating-sites directory",
+          "url": "https://www.eprocure.gov.in/epublish/app?page=FrontEndParticipatingSites&service=page",
+          "retrieval_mode": "portal_html_or_download",
+          "status": "listed_in_central_directory_find_current_ladakh_link"
+        }
+      ]
+    },
+    {
+      "code": "LD",
+      "name": "Lakshadweep",
+      "type": "union_territory",
+      "procurement_sources": [
+        {
+          "name": "Lakshadweep eProcurement",
+          "url": "https://tendersutl.gov.in/nicgep/app",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        },
+        {
+          "name": "Lakshadweep administration eProcurement information",
+          "url": "https://lakshadweep.nic.in/eProcurement.html",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "MP",
+      "name": "Madhya Pradesh",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "MP Tenders (NIC)",
+          "url": "https://mptenders.gov.in/nicgep/app",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        },
+        {
+          "name": "MP eProcurement (alternate listed portal)",
+          "url": "https://mpeprocurement.com",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed_verify_current"
+        }
+      ]
+    },
+    {
+      "code": "MH",
+      "name": "Maharashtra",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Maharashtra eTenders",
+          "url": "https://mahatenders.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        },
+        {
+          "name": "Maharashtra eTenders alternate platform",
+          "url": "https://maharashtra.etenders.in",
+          "retrieval_mode": "portal_html",
+          "status": "alternate_platform_verify_coverage"
+        }
+      ]
+    },
+    {
+      "code": "MN",
+      "name": "Manipur",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Manipur eProcurement",
+          "url": "https://manipurtenders.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "ML",
+      "name": "Meghalaya",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Meghalaya eTenders",
+          "url": "https://meghalayatenders.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "MZ",
+      "name": "Mizoram",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Mizoram eTenders",
+          "url": "https://mizoramtenders.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "NL",
+      "name": "Nagaland",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Nagaland eTenders",
+          "url": "https://nagalandtenders.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "OD",
+      "name": "Odisha",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Odisha eProcurement",
+          "url": "https://tendersodisha.gov.in/nicgep/app",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        },
+        {
+          "name": "Odisha state procurement portal",
+          "url": "https://tendersodisha.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "PY",
+      "name": "Puducherry",
+      "type": "union_territory",
+      "procurement_sources": [
+        {
+          "name": "Puducherry eProcurement",
+          "url": "https://pudutenders.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "PB",
+      "name": "Punjab",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Punjab eTender",
+          "url": "https://etender.punjabgovt.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed_verify_current"
+        },
+        {
+          "name": "Punjab PWD eProcurement",
+          "url": "http://eprocpbpwd.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "department_specific_directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "RJ",
+      "name": "Rajasthan",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Rajasthan eProcurement",
+          "url": "https://eproc.rajasthan.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "SK",
+      "name": "Sikkim",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Sikkim Tender portal",
+          "url": "https://sikkimtender.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed_verify_current"
+        }
+      ]
+    },
+    {
+      "code": "TN",
+      "name": "Tamil Nadu",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Tamil Nadu Tenders",
+          "url": "https://tntenders.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "TS",
+      "name": "Telangana",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Government eProcurement portal (legacy directory entry)",
+          "url": "https://www.eprocurement.gov.in/",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed_verify_state_specific_portal"
+        }
+      ]
+    },
+    {
+      "code": "TR",
+      "name": "Tripura",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Tripura Tenders",
+          "url": "https://tripuratenders.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "UP",
+      "name": "Uttar Pradesh",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Uttar Pradesh eTender",
+          "url": "https://etender.up.nic.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "UK",
+      "name": "Uttarakhand",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "Uttarakhand Tenders",
+          "url": "https://uktenders.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    },
+    {
+      "code": "WB",
+      "name": "West Bengal",
+      "type": "state",
+      "procurement_sources": [
+        {
+          "name": "West Bengal eTenders",
+          "url": "https://wbtenders.gov.in",
+          "retrieval_mode": "portal_html",
+          "status": "directory_listed"
+        }
+      ]
+    }
+  ],
+  "fetching_defaults": {
+    "default_language": "en",
+    "country_code": "IN",
+    "default_poll_interval_minutes": 15,
+    "request_timeout_seconds": 30,
+    "max_retries": 3,
+    "retry_backoff_seconds": [
+      2,
+      5,
+      15
+    ],
+    "deduplication_keys": [
+      "canonical_url",
+      "source_id",
+      "source_record_id",
+      "normalized_title_hash"
+    ],
+    "required_source_metadata": [
+      "source_id",
+      "source_url",
+      "retrieved_at_utc",
+      "published_at",
+      "last_modified_at",
+      "http_status",
+      "content_hash"
+    ],
+    "recommended_storage_fields": [
+      "title",
+      "summary",
+      "body_text",
+      "source_id",
+      "source_name",
+      "source_url",
+      "published_at",
+      "retrieved_at_utc",
+      "event_date",
+      "state_ut_code",
+      "state_ut_name",
+      "district",
+      "city",
+      "organization",
+      "event_type",
+      "tender_id",
+      "tender_deadline",
+      "keywords",
+      "language",
+      "confidence",
+      "source_evidence",
+      "processing_model",
+      "processing_status",
+      "deduplication_group_id"
+    ],
+    "event_types": [
+      "government_tender",
+      "tender_corrigendum",
+      "contract_award",
+      "policy",
+      "infrastructure_project",
+      "investment",
+      "company_expansion",
+      "technology",
+      "regulatory_change",
+      "public_safety",
+      "other"
+    ],
+    "keyword_examples": [
+      "smart city",
+      "CCTV",
+      "surveillance",
+      "AI camera",
+      "ANPR",
+      "facial recognition",
+      "ITMS",
+      "FRS",
+      "tender",
+      "investment",
+      "factory",
+      "manufacturing",
+      "infrastructure"
+    ]
+  },
+  "scoring": {
+    "note": "Example scoring rubric for ranking retrieved records, not a measure of source truth or guaranteed accuracy.",
+    "weights": {
+      "topic_relevance": 0.35,
+      "geographic_relevance": 0.2,
+      "recency": 0.2,
+      "source_authority": 0.15,
+      "document_completeness": 0.1
+    },
+    "deduplicate_before_scoring": true,
+    "keep_original_source_records": true
+  },
+  "company_aware_scoring": {
+    "weights": {
+      "domain": 0.24,
+      "business": 0.18,
+      "opportunity": 0.15,
+      "geography": 0.10,
+      "recency": 0.10,
+      "source_authority": 0.10,
+      "company_competitor_government": 0.10,
+      "completeness": 0.02,
+      "local_bonus": 0.01
+    },
+    "development_mix": {
+      "external_domain": 0.30,
+      "local_nearby_state": 0.20,
+      "government_opportunity": 0.20,
+      "competitor": 0.12,
+      "national_global": 0.10,
+      "company": 0.08
+    },
+    "nearby_location_limit": 6,
+    "max_queries": 24,
+    "min_relevance_score": 0.38
+  },
+  "official_directory_references": [
+    "https://eprocure.gov.in/mmp/sites/default/files/eproc/States_eProc_relatedlinks.pdf",
+    "https://www.eprocure.gov.in/epublish/app?page=FrontEndParticipatingSites&service=page",
+    "https://www.nic.gov.in/project/government-eprocurement-system/"
+  ]
+}
