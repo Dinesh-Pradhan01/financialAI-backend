@@ -140,3 +140,58 @@ Here is the raw text extracted from the document:
 
 Generate output as valid JSON matching the specified schema.
 """
+
+# ==============================================================================
+# SIMILAR COMPANIES MODULE PROMPTS
+# ==============================================================================
+
+TARGET_CLASSIFICATION_PROMPT_TEMPLATE = """
+You are a precise corporate taxonomy and industry classification engine.
+
+Target Company Context:
+- Company Name: {company_name}
+- Business Category: {business_category}
+- Primary Products/Services: {primary_product_service}
+- Operational Description: {description}
+
+Approved Industry Classifications (ID | Sector | Industry | Basic Industry):
+{taxonomy_rows}
+
+Instructions:
+1. Analyze the Target Company's true operational model and revenue drivers. Look past marketing buzzwords (e.g., if a company mentions "AI" but actually sells and installs CCTV hardware, treat it as hardware/distribution/telecom installation, not software R&D).
+2. Select the top 1 to 3 most relevant classification IDs from the approved list above.
+3. Determine an estimated scale tier for the company based on its operational description, employee count ({employees}), and business model:
+   - "MICRO" (Estimated turnover < ₹25 Cr or < 50 employees)
+   - "SME" (Estimated turnover ₹25 Cr - ₹100 Cr or 50-250 employees)
+   - "MID_CAP" (Estimated turnover ₹100 Cr - ₹500 Cr or 250-1000 employees)
+   - "LARGE_CAP" (Estimated turnover > ₹500 Cr or > 1000 employees)
+
+Output strictly valid JSON matching the specified schema with no markdown wrapping, preambles, or explanations.
+"""
+
+RUTHLESS_MA_PROMPT_TEMPLATE = """
+You are a senior M&A analyst specializing in Indian equity comps, peer valuations, and competitive intelligence.
+
+Target Company Profile:
+- Name: {company_name}
+- Legal Category: {business_category}
+- Core Products/Services: {primary_product_service}
+- Operational Description: {business_description}
+- Scale Profile: {employees} employees | Scale Tier: {scale_tier}
+
+Retrieved Candidate Peers (from SQL Vector + Industry Retrieval):
+{json_list_of_database_peers}
+(Each peer contains: company_id, company_name, ticker, market_cap_cr, ttm_revenue_cr, basic_industry, business_summary, similarity_score)
+
+Instructions:
+1. Ruthlessly evaluate each candidate peer against the Target Company. Reject false comps:
+   - Reject companies that operate in entirely different tiers of the supply chain (e.g., reject a raw component manufacturer or a pure-play SaaS platform if the target is a regional distributor/system integrator).
+   - Reject extreme scale mismatches if smaller, closer-sized listed peers exist in the candidate pool.
+2. Select the top 5 to 7 most accurate and defensible comparable peers.
+3. Rank them from closest match to furthest match.
+4. For each selected peer, write a candid, high-signal rationale (STRICTLY MAXIMUM 2 sentences, under 40 words) detailing:
+   - Direct business and product overlap.
+   - Any key operational or business model divergence the user must keep in mind (e.g., "Peer manufactures hardware, whereas Target only integrates and distributes").
+
+Output strictly valid JSON matching the specified schema with no markdown wrapping, preambles, or explanations.
+"""

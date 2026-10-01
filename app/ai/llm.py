@@ -11,8 +11,9 @@ from app.ai.prompts import (
     METADATA_PROMPT_TEMPLATE, 
     TRANSACTIONS_PROMPT_TEMPLATE, 
     AI_VIEW_PROMPT_TEMPLATE, 
-    BUSINESS_REGISTRATION_PROMPT_TEMPLATE, 
-    DOCUMENT_VERIFICATION_PROMPT_TEMPLATE
+    DOCUMENT_VERIFICATION_PROMPT_TEMPLATE,
+    TARGET_CLASSIFICATION_PROMPT_TEMPLATE,
+    RUTHLESS_MA_PROMPT_TEMPLATE
 )
 
 logger = logging.getLogger(__name__)
@@ -78,6 +79,27 @@ class ExtractedAccountMetadataSchema(BaseModel):
 class ExtractedTransactionsChunkSchema(BaseModel):
     transactions: List[ExtractedTransactionSchema]
 
+class TargetClassificationSchema(BaseModel):
+    matched_classification_ids: List[int]
+    primary_basic_industry: str
+    scale_tier: str
+    classification_reasoning: str
+
+class PeerValuationSchema(BaseModel):
+    company_id: int
+    company_name: str
+    ticker: str
+    market_cap_cr: float
+    ttm_revenue_cr: float
+    basic_industry: str
+    similarity_rank: int
+    peer_fit_confidence: str
+    reasoning: str = Field(description="STRICT LIMIT: Maximum 2 sentences and 40 words explaining overlap. Do not exceed.")
+
+class TopCompetitorsResponseSchema(BaseModel):
+    target_summary: str
+    top_competitors: List[PeerValuationSchema]
+
 class GeminiExtractionService:
     def __init__(self):
         self.semaphore = asyncio.Semaphore(1)
@@ -124,6 +146,28 @@ class GeminiExtractionService:
                         retry_delay *= 2
                     else:
                         raise e
+
+    async def generate_embedding(self, text: str) -> Optional[List[float]]:
+        """
+        Generates an embedding vector for the given text using Gemini.
+        Returns a list of floats, or a zero vector if API is unavailable or fails.
+        """
+        if not self.is_available():
+            logger.warning("Gemini API not configured. Cannot generate embedding.")
+            return [0.0] * 1536
+            
+        try:
+            result = await asyncio.to_thread(
+                genai.embed_content,
+                model="models/gemini-embedding-2",
+                content=text,
+                task_type="retrieval_document",
+                output_dimensionality=1536
+            )
+            return result['embedding']
+        except Exception as e:
+            logger.warning(f"Embedding generation failed: {e}")
+            return [0.0] * 1536
 
     async def extract_statement_data(self, pdf_text: str) -> Optional[Dict[str, Any]]:
         """
@@ -360,6 +404,108 @@ class GeminiExtractionService:
             
         except Exception as e:
             logger.warning(f"Gemini API document verification failed: {e}")
+            return None
+
+    async def get_target_classification_ids(self, company_name: str, business_category: str, primary_product_service: str, description: str, employees: str, taxonomy_rows: str) -> Optional[Dict[str, Any]]:
+        """
+        Calls Gemini to classify the unlisted MSME against the exact database taxonomy.
+        """
+        if not self.is_available():
+            logger.warning("Gemini API not configured. Cannot find target classification.")
+            return None
+
+        try:
+            prompt = TARGET_CLASSIFICATION_PROMPT_TEMPLATE.format(
+                company_name=company_name or "Unknown",
+                business_category=business_category or "Unknown",
+                primary_product_service=primary_product_service or "Unknown",
+                description=description or "Unknown",
+                employees=employees or "Unknown",
+                taxonomy_rows=taxonomy_rows or "No taxonomy provided"
+            )
+            
+            generation_config = genai.GenerationConfig(
+                response_mime_type="application/json",
+                response_schema=TargetClassificationSchema,
+                temperature=0.4
+            )
+            
+            response = await self._generate_content_with_retry(prompt, generation_config)
+            print("RAW LLM OUTPUT:", response.text)  #log for debugging
+
+            if not response.text:
+                logger.error("Empty response received from Gemini API during classification search.")
+                return None
+                
+            # Robust JSON parsing
+            text_resp = response.text.strip()
+            if text_resp.startswith("```"):
+                # Remove markdown code block markers
+                import re
+                text_resp = re.sub(r'^```(?:json)?\s*', '', text_resp)
+                text_resp = re.sub(r'\s*```$', '', text_resp)
+            
+            # Remove trailing commas that break strict JSON
+            import re
+            text_resp = re.sub(r',\s*([\]}])', r'\1', text_resp)
+            
+            extracted_data = json.loads(text_resp)
+            return extracted_data
+            
+        except Exception as e:
+            logger.warning(f"Gemini API target classification search failed: {e}")
+            return None
+
+    async def get_top_competitors_from_peers(self, company_name: str, business_category: str, primary_product_service: str, business_description: str, employees: str, scale_tier: str, json_list_of_database_peers: str) -> Optional[Dict[str, Any]]:
+        """
+        Calls Gemini using the Ruthless M&A Analyst prompt to filter and rank a JSON array of peers down to the top 5 matches based on scale.
+        """
+        if not self.is_available():
+            logger.warning("Gemini API not configured. Cannot rank competitors.")
+            return None
+            
+        try:
+            prompt = RUTHLESS_MA_PROMPT_TEMPLATE.format(
+                company_name=company_name or "Unknown Company",
+                business_category=business_category or "Unknown",
+                primary_product_service=primary_product_service or "Unknown",
+                business_description=business_description or "Unknown",
+                employees=employees or "Unknown",
+                scale_tier=scale_tier or "Unknown",
+                json_list_of_database_peers=json_list_of_database_peers
+            )
+            
+            generation_config = genai.GenerationConfig(
+                response_mime_type="application/json",
+                response_schema=TopCompetitorsResponseSchema,
+                temperature=0.4
+            )
+            
+            response = await self._generate_content_with_retry(prompt, generation_config)
+            print("RAW M&A LLM OUTPUT:", response.text)
+            
+            if not response.text:
+                logger.error("Empty response from Gemini API during M&A competitor ranking.")
+                return None
+                
+            # Robust JSON parsing
+            text_resp = response.text.strip()
+            if text_resp.startswith("```"):
+                # Remove markdown code block markers
+                import re
+                text_resp = re.sub(r'^```(?:json)?\s*', '', text_resp)
+                text_resp = re.sub(r'\s*```$', '', text_resp)
+            
+            # Remove trailing commas that break strict JSON
+            import re
+            text_resp = re.sub(r',\s*([\]}])', r'\1', text_resp)
+                
+            extracted_data = json.loads(text_resp)
+            return extracted_data
+
+            
+        except Exception as e:
+            logger.warning(f"Gemini API M&A competitor ranking failed: {e}")
             return None
 
 gemini_service = GeminiExtractionService()
