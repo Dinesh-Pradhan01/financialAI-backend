@@ -42,6 +42,7 @@ from app.api.spotlite.routes import router as spotlite_router
 
 from app.statement.upload.routes import router as statement_router
 from app.transaction.routes import router as transaction_router
+from app.document_classifier.routes import router as document_classifier_router
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
@@ -183,6 +184,7 @@ app.include_router(spotlite_router, prefix="/api/v1/spotlite", tags=["Spotlite"]
 
 app.include_router(transaction_router, prefix="/api")
 app.include_router(statement_router)
+app.include_router(document_classifier_router)
 
 # ---------------------------------------------------------------------------
 # Health / Root

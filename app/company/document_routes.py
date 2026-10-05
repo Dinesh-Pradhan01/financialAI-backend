@@ -6,7 +6,7 @@ import io
 from datetime import datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,6 +30,7 @@ from app.company.schemas import (
     PackageDocumentUpdate
 )
 from app.ai.llm import gemini_service
+from app.document_classifier.service import DocumentClassificationService
 import pypdf
 
 logger = logging.getLogger(__name__)
@@ -117,9 +118,10 @@ async def get_company_documents(
 
 @router.post("", response_model=CompanyDocumentResponse)
 async def upload_company_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    document_type: str = Form(...),
-    document_category: str = Form(...),
+    document_type: Optional[str] = Form(None),
+    document_category: Optional[str] = Form(None),
     current_user: User = Depends(get_current_session_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -140,6 +142,33 @@ async def upload_company_document(
     )
     if duplicate_res.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Duplicate document uploaded.")
+        
+    # Auto-classify document to populate document_type and document_category
+    extracted_text = ""
+    if file.content_type == "application/pdf":
+        try:
+            reader = pypdf.PdfReader(io.BytesIO(file_bytes))
+            num_pages = len(reader.pages)
+            if num_pages > 0:
+                extracted_text += reader.pages[0].extract_text() or ""
+            if num_pages > 1:
+                start_idx = max(1, num_pages - 2)
+                for i in range(start_idx, num_pages):
+                    extracted_text += "\n" + (reader.pages[i].extract_text() or "")
+        except Exception as e:
+            logger.warning(f"Failed to extract text for classification: {e}")
+
+    classification_result = DocumentClassificationService.classify_and_dispatch(
+        extracted_text=extracted_text,
+        file_bytes=file_bytes,
+        filename=file.filename,
+        background_tasks=background_tasks
+    )
+    
+    if not document_type:
+        document_type = classification_result.get("document_type", "Unknown")
+    if not document_category:
+        document_category = classification_result.get("primary_category_name", "Others / Unclassified")
         
     quality_score, is_verified, verification_notes = await process_document_ai(file, file_bytes, document_type, business)
     
