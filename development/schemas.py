@@ -17,12 +17,18 @@ class CompanyIntelligenceSchema(BaseModel):
 
 
 class DevelopmentInsightSchema(BaseModel):
+    candidate_id: str
+    relevance: Literal["high", "medium", "low", "none"] = "none"
+    relevance_score: float = Field(default=0.0, ge=0.0, le=1.0)
     what_happened: str
-    implication: str
-    confidence: float = Field(ge=0.0, le=1.0)
-    opportunity_type: Literal["tender", "RFP", "RFQ", "EOI", "contract", "procurement", "partnership", "expansion", "investment", "infrastructure", "market_opportunity", "regulatory_opportunity", "none"] = "none"
+    impact: Literal["positive", "negative", "neutral", "mixed"] = "neutral"
+    opportunity_type: Literal["direct_opportunity", "indirect_opportunity", "market_signal", "competitive_signal", "regulatory_impact", "risk", "none"] = "none"
     opportunity_relevance: Literal["high", "medium", "low", "none"] = "none"
     business_opportunity_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    implication: str
+    recommended_action: str = ""
+    development_type: str = "other"
+    confidence: float = Field(ge=0.0, le=1.0)
 
 
 class DevelopmentInsightBatchSchema(BaseModel):
@@ -30,11 +36,17 @@ class DevelopmentInsightBatchSchema(BaseModel):
 
 
 class GeminiDevelopmentInsightSchema(BaseModel):
+    candidate_id: str
+    relevance: str
+    relevance_score: float
     what_happened: str
-    implication: str
+    impact: str
     opportunity_type: str
     opportunity_relevance: str
     business_opportunity_score: float
+    implication: str
+    recommended_action: str
+    development_type: str
     confidence: float
 
 
@@ -55,8 +67,14 @@ class DevelopmentItem(BaseModel):
     summary: Optional[str] = None
     what_happened: Optional[str] = None
     implication: Optional[str] = None
+    recommended_action: Optional[str] = None
+    impact: Optional[str] = None
+    confidence: float = 0.0
     source_name: str
     source_url: Optional[str] = None
+    original_source: Optional[str] = None
+    original_url: Optional[str] = None
+    discovery_source: Optional[str] = None
     published_at: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
@@ -70,6 +88,10 @@ class DevelopmentItem(BaseModel):
     event_type: str = "other"
     relevance: Optional[str] = None
     relevance_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    tender_id: Optional[str] = None
+    closing_date: Optional[str] = None
+    issuing_organization: Optional[str] = None
+    sources: Optional[List[Dict[str, Optional[str]]]] = None
 
 
 class DevelopmentResponse(BaseModel):
@@ -77,4 +99,5 @@ class DevelopmentResponse(BaseModel):
     company_context: Optional[Dict[str, Any]] = None
     retrieved_at: str
     sources: List[str]
+    pipeline_metrics: Optional[Dict[str, int]] = None
     items: List[DevelopmentItem]

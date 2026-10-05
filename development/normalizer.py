@@ -124,13 +124,30 @@ def normalize_development_record(raw_item: Dict[str, Any], query_context: Dict[s
         event_type = "other"
 
     city, state = extract_location(title or "", summary or "", raw_item.get("city"), raw_item.get("state"))
+    
+    source_id = raw_item.get("source_id") or "unknown"
+    discovery_source_map = {
+        "google_news_rss": "Google News RSS",
+        "gdelt_doc": "GDELT",
+        "official_india_gov": "Google News RSS (Official Govt Filter)",
+        "indian_tender_portals": "Google News RSS (Tenders Filter)",
+        "newsapi": "NewsAPI",
+        "guardian": "The Guardian"
+    }
+    discovery_source = discovery_source_map.get(source_id, source_id)
+    
+    original_source = source_name
+    original_url = source_url
+    
     return {
         "title": title,
         "summary": summary,
         "source_name": source_name,
         "source_url": source_url,
+        "original_source": original_source,
+        "original_url": original_url,
+        "discovery_source": discovery_source,
         "published_at": published_at,
-        # Do not assign the company's location to an article with unknown geography.
         "city": city,
         "state": state,
         "category": category,
@@ -140,7 +157,7 @@ def normalize_development_record(raw_item: Dict[str, Any], query_context: Dict[s
         "discovery_query": normalize_text(raw_item.get("discovery_query")),
         "query_priority": raw_item.get("query_priority", 0.5),
         "source_result": raw_item.get("source_result"),
-        "source_id": raw_item.get("source_id") or "unknown",
+        "source_id": source_id,
         "source_record_id": raw_item.get("source_record_id"),
         "canonical_url": raw_item.get("canonical_url") or source_url,
         "normalized_title": title or "",
