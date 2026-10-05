@@ -9,6 +9,7 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.company.competitor_service import competitors
+from app.company.rating_service import rate_company, CompanyRating
 from app.auth.dependencies import get_current_session_user
 from app.auth.model import User
 from app.database.connection import get_db
@@ -351,3 +352,29 @@ async def get_competitors(
     if res["type"] == "Null":
         return {"status": "Failed - Error occured"}
     return {"status": "success", "type": res["type"], "content": res["content"]}
+
+@router.get("/public-rating", response_model=Dict)
+async def get_pub_rating(
+    current_user: User = Depends(get_current_session_user),
+    db: AsyncSession = Depends(get_db),
+    ):
+    company = await get_user_business(current_user,db)
+    
+    name = company.company_name
+    location = f"{company.city}, {company.state} - {company.pincode}"
+
+    res: CompanyRating = await rate_company(name, location, {})
+    if not res:
+        return {"status": "Failure", "Error": "Unable To Fetch Results"}
+    return {
+        "status": "Success",
+        "content":{
+        "employee_experience": res.employee_experience,
+        "creditworthiness": res.creditworthiness,
+        "client_satisfaction": res.client_satisfaction,
+        "stock_quality": res.stock_quality,
+        "overall_score": res.overall_score,
+        "overall_grade": res.overall_grade,
+        "sources": [i.source for i in res.sources]
+        }
+    }
