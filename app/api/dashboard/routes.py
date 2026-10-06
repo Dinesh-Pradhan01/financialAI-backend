@@ -1,5 +1,8 @@
+import logging
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
 
 from app.database.connection import get_db
 from app.auth.dependencies import get_current_session_user
@@ -21,6 +24,7 @@ async def get_employee_dashboard(db: AsyncSession = Depends(get_db), current_use
         metrics = await get_employee_dashboard_metrics(db, business_id=current_user.business_id)
         return success_response("Employee metrics fetched successfully", data=metrics)
     except Exception as e:
+        logger.exception("Failed to fetch employee metrics")
         return error_response(f"Failed to fetch employee metrics: {str(e)}", status_code=500)
 
 @cfo_dashboard_router.get("/vendor")
@@ -29,6 +33,7 @@ async def get_vendor_dashboard(db: AsyncSession = Depends(get_db), current_user 
         metrics = await get_vendor_dashboard_metrics(db, business_id=current_user.business_id)
         return success_response("Vendor metrics fetched successfully", data=metrics)
     except Exception as e:
+        logger.exception("Failed to fetch vendor metrics")
         return error_response(f"Failed to fetch vendor metrics: {str(e)}", status_code=500)
 
 @cfo_dashboard_router.get("/client")
@@ -37,6 +42,7 @@ async def get_client_dashboard(db: AsyncSession = Depends(get_db), current_user 
         metrics = await get_client_dashboard_metrics(db, business_id=current_user.business_id)
         return success_response("Client metrics fetched successfully", data=metrics)
     except Exception as e:
+        logger.exception("Failed to fetch client metrics")
         return error_response(f"Failed to fetch client metrics: {str(e)}", status_code=500)
 
 @router.get("/history")
@@ -45,6 +51,7 @@ async def get_history(db: AsyncSession = Depends(get_db), current_user = Depends
         activities = await get_recent_activity(db, scope="hr", business_id=current_user.business_id)
         return success_response("History fetched successfully", data=activities)
     except Exception as e:
+        logger.exception("Failed to fetch history")
         return error_response(f"Failed to fetch history: {str(e)}", status_code=500)
 
 @router.get("/history/{upload_id}/preview")
@@ -55,6 +62,7 @@ async def get_preview(upload_id: str, db: AsyncSession = Depends(get_db), curren
             return error_response(f"Upload preview not found for ID '{upload_id}'", status_code=404)
         return success_response("Preview fetched successfully", data=preview_data)
     except Exception as e:
+        logger.exception(f"Failed to fetch preview for upload_id={upload_id}")
         return error_response(f"Failed to fetch preview: {str(e)}", status_code=500)
 
 @cfo_dashboard_router.get("/history")
@@ -63,6 +71,7 @@ async def get_cfo_history(db: AsyncSession = Depends(get_db), current_user = Dep
         activities = await get_recent_activity(db, scope="cfo", business_id=current_user.business_id)
         return success_response("History fetched successfully", data=activities)
     except Exception as e:
+        logger.exception("Failed to fetch CFO history")
         return error_response(f"Failed to fetch history: {str(e)}", status_code=500)
 
 @cfo_dashboard_router.get("/history/{upload_id}/preview")
@@ -73,4 +82,5 @@ async def get_cfo_preview(upload_id: str, db: AsyncSession = Depends(get_db), cu
             return error_response(f"Upload preview not found for ID '{upload_id}'", status_code=404)
         return success_response("Preview fetched successfully", data=preview_data)
     except Exception as e:
+        logger.exception(f"Failed to fetch CFO preview for upload_id={upload_id}")
         return error_response(f"Failed to fetch preview: {str(e)}", status_code=500)

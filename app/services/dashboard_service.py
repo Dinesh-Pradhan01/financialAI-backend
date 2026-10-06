@@ -1,7 +1,7 @@
 from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from collections import defaultdict
-from typing import Optional
+from typing import Optional, Any
 
 from app.db.models.employee import EmployeeMaster
 from app.db.models.vendor import VendorMaster
@@ -190,19 +190,19 @@ async def get_recent_activity(db: AsyncSession, limit: int = 5, scope: Optional[
         
     return activities
 
-async def get_upload_preview(db: AsyncSession, upload_id: str, scope: Optional[str] = None, business_id: Optional[str] = None):
+async def get_upload_preview(db: AsyncSession, upload_id: str, scope: Optional[str] = None, business_id: Optional[Any] = None):
     import uuid
     try:
-        u_uuid = uuid.UUID(upload_id)
-    except ValueError:
+        u_uuid = uuid.UUID(str(upload_id)) if not isinstance(upload_id, uuid.UUID) else upload_id
+    except (ValueError, TypeError, AttributeError):
         return None
 
     stmt = select(UploadHistory).where(UploadHistory.id == u_uuid)
     if business_id:
         try:
-            b_uuid = uuid.UUID(business_id)
-            stmt = stmt.where(UploadHistory.business_id == b_uuid)
-        except ValueError:
+            b_uuid = uuid.UUID(str(business_id)) if not isinstance(business_id, uuid.UUID) else business_id
+            stmt = stmt.where(or_(UploadHistory.business_id == b_uuid, UploadHistory.business_id.is_(None)))
+        except (ValueError, TypeError, AttributeError):
             pass
             
     res = await db.execute(stmt)
@@ -232,14 +232,19 @@ async def get_upload_preview(db: AsyncSession, upload_id: str, scope: Optional[s
         if isinstance(p_data, dict):
             return {
                 "upload_type": module_type,
+                "upload_id": str(history_record.id),
                 "records": p_data.get("records", []),
                 "schema_def": p_data.get("schema_def"),
                 "summary": p_data.get("summary"),
-                "validation": p_data.get("validation", p_data.get("summary"))
+                "validation": p_data.get("validation", p_data.get("summary")),
+                "total_records": p_data.get("total_records", history_record.total_records),
+                "valid_records": p_data.get("valid_records"),
+                "invalid_records": p_data.get("invalid_records")
             }
         elif isinstance(p_data, list):
             return {
                 "upload_type": module_type,
+                "upload_id": str(history_record.id),
                 "records": p_data
             }
 
@@ -251,6 +256,7 @@ async def get_upload_preview(db: AsyncSession, upload_id: str, scope: Optional[s
     if not import_logs:
         return {
             "upload_type": module_type,
+            "upload_id": str(history_record.id),
             "records": []
         }
 
@@ -260,6 +266,7 @@ async def get_upload_preview(db: AsyncSession, upload_id: str, scope: Optional[s
     if not entity_ids:
         return {
             "upload_type": module_type,
+            "upload_id": str(history_record.id),
             "records": []
         }
 
@@ -273,10 +280,10 @@ async def get_upload_preview(db: AsyncSession, upload_id: str, scope: Optional[s
                 "emp_id": emp.employee_id,
                 "employee_name": emp.employee_name,
                 "email": emp.email,
-                "joining_date": emp.joining_date,
+                "joining_date": emp.joining_date.isoformat() if hasattr(emp.joining_date, "isoformat") else str(emp.joining_date) if emp.joining_date else None,
                 "department": emp.department,
                 "designation": emp.designation,
-                "salary": emp.salary,
+                "salary": float(emp.salary) if emp.salary is not None else 0.0,
                 "account_number": emp.account_number,
                 "ifsc_code": emp.ifsc_code,
                 "bank_name": emp.bank_name,
@@ -288,7 +295,7 @@ async def get_upload_preview(db: AsyncSession, upload_id: str, scope: Optional[s
             }
             for emp in employees
         ]
-        return {"upload_type": "employee", "records": records}
+        return {"upload_type": "employee", "upload_id": str(history_record.id), "records": records}
     elif entity_type.upper() == "VENDOR" or module_type == "vendor":
         rec_query = select(VendorMaster).where(VendorMaster.vendor_id.in_(entity_ids))
         rec_result = await db.execute(rec_query)
@@ -299,12 +306,12 @@ async def get_upload_preview(db: AsyncSession, upload_id: str, scope: Optional[s
                 "vendor_name": v.vendor_name,
                 "category": v.category,
                 "contract_id": v.contract_id,
-                "contract_value": v.contract_value,
+                "contract_value": float(v.contract_value) if v.contract_value is not None else None,
                 "currency": v.currency,
-                "monthly_cost": str(v.monthly_cost) if v.monthly_cost is not None else None
+                "monthly_cost": float(v.monthly_cost) if v.monthly_cost is not None else None
             }
             for v in vendors
         ]
-        return {"upload_type": "vendor", "records": records}
+        return {"upload_type": "vendor", "upload_id": str(history_record.id), "records": records}
     else:
-        return {"upload_type": module_type, "records": []}
+        return {"upload_type": module_type, "upload_id": str(history_record.id), "records": []}

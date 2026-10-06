@@ -1,4 +1,4 @@
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Any
 import re
 from datetime import date
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, UUID4
@@ -63,8 +63,34 @@ class VendorUpdate(BaseModel):
             raise ValueError("Invalid IFSC code")
         return v
 
-class VendorResponse(VendorBase):
-    model_config = ConfigDict(from_attributes=True)
+class VendorResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
+
+    vendor_id: Optional[str] = None
+    vendor_name: Optional[str] = None
+    category: Optional[str] = None
+    contract_value: Optional[float] = None
+    monthly_cost: Optional[float] = None
+    frequency: Optional[str] = None
+    bank_name: Optional[str] = None
+    account_holder_name: Optional[str] = None
+    account_number: Optional[str] = None
+    ifsc_code: Optional[str] = None
+
+    contract_id: Optional[str] = None
+    legal_name: Optional[str] = None
+    industry: Optional[str] = None
+    contract_type: Optional[str] = None
+    contract_start_date: Optional[Union[str, date]] = None
+    contract_end_date: Optional[Union[str, date]] = None
+    currency: Optional[str] = None
+    payment_type: Optional[str] = None
+    recurring: Optional[str] = None
+    status: Optional[str] = None
+    created_at: Optional[Any] = None
+    updated_at: Optional[Any] = None
+    created_by: Optional[str] = None
+    updated_by: Optional[str] = None
 
 class VendorListResponse(BaseModel):
     items: list[VendorResponse]

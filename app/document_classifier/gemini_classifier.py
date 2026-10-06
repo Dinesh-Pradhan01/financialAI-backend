@@ -15,8 +15,14 @@ class GeminiClassificationResult(BaseModel):
 class GeminiZeroShotClassifier:
     @staticmethod
     def classify(text: str) -> DocumentClassificationResult:
-        if not text.strip():
-            raise ValueError("Empty text provided for classification")
+        if not text or not text.strip():
+            return DocumentClassificationResult(
+                primary_category_id=9,
+                primary_category_name=CATEGORY_NAMES.get(9, "Others / Unclassified"),
+                document_type="Unclassified Document",
+                confidence_score=0.1,
+                method="empty_fallback"
+            )
             
         system_prompt = """You are an expert document classifier for Indian corporate, banking, and statutory documents.
 Your task is to assign exactly one primary category to the document based on these rules:
@@ -66,19 +72,23 @@ You must respond in strictly valid JSON format with keys:
             
             data = json.loads(response.text)
             
+            cat_id = data.get("primary_category_id", 9)
+            cat_name = CATEGORY_NAMES.get(cat_id, data.get("primary_category_name", "Others / Unclassified"))
+            doc_type = data.get("document_type") or "Unclassified Document"
+
             return DocumentClassificationResult(
-                primary_category_id=data.get("primary_category_id", 0),
-                primary_category_name=data.get("primary_category_name", "Unknown"),
-                document_type=data.get("document_type", "Unknown Document"),
+                primary_category_id=cat_id,
+                primary_category_name=cat_name,
+                document_type=doc_type,
                 confidence_score=0.85,
                 method="gemini_zeroshot"
             )
         except Exception as e:
-            # Fallback error handling
+            # Fallback error handling to Category 9 (Others / Unclassified)
             return DocumentClassificationResult(
-                primary_category_id=0,
-                primary_category_name="Unknown",
-                document_type=f"Classification Error: {str(e)}",
-                confidence_score=0.0,
-                method="error"
+                primary_category_id=9,
+                primary_category_name=CATEGORY_NAMES.get(9, "Others / Unclassified"),
+                document_type="Unclassified Document",
+                confidence_score=0.1,
+                method="error_fallback"
             )

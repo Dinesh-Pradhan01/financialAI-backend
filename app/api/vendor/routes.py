@@ -335,8 +335,9 @@ async def list_vendors(
     current_user = Depends(get_current_session_user)
 ):
     try:
+        biz_id = str(current_user.business_id) if current_user and current_user.business_id else None
         result = await vendor_service.get_vendors(
-            db=db, business_id=str(current_user.business_id), skip=skip, limit=limit, search=search,
+            db=db, business_id=biz_id, skip=skip, limit=limit, search=search,
             industry=industry, status=status, recurring=recurring,
             currency=currency, contract_type=contract_type, payment_type=payment_type
         )
@@ -348,7 +349,10 @@ async def list_vendors(
 @router.get("/{vendor_id}")
 async def get_vendor(vendor_id: str, category: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     try:
-        vendor = await vendor_service.get_vendor_by_key(db, str(current_user.business_id), vendor_id, category)
+        biz_id = str(current_user.business_id) if current_user and current_user.business_id else None
+        if not biz_id:
+            return error_response(message="No business associated with user", status_code=http_status.HTTP_400_BAD_REQUEST)
+        vendor = await vendor_service.get_vendor_by_key(db, biz_id, vendor_id, category)
         if not vendor:
             return error_response(message="Vendor not found", status_code=http_status.HTTP_404_NOT_FOUND)
         
@@ -362,7 +366,10 @@ async def get_vendor(vendor_id: str, category: Optional[str] = None, db: AsyncSe
 @router.put("/{vendor_id}")
 async def update_vendor(vendor_id: str, vendor_in: VendorUpdate, category: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     try:
-        vendor = await vendor_service.get_vendor_by_key(db, str(current_user.business_id), vendor_id, category or vendor_in.category)
+        biz_id = str(current_user.business_id) if current_user and current_user.business_id else None
+        if not biz_id:
+            return error_response(message="No business associated with user", status_code=http_status.HTTP_400_BAD_REQUEST)
+        vendor = await vendor_service.get_vendor_by_key(db, biz_id, vendor_id, category or vendor_in.category)
         if not vendor:
             return error_response(message="Vendor not found", status_code=http_status.HTTP_404_NOT_FOUND)
         
@@ -382,7 +389,10 @@ async def update_vendor(vendor_id: str, vendor_in: VendorUpdate, category: Optio
 @router.delete("/{vendor_id}")
 async def delete_vendor(vendor_id: str, category: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_session_user)):
     try:
-        success = await vendor_service.delete_vendor(db, str(current_user.business_id), vendor_id, category)
+        biz_id = str(current_user.business_id) if current_user and current_user.business_id else None
+        if not biz_id:
+            return error_response(message="No business associated with user", status_code=http_status.HTTP_400_BAD_REQUEST)
+        success = await vendor_service.delete_vendor(db, biz_id, vendor_id, category)
         if not success:
             return error_response(message="Vendor not found", status_code=http_status.HTTP_404_NOT_FOUND)
         return success_response(message="Vendor deleted successfully")

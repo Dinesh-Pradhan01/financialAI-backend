@@ -7,10 +7,12 @@ from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
+from app.storage.s3 import document_storage
 
 from app.auth.dependencies import get_current_session_user
 from app.auth.model import User
@@ -158,29 +160,36 @@ async def upload_company_document(
         except Exception as e:
             logger.warning(f"Failed to extract text for classification: {e}")
 
-    classification_result = DocumentClassificationService.classify_and_dispatch(
-        extracted_text=extracted_text,
-        file_bytes=file_bytes,
-        filename=file.filename,
-        background_tasks=background_tasks
-    )
+    try:
+        classification_result = DocumentClassificationService.classify_and_dispatch(
+            extracted_text=extracted_text,
+            file_bytes=file_bytes,
+            filename=file.filename,
+            background_tasks=background_tasks
+        )
+    except Exception as e:
+        logger.warning(f"Failed to classify document '{file.filename}', falling back to unclassified: {e}")
+        classification_result = {
+            "primary_category_id": 9,
+            "primary_category_name": "Others / Unclassified",
+            "document_type": "Unclassified Document",
+        }
     
     if not document_type:
-        document_type = classification_result.get("document_type", "Unknown")
+        document_type = classification_result.get("document_type", "Unclassified Document")
     if not document_category:
         document_category = classification_result.get("primary_category_name", "Others / Unclassified")
         
     quality_score, is_verified, verification_notes = await process_document_ai(file, file_bytes, document_type, business)
     
-    biz_dir = os.path.join(UPLOAD_DIR, str(business.id))
-    os.makedirs(biz_dir, exist_ok=True)
-    
     file_ext = os.path.splitext(file.filename)[1]
     safe_filename = f"{document_type}_{uuid.uuid4().hex[:8]}{file_ext}"
-    file_path = os.path.join(biz_dir, safe_filename)
-    
-    with open(file_path, "wb") as f:
-        f.write(file_bytes)
+    storage_key, file_path = document_storage.save(
+        business_id=str(business.id),
+        filename=safe_filename,
+        file_bytes=file_bytes,
+        content_type=file.content_type or "application/pdf"
+    )
         
     new_doc = BusinessVerificationDocument(
         business_id=business.id,
@@ -214,6 +223,8 @@ async def upload_company_document(
 async def replace_company_document(
     doc_id: uuid.UUID,
     file: UploadFile = File(...),
+    document_type: Optional[str] = Form(None),
+    document_category: Optional[str] = Form(None),
     current_user: User = Depends(get_current_session_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -244,24 +255,21 @@ async def replace_company_document(
     if duplicate_res.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Duplicate document uploaded.")
         
-    quality_score, is_verified, verification_notes = await process_document_ai(file, file_bytes, doc.document_type, business)
+    effective_type = document_type or doc.document_type
+    quality_score, is_verified, verification_notes = await process_document_ai(file, file_bytes, effective_type, business)
     
-    # Remove old file
-    if os.path.exists(doc.file_path):
-        try:
-            os.remove(doc.file_path)
-        except Exception as e:
-            logger.warning(f"Failed to delete old file {doc.file_path}: {e}")
+    # Remove old file from storage (S3 and local)
+    document_storage.delete(doc, str(business.id))
             
-    # Save new file
-    biz_dir = os.path.join(UPLOAD_DIR, str(business.id))
-    os.makedirs(biz_dir, exist_ok=True)
+    # Save new file to persistent storage (local + S3)
     file_ext = os.path.splitext(file.filename)[1]
-    safe_filename = f"{doc.document_type}_{uuid.uuid4().hex[:8]}{file_ext}"
-    file_path = os.path.join(biz_dir, safe_filename)
-    
-    with open(file_path, "wb") as f:
-        f.write(file_bytes)
+    safe_filename = f"{effective_type}_{uuid.uuid4().hex[:8]}{file_ext}"
+    storage_key, file_path = document_storage.save(
+        business_id=str(business.id),
+        filename=safe_filename,
+        file_bytes=file_bytes,
+        content_type=file.content_type or "application/octet-stream"
+    )
         
     # Update document record
     doc.filename = safe_filename
@@ -274,6 +282,10 @@ async def replace_company_document(
     doc.is_verified = is_verified
     doc.verification_notes = verification_notes
     doc.uploaded_by = current_user.id
+    if document_type:
+        doc.document_type = document_type
+    if document_category:
+        doc.document_category = document_category
     
     # R5: Audit log
     await create_audit_log(db, doc.id, current_user.id, "replace")
@@ -305,11 +317,7 @@ async def delete_company_document(
     # R5: Audit Log
     await create_audit_log(db, doc.id, current_user.id, "delete")
         
-    if os.path.exists(doc.file_path):
-        try:
-            os.remove(doc.file_path)
-        except Exception as e:
-            logger.warning(f"Could not remove file {doc.file_path}: {e}")
+    document_storage.delete(doc, str(business.id))
             
     await db.delete(doc)
     await db.commit()
@@ -334,14 +342,70 @@ async def download_company_document(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
         
-    if not os.path.exists(doc.file_path):
-        raise HTTPException(status_code=404, detail="File physically missing from disk.")
-        
-    return FileResponse(
-        doc.file_path, 
-        filename=doc.original_name, 
-        media_type=doc.mime_type
+    local_path, memory_bytes, mime_type = document_storage.locate_or_fetch(doc, str(business.id))
+
+    if memory_bytes is not None:
+        return StreamingResponse(
+            io.BytesIO(memory_bytes),
+            media_type=mime_type,
+            headers={
+                "Content-Disposition": f'attachment; filename="{doc.original_name}"',
+                "Content-Length": str(len(memory_bytes)),
+            }
+        )
+    elif local_path is not None and os.path.exists(local_path):
+        return FileResponse(
+            local_path, 
+            filename=doc.original_name, 
+            media_type=mime_type,
+            headers={"Content-Disposition": f'attachment; filename="{doc.original_name}"'}
+        )
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail=f"File '{doc.original_name}' was not found in storage. It may have been uploaded from another environment without cloud storage configured. Please use 'Replace Document' to upload a copy."
+        )
+
+@router.get("/{doc_id}/preview")
+async def preview_company_document(
+    doc_id: uuid.UUID,
+    current_user: User = Depends(get_current_session_user),
+    db: AsyncSession = Depends(get_db),
+):
+    business = await get_user_business(current_user, db)
+    
+    doc_res = await db.execute(
+        select(BusinessVerificationDocument).where(
+            BusinessVerificationDocument.id == doc_id,
+            BusinessVerificationDocument.business_id == business.id
+        )
     )
+    doc = doc_res.scalar_one_or_none()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found.")
+        
+    local_path, memory_bytes, mime_type = document_storage.locate_or_fetch(doc, str(business.id))
+
+    if memory_bytes is not None:
+        return StreamingResponse(
+            io.BytesIO(memory_bytes),
+            media_type=mime_type,
+            headers={
+                "Content-Disposition": f'inline; filename="{doc.original_name}"',
+                "Content-Length": str(len(memory_bytes)),
+            }
+        )
+    elif local_path is not None and os.path.exists(local_path):
+        return FileResponse(
+            local_path, 
+            media_type=mime_type,
+            headers={"Content-Disposition": f'inline; filename="{doc.original_name}"'}
+        )
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail=f"File '{doc.original_name}' was not found in storage. It may have been uploaded from another environment without cloud storage configured. Please use 'Replace Document' to upload a copy."
+        )
 
 # ================= PACKAGES ENDPOINTS =================
 

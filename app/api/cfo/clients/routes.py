@@ -243,9 +243,14 @@ async def get_client_history_preview(upload_id: str, db: AsyncSession = Depends(
     activities = await get_recent_activity(db, scope="cfo")
     for item in activities:
         if item.get("upload_id") == upload_id and item.get("upload_type", "").upper().startswith("CLIENT"):
+            import uuid
             from sqlalchemy import select
             from app.db.models.upload import UploadHistory
-            obj = await db.execute(select(UploadHistory).where(UploadHistory.id == upload_id))
+            try:
+                u_id = uuid.UUID(str(upload_id)) if not isinstance(upload_id, uuid.UUID) else upload_id
+            except (ValueError, TypeError):
+                break
+            obj = await db.execute(select(UploadHistory).where(UploadHistory.id == u_id))
             history = obj.scalars().first()
             if history:
                 data = history.preview_data or {"records": [], "summary": {}}
