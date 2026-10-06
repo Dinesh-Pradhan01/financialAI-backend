@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin, urlparse
 from uuid import UUID
+from difflib import SequenceMatcher
 
 import httpx
 from fastapi import HTTPException, status
@@ -26,6 +27,7 @@ from development.sources.gdelt import GDELTSource
 from development.sources.google_news import GoogleNewsSource
 from development.sources.newsapi import NewsAPISource
 from development.sources.guardian import GuardianSource
+from development.sources.official_sources import OfficialIndiaGovSource, IndianTenderPortalSource
 
 logger = logging.getLogger(__name__)
 _gemini_service = None
@@ -212,44 +214,86 @@ def _parse_development_insights(raw: str, items: List[Dict[str, Any]], profile: 
     try:
         payload = json.loads(cleaned)
     except json.JSONDecodeError:
-        decoder = json.JSONDecoder()
-        payload = None
-        for match in re.finditer(r"[\[{]", cleaned):
+        # Try finding individual JSON objects to recover partial response
+        rows = []
+        for match in re.finditer(r"\{[^{}]*\}", cleaned):
             try:
-                payload, _ = decoder.raw_decode(cleaned[match.start():])
-                break
+                obj = json.loads(match.group(0))
+                if isinstance(obj, dict) and ("what_happened" in obj or "implication" in obj):
+                    rows.append(obj)
             except json.JSONDecodeError:
                 continue
-        if payload is None:
-            raise
+        if not rows:
+            # If still nothing, try to balance brackets if truncated
+            try:
+                fixed = cleaned
+                if fixed.count("[") > fixed.count("]"):
+                    fixed = fixed + "]"
+                if fixed.count("{") > fixed.count("}"):
+                    fixed = fixed + "}"
+                if fixed.count('"') % 2 != 0:
+                    fixed = fixed + '"'
+                payload = json.loads(fixed)
+                rows = payload if isinstance(payload, list) else payload.get("insights", payload.get("results", [])) if isinstance(payload, dict) else []
+            except json.JSONDecodeError:
+                rows = []
+        payload = rows
+    if not payload:
+        import logging
+        logging.getLogger(__name__).warning("JSON parsing completely failed. Raw response was: %s", raw[:1000])
+        
     rows = payload if isinstance(payload, list) else payload.get("insights", payload.get("results", [])) if isinstance(payload, dict) else []
     if not isinstance(rows, list):
         rows = []
-    allowed_types = {"tender", "rfp", "rfq", "eoi", "RFP", "RFQ", "EOI", "contract", "procurement", "partnership", "expansion", "investment", "infrastructure", "market_opportunity", "regulatory_opportunity", "none"}
+    allowed_types = {"direct_opportunity", "indirect_opportunity", "market_signal", "competitive_signal", "regulatory_impact", "risk", "none"}
     allowed_relevance = {"high", "medium", "low", "none"}
+    allowed_impact = {"positive", "negative", "neutral", "mixed"}
     normalized = []
     company_name = profile.get("company_name") or "the company"
     business_domain = next(iter(profile.get("business_domains") or profile.get("technologies") or ["its verified business domains"]), "its verified business domains")
-    for index, item in enumerate(items):
-        row = rows[index] if index < len(rows) and isinstance(rows[index], dict) else {}
+    
+    # Create mapping of candidate_id to output row
+    row_map = {str(row.get("candidate_id")): row for row in rows if isinstance(row, dict) and row.get("candidate_id")}
+    
+    for item in items:
+        candidate_id = item.get("candidate_id")
+        row = row_map.get(candidate_id, {})
+        
         title = str(item.get("title") or "This development")
-        what_happened = str(row.get("what_happened") or row.get("summary") or row.get("headline") or title).strip()
+        what_happened = str(row.get("what_happened") or "").strip()
+        if not what_happened:
+            what_happened = str(item.get("summary") or title).strip()
+            
         implication = str(row.get("implication") or row.get("why_it_matters") or "").strip()
         if not implication:
             implication = (f"This may be relevant to {company_name} because its verified work includes {business_domain}. "
                            "The source does not establish a direct contract or confirmed commercial benefit.")
+        
+        relevance = str(row.get("relevance") or "none").strip().lower()
+        if relevance not in allowed_relevance:
+            relevance = "none"
+            
+        impact = str(row.get("impact") or "neutral").strip().lower()
+        if impact not in allowed_impact:
+            impact = "neutral"
+
         opportunity_type = str(row.get("opportunity_type") or "none").strip().lower().replace(" ", "_").replace("-", "_")
-        if opportunity_type in {"market", "market_opportunity", "business_opportunity"}:
-            opportunity_type = "market_opportunity"
-        elif opportunity_type in {"regulatory", "policy_opportunity"}:
-            opportunity_type = "regulatory_opportunity"
-        elif opportunity_type.upper() in {"RFP", "RFQ", "EOI"}:
-            opportunity_type = opportunity_type.upper()
         if opportunity_type not in allowed_types:
             opportunity_type = "none"
+            
+        # Prevent generic competitor classification for unrelated awards
+        if opportunity_type == "competitive_signal":
+            competitors = [str(c).lower() for c in profile.get("competitors", [])]
+            is_verified = any(c in title.lower() or c in what_happened.lower() for c in competitors) if competitors else False
+            is_workplace_award = "best workplace" in title.lower() or "best workplaces" in title.lower() or "great place to work" in title.lower()
+            if is_workplace_award and not is_verified:
+                opportunity_type = "none"
+                implication = "While this recognizes a peer firm's employer brand, it does not represent direct service competition for this company."
+            
         opportunity_relevance = str(row.get("opportunity_relevance") or "none").strip().lower()
         if opportunity_relevance not in allowed_relevance:
             opportunity_relevance = "none"
+            
         try:
             confidence = max(0.0, min(1.0, float(row.get("confidence", .5))))
         except (TypeError, ValueError):
@@ -258,7 +302,28 @@ def _parse_development_insights(raw: str, items: List[Dict[str, Any]], profile: 
             score = max(0.0, min(1.0, float(row.get("business_opportunity_score", row.get("opportunity_score", 0.0)))))
         except (TypeError, ValueError):
             score = 0.0
-        normalized.append({"what_happened": what_happened, "implication": implication, "opportunity_type": opportunity_type, "opportunity_relevance": opportunity_relevance, "business_opportunity_score": score, "confidence": confidence})
+        try:
+            relevance_score = max(0.0, min(1.0, float(row.get("relevance_score", 0.0))))
+        except (TypeError, ValueError):
+            relevance_score = 0.0
+            
+        recommended_action = str(row.get("recommended_action") or "").strip()
+        development_type = str(row.get("development_type") or item.get("development_type") or "other").strip()
+
+        normalized.append({
+            "candidate_id": candidate_id,
+            "what_happened": what_happened,
+            "implication": implication,
+            "relevance": relevance,
+            "relevance_score": relevance_score,
+            "impact": impact,
+            "opportunity_type": opportunity_type,
+            "opportunity_relevance": opportunity_relevance,
+            "business_opportunity_score": score,
+            "confidence": confidence,
+            "recommended_action": recommended_action,
+            "development_type": development_type
+        })
     return DevelopmentInsightBatchSchema.model_validate({"insights": normalized}).insights
 
 
@@ -308,6 +373,8 @@ class DevelopmentService:
             self.sources.append(GDELTSource())
         if os.getenv("DEVELOPMENTS_GOOGLE_NEWS_ENABLED", "true").lower() not in {"0", "false", "no"}:
             self.sources.append(GoogleNewsSource())
+            self.sources.append(OfficialIndiaGovSource())
+            self.sources.append(IndianTenderPortalSource())
         if os.getenv("NEWSAPI_KEY"):
             self.sources.append(NewsAPISource())
         if os.getenv("THE_GUARDIAN_API_KEY") or os.getenv("GUARDIAN_API_KEY"):
@@ -332,7 +399,7 @@ class DevelopmentService:
             return {key: row._mapping.get(key) for key in ("id", "company_name", "city", "state", "business_category", "business_type", "website")}
         return dict(zip(("id", "company_name", "city", "state", "business_category", "business_type", "website"), row))
 
-    async def fetch_company_developments(self, company_id: str, db: Any = None, limit: int = 10, days: int = 7, category: Optional[str] = None) -> Dict[str, Any]:
+    async def fetch_company_developments(self, company_id: str, db: Any = None, limit: int = 10, days: int = 15, category: Optional[str] = None) -> Dict[str, Any]:
         try:
             UUID(str(company_id))
         except ValueError as exc:
@@ -426,7 +493,8 @@ class DevelopmentService:
         selected = select_diverse_developments(ranked, max(1, min(limit, 20)))
         logger.info("Development pipeline counts raw=%d normalized=%d deduplicated=%d relevant=%d within_requested_days=%d selected=%d", len(raw_items), len(items), len(deduped), relevance_filtered_count, date_filtered_count, len(selected))
         logger.info("Development timing stage=normalize_dedupe_rank_select elapsed_seconds=%.2f", time.perf_counter() - processing_started)
-        for item in selected:
+        for index, item in enumerate(selected):
+            item["candidate_id"] = f"dev_{index:03d}"
             item["what_happened"] = item.get("summary") or item.get("title")
             item["implication"] = None
             item["opportunity_relevance"] = "high" if item.get("business_opportunity_score", 0) >= .75 else "medium" if item.get("business_opportunity_score", 0) >= .4 else "none"
@@ -435,23 +503,52 @@ class DevelopmentService:
         gemini_insight_call = bool(insight_items and gemini and gemini.is_available())
         if gemini_insight_call:
             gemini_started = time.perf_counter()
-            articles = [{"index": index, "title": item.get("title"), "summary": str(item.get("summary") or "")[:500], "published_at": item.get("published_at"), "source_name": item.get("source_name"), "event_type": item.get("event_type")} for index, item in enumerate(insight_items)]
-            prompt = ("Return JSON object {insights:[{what_happened:string,implication:string,opportunity_type:string,opportunity_relevance:string,business_opportunity_score:number,confidence:number}]}, one item for each input article in order. Keep what_happened to one short sentence and implication to at most 40 words. "
-                      "Use only the supplied article and company evidence; do not invent facts, relationships or financial impact. "
-                      "Implication must explain why this company may care and state uncertainty when evidence is limited. Do not claim the company will win or benefit. "
-                      "Only classify a direct tender/RFP opportunity if source evidence describes an actual procurement notice; otherwise use market_opportunity or none and conditional wording. Confidence measures interpretation confidence, not future probability. "
-                      "opportunity_type must be one of tender, RFP, RFQ, EOI, contract, procurement, partnership, expansion, investment, infrastructure, market_opportunity, regulatory_opportunity, none. "
-                      "opportunity_relevance must be high, medium, low, or none. business_opportunity_score is 0..1 and must be supported by the article, with 0 meaning no identifiable opportunity. "
+            articles = [
+                {
+                    "candidate_id": item["candidate_id"],
+                    "title": item.get("title"), 
+                    "summary": str(item.get("summary") or "")[:1500], 
+                    "published_at": item.get("published_at"), 
+                    "source_name": item.get("source_name"), 
+                    "original_source": item.get("original_source"), 
+                    "discovery_source": item.get("discovery_source"), 
+                    "original_url": item.get("original_url"),
+                    "event_type": item.get("event_type"), 
+                    "category": item.get("category"),
+                    "city": item.get("city"), 
+                    "state": item.get("state"),
+                    "tender_id": item.get("tender_id"), 
+                    "closing_date": item.get("closing_date"), 
+                    "issuing_organization": item.get("issuing_organization")
+                } 
+                for index, item in enumerate(insight_items)
+            ]
+            prompt = ("Analyze each supplied development independently against the supplied company profile.\n"
+                      "Do not search for additional information. Do not invent facts.\n"
+                      "1. WHAT HAPPENED: Explain the actual event factually and concisely. Do NOT just repeat the title. Identify who did what, when supported, and include important value/location/deadline details. It must describe ONLY the event represented by the current item. Do not describe other items.\n"
+                      "2. IMPLICATION: Must explain WHAT HAPPENED + WHY IT MATTERS TO THIS COMPANY + WHAT BUSINESS CAPABILITY/MARKET IS AFFECTED + BUSINESS CONSEQUENCE.\n"
+                      "CRITICAL: Do NOT use generic patterns like 'This may be relevant to X because its verified work includes Y.' Each implication must be uniquely reasoned and connect the specific event to a specific company capability.\n"
+                      "If the event is a tender, determine if it's a direct opportunity based on capabilities. If it's a competitor, explain competitive impact. If regulatory, explain regulatory impact. Do not force every event into an opportunity.\n"
+                      "3. OPPORTUNITY CLASSIFICATION: Classify accurately (direct_opportunity, indirect_opportunity, market_signal, competitive_signal, regulatory_impact, operational_impact, risk, none).\n"
+                      "For 'competitive_signal', require a verified direct competitor relationship, strong evidence of direct service overlap, or verified competition for the same market. Do NOT classify a company as a competitor merely because they share a broad industry category.\n"
+                      "4. RECOMMENDED ACTION: Generate only when evidence supports one (e.g., 'Monitor tender closing date'). Otherwise leave empty.\n"
+                      "5. FACT VS INFERENCE: Distinguish facts from inferences. Do not present speculation as fact. Avoid claims like 'will drive substantial revenue growth' or 'will definitely create contracts' unless directly supported. Use calibrated language (e.g., 'could create demand', 'signals potential demand').\n"
                       + json.dumps({"company": {k: profile.get(k) for k in ("company_name", "primary_industry", "business_domains", "products_services", "technologies", "business_keywords", "regulatory_domains", "city", "state")}, "articles": [{**article, "development_type": insight_items[idx].get("development_type"), "opportunity_type": insight_items[idx].get("opportunity_type"), "business_opportunity_score": insight_items[idx].get("business_opportunity_score")} for idx, article in enumerate(articles)]}, ensure_ascii=False))
             try:
                 from app.ai.llm import genai
-                generation_config = genai.GenerationConfig(response_mime_type="application/json", response_schema=GeminiDevelopmentInsightBatchSchema, max_output_tokens=2500, temperature=0.2)
-                response = await asyncio.wait_for(gemini._generate_content_with_retry(prompt, generation_config), timeout=float(os.getenv("DEVELOPMENTS_GEMINI_TIMEOUT", "24")))
+                generation_config = genai.GenerationConfig(response_mime_type="application/json", response_schema=GeminiDevelopmentInsightBatchSchema, max_output_tokens=8192, temperature=0.1)
+                response = await asyncio.wait_for(gemini._generate_content_with_retry(prompt, generation_config), timeout=float(os.getenv("DEVELOPMENTS_GEMINI_TIMEOUT", "45")))
                 insights = _parse_development_insights(response.text, insight_items, profile)
+                insights = await _validate_and_refine_insights(insights, insight_items, profile, gemini, generation_config)
                 for item, insight in zip(insight_items, insights):
                     item["what_happened"] = insight.what_happened or item["what_happened"]
                     item["implication"] = insight.implication
                     item["confidence"] = insight.confidence
+                    item["relevance"] = insight.relevance
+                    item["relevance_score"] = insight.relevance_score if insight.relevance_score > 0 else item.get("relevance_score", 0.0)
+                    item["impact"] = insight.impact
+                    item["recommended_action"] = insight.recommended_action
+                    item["development_type"] = insight.development_type or item.get("development_type", "domain")
                     if insight.opportunity_type != "none":
                         item["opportunity_type"] = insight.opportunity_type
                     evidence_cap = _evidence_opportunity_score(item, profile)
@@ -463,14 +560,29 @@ class DevelopmentService:
         for item in selected:
             if not item.get("implication"):
                 item["implication"] = _fallback_company_implication(item, profile)
-        response_items = [{"title": i.get("title") or "Untitled development", "summary": i.get("summary"), "what_happened": i.get("what_happened"), "implication": i.get("implication"), "source_name": i.get("source_name") or "Unknown source", "source_url": i.get("source_url"), "published_at": i.get("published_at"), "city": i.get("city"), "state": i.get("state"), "location": {"city": i.get("city"), "state": i.get("state")}, "source": {"name": i.get("source_name") or "Unknown source", "url": i.get("source_url")}, "category": i.get("development_type") or "domain", "development_type": i.get("development_type") or "domain", "opportunity_type": i.get("opportunity_type") or "none", "opportunity_relevance": i.get("opportunity_relevance", "none"), "business_opportunity_score": i.get("business_opportunity_score", 0.0), "event_type": i.get("event_type") or "other", "relevance": "high" if i.get("relevance_score", 0) >= 0.75 else "medium" if i.get("relevance_score", 0) >= 0.5 else "low", "relevance_score": i.get("relevance_score", 0.0)} for i in selected]
+                
+        selected.sort(key=lambda x: str(x.get("published_at") or ""), reverse=True)
+        
+        response_items = [{"title": i.get("title") or "Untitled development", "summary": i.get("summary"), "what_happened": i.get("what_happened"), "implication": i.get("implication"), "impact": i.get("impact"), "recommended_action": i.get("recommended_action"), "confidence": i.get("confidence", 0.0), "source_name": i.get("source_name") or "Unknown source", "source_url": i.get("source_url"), "original_source": i.get("original_source"), "original_url": i.get("original_url"), "discovery_source": i.get("discovery_source"), "published_at": i.get("published_at"), "city": i.get("city"), "state": i.get("state"), "location": {"city": i.get("city"), "state": i.get("state")}, "source": {"name": i.get("source_name") or "Unknown source", "url": i.get("source_url")}, "sources": i.get("sources"), "category": i.get("development_type") or "domain", "development_type": i.get("development_type") or "domain", "opportunity_type": i.get("opportunity_type") or "none", "opportunity_relevance": i.get("opportunity_relevance", "none"), "business_opportunity_score": i.get("business_opportunity_score", 0.0), "event_type": i.get("event_type") or "other", "relevance": i.get("relevance", "none") if i.get("relevance") and i.get("relevance") != "none" else ("high" if i.get("relevance_score", 0) >= 0.75 else "medium" if i.get("relevance_score", 0) >= 0.5 else "low"), "relevance_score": i.get("relevance_score", 0.0), "tender_id": i.get("tender_id"), "closing_date": i.get("closing_date"), "issuing_organization": i.get("issuing_organization")} for i in selected]
         public_context = {"industry": profile.get("primary_industry"), "sub_industries": profile.get("sub_industries", []), "business_domains": profile.get("business_domains", []), "technologies": profile.get("technologies", []), "products_services": profile.get("products_services", [])}
         distribution: Dict[str, int] = {}
         for item in selected:
             key = item.get("development_type", "domain")
             distribution[key] = distribution.get(key, 0) + 1
         logger.info("Development final category_distribution=%s gemini_calls=%d total_latency_seconds=%.2f", distribution, int(profile.get("_gemini_company_call", False)) + int(gemini_insight_call), time.perf_counter() - request_started)
-        return DevelopmentResponse(company={"id": str(company["id"]), "name": company["company_name"], "city": company.get("city"), "state": company.get("state"), "business_category": company.get("business_category")}, company_context=public_context, retrieved_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), sources=sorted(used), items=response_items).model_dump()
+        
+        pipeline_metrics = {
+            "raw_candidates": len(raw_items),
+            "deduplicated_candidates": len(deduped),
+            "relevance_valid": relevance_filtered_count,
+            "date_valid": date_filtered_count,
+            "category_valid": len(ranked),
+            "selected": len(selected),
+            "final_returned": len(response_items)
+        }
+        logger.info("Development Pipeline Metrics: %s", pipeline_metrics)
+        
+        return DevelopmentResponse(company={"id": str(company["id"]), "name": company["company_name"], "city": company.get("city"), "state": company.get("state"), "business_category": company.get("business_category")}, company_context=public_context, retrieved_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), sources=sorted(used), pipeline_metrics=pipeline_metrics, items=response_items).model_dump()
 
 
 def _within_days(value: str, cutoff: datetime) -> bool:
@@ -597,6 +709,46 @@ def _contains_term(text_value: str, term: str) -> bool:
     if term == "ai":
         return bool(re.search(r"\bai\b", text_value))
     return term in text_value
+
+
+async def _validate_and_refine_insights(insights, insight_items, profile, gemini, generation_config):
+    failed_indices = []
+    generic_patterns = ["because its verified work includes", "because it operates in", "may be relevant to", "could be relevant to", "may benefit because", "may affect its market or service planning"]
+    for i in range(len(insights)):
+        implication = (insights[i].implication or "").lower()
+        is_generic = any(p in implication for p in generic_patterns)
+        
+        is_duplicate = False
+        for j in range(i):
+            other_imp = (insights[j].implication or "").lower()
+            if SequenceMatcher(None, implication, other_imp).ratio() > 0.65:
+                is_duplicate = True
+                break
+        
+        what_happened = (insights[i].what_happened or "").lower()
+        title = (insight_items[i].get("title") or "").lower()
+        title_similar = SequenceMatcher(None, what_happened, title).ratio() > 0.85
+
+        if is_generic or is_duplicate or title_similar or len(implication.split()) < 5:
+            failed_indices.append(i)
+    
+    if failed_indices:
+        regen_articles = [{"index": idx, "title": insight_items[idx].get("title"), "summary": str(insight_items[idx].get("summary") or "")[:1000], "published_at": insight_items[idx].get("published_at"), "event_type": insight_items[idx].get("event_type")} for idx in failed_indices]
+        regen_prompt = ("You previously generated generic or duplicate implications for these developments, or merely repeated the title. "
+                        "REWRITE the implications to be highly specific to the actual event AND the company's specific capabilities. "
+                        "Do NOT use phrases like 'because it operates in' or 'because its verified work includes'. "
+                        "Explain the ACTUAL business consequence based on the event details. "
+                        "WHAT HAPPENED must summarize the event factually, DO NOT just copy the title.\n"
+                        + json.dumps({"company": {k: profile.get(k) for k in ("company_name", "primary_industry", "business_domains", "products_services", "technologies")}, "articles": regen_articles}, ensure_ascii=False))
+        try:
+            regen_resp = await asyncio.wait_for(gemini._generate_content_with_retry(regen_prompt, generation_config), timeout=45.0)
+            regen_insights = _parse_development_insights(regen_resp.text, [insight_items[idx] for idx in failed_indices], profile)
+            for regen_idx, original_idx in enumerate(failed_indices):
+                if regen_idx < len(regen_insights):
+                    insights[original_idx] = regen_insights[regen_idx]
+        except Exception as e:
+            logger.warning("Regeneration failed: %s", e)
+    return insights
 
 
 def select_diverse_developments(items: List[Dict[str, Any]], limit: int) -> List[Dict[str, Any]]:

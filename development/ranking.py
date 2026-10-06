@@ -46,16 +46,23 @@ def deduplicate_developments(items: Iterable[Dict[str, Any]]) -> List[Dict[str, 
         key = _canonical_key(item)
         title = _normalize_title(item.get("title") or "")
         published = str(item.get("published_at") or "")[:10]
+        
+        if "sources" not in item:
+            item["sources"] = [{"name": item.get("source_name") or item.get("original_source"), "url": item.get("source_url") or item.get("original_url")}]
+
         if title and published:
             words = set(re.findall(r"[a-z0-9]+", title))
             for existing_key, existing_title, existing_words in title_groups.get(published, []):
                 similarity = SequenceMatcher(None, title, existing_title).ratio()
                 overlap = len(words & existing_words) / max(1, len(words | existing_words))
-                if similarity >= .93 and overlap >= .70:
+                
+                # Check for strong keyword overlap if semantic similarity is moderate
+                if (similarity >= .85) or (similarity >= .60 and overlap >= .45):
                     key = existing_key
                     break
             else:
                 title_groups.setdefault(published, []).append((key, title, words))
+                
         current = best_by_key.get(key)
         if current is None:
             best_by_key[key] = item
@@ -76,8 +83,13 @@ def deduplicate_developments(items: Iterable[Dict[str, Any]]) -> List[Dict[str, 
             bool(item.get("title") or item.get("normalized_title")),
         )
 
+        merged_sources = { (s["name"], s["url"]): s for s in (current.get("sources", []) + item.get("sources", [])) if s["name"] and s["url"] }
+        
         if new_quality > current_quality:
+            item["sources"] = list(merged_sources.values())
             best_by_key[key] = item
+        else:
+            current["sources"] = list(merged_sources.values())
 
     ordered = list(best_by_key.values())
     ordered.sort(key=lambda row: (row.get("published_at") or "", row.get("title") or ""), reverse=True)
@@ -228,7 +240,12 @@ def _matches_company_domain(item: Dict[str, Any], query_context: Dict[str, Any])
     item["_domain_match"] = _term_match(combined, _expand_profile_terms(_context_terms(query_context, "primary_industry", "sub_industries", "business_domains", "business_keywords", "products_services", "technologies")))
     item["_company_or_ecosystem_match"] = _term_match(combined, _context_terms(query_context, "company_name", "competitors"))
     is_relevant_opportunity = float(item.get("business_opportunity_score", 0.0)) >= .5 and item.get("opportunity_type") not in (None, "none")
-    return bool(item["_domain_match"] or item["_company_or_ecosystem_match"] or is_relevant_opportunity)
+    
+    has_geography = _calculate_geographic_relevance(item, query_context) > 0.3
+    has_general_project = any(term in combined for term in ("project", "initiative", "tender", "procurement", "rfp", "contract", "infrastructure", "smart city", "command centre"))
+    local_project = bool(has_geography and has_general_project)
+    
+    return bool(item["_domain_match"] or item["_company_or_ecosystem_match"] or is_relevant_opportunity or local_project)
 
 
 def rank_development_items(items: Iterable[Dict[str, Any]], query_context: Dict[str, Any]) -> List[Dict[str, Any]]:

@@ -13,7 +13,7 @@ router = APIRouter(tags=["Developments"])
 async def get_company_developments(
     company_id: str,
     limit: int = Query(10, ge=1, le=20),
-    days: int = Query(7, ge=1, le=30),
+    days: int = Query(15, ge=1, le=30),
     category: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):

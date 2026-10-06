@@ -39,19 +39,31 @@ class QueryBuilder:
             priority = max(.70, .96 - index * .025)
             add(T.DOMAIN, f'"{domain}" India developments', priority)
             add(T.GOVERNMENT, f'"{domain}" government project OR initiative India', priority - .02)
-            add(T.TENDER, f'"{domain}" government tender OR RFP OR RFQ OR EOI India', .99 - index * .01)
-            add(T.OPPORTUNITY, f'"{domain}" procurement OR contract award OR investment India', .91 - index * .02)
+            add(T.TENDER, f'"{domain}" government tender India', .99 - index * .01)
+            add(T.RFP, f'"{domain}" RFP OR "request for proposal" India', .98 - index * .01)
+            add(T.RFQ, f'"{domain}" RFQ OR "request for quotation" India', .97 - index * .01)
+            add(T.EOI, f'"{domain}" EOI OR "expression of interest" India', .96 - index * .01)
+            add(T.PROCUREMENT, f'"{domain}" procurement OR contract award India', .95 - index * .01)
+            add(T.OPPORTUNITY, f'"{domain}" opportunity OR investment India', .91 - index * .02)
+            add(T.INDUSTRY, f'"{domain}" industry updates India', .80 - index * .02)
             if city:
                 add(T.LOCAL, f'"{city}" "{domain}" project OR initiative OR tender', .90 - index * .015)
+                add(T.LOCAL, f'"{city}" "{domain}"', .85 - index * .015)
             if state:
                 add(T.STATE, f'"{state}" "{domain}" government project OR procurement OR RFP', .89 - index * .015)
             for place in nearby[:3]:
                 add(T.NEARBY, f'"{place}" "{domain}" project OR tender OR investment', .77 - index * .01)
 
+        products_services = _unique(_values(context, "products_services"))[:5]
+        for prod in products_services:
+            add(T.PRODUCT_SERVICE, f'"{prod}" India adoption OR market', .88)
+            add(T.PROCUREMENT, f'"{prod}" procurement OR contract India', .92)
+
         for technology in technologies:
             add(T.TECHNOLOGY, f'"{technology}" India adoption OR projects OR developments', .92)
             add(T.GOVERNMENT, f'"{technology}" government program OR initiative India', .90)
             add(T.TENDER, f'"{technology}" government procurement OR tender India', .96)
+            add(T.RFP, f'"{technology}" RFP India', .95)
             if city:
                 add(T.LOCAL, f'"{city}" "{technology}" project OR initiative OR tender', .88)
             if state:
@@ -62,12 +74,12 @@ class QueryBuilder:
         if name:
             add(T.COMPANY, f'"{name}" contract OR expansion OR partnership', .55)
 
-        # Supplement specialized searches with national/global policy and market news.
         domain_expr = " OR ".join(f'"{domain}"' for domain in domains[:4])
         if domain_expr:
             add(T.INFRASTRUCTURE, f'({domain_expr}) infrastructure investment India', .82)
             add(T.INVESTMENT, f'({domain_expr}) investment OR expansion India', .81)
-            add(T.REGULATORY, f'({domain_expr}) regulation OR compliance OR policy India', .83)
+            add(T.REGULATORY, f'({domain_expr}) regulation OR compliance India', .83)
+            add(T.POLICY, f'({domain_expr}) policy OR government scheme India', .85)
             add(T.NATIONAL, f'({domain_expr}) India industry developments', .78)
             add(T.GLOBAL, f'({domain_expr}) global industry developments', .74)
 
@@ -83,7 +95,7 @@ class QueryBuilder:
         # Reserve follow-up searches across the verified domains. This prevents
         # a large stack of generic tender variations from crowding out local and
         # state searches for the other company capabilities.
-        domain_types = (T.DOMAIN, T.GOVERNMENT, T.TENDER, T.OPPORTUNITY, T.LOCAL, T.STATE, T.NEARBY)
+        domain_types = (T.DOMAIN, T.GOVERNMENT, T.TENDER, T.RFP, T.RFQ, T.EOI, T.PROCUREMENT, T.OPPORTUNITY, T.LOCAL, T.STATE, T.NEARBY, T.POLICY, T.PRODUCT_SERVICE)
         for domain in domains:
             for qtype in domain_types:
                 if len(chosen) >= self.max_queries:
