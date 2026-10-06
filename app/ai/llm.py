@@ -1,7 +1,7 @@
 import json
 import logging
 import asyncio
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 from pydantic import BaseModel, Field
 import google.generativeai as genai
 from app.config import settings
@@ -93,7 +93,7 @@ class PeerValuationSchema(BaseModel):
     ttm_revenue_cr: float
     basic_industry: str
     similarity_rank: int
-    peer_fit_confidence: str
+    peer_fit_confidence: Literal["Very High", "High", "Moderate High", "Moderate"] = Field(description="Must be strictly one of these four values.")
     reasoning: str = Field(description="STRICT LIMIT: Maximum 2 sentences and 40 words explaining overlap. Do not exceed.")
 
 class TopCompetitorsResponseSchema(BaseModel):

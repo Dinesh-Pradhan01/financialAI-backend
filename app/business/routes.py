@@ -753,8 +753,12 @@ async def extract_business_info_from_docs(
     else:
         return {"status": "extraction_failed", "data": None}
 
+from fastapi import BackgroundTasks
+from app.industry.routes import generate_competitors_background
+
 @router.post("/complete", summary="Complete Business Onboarding")
 async def complete_business_onboarding(
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_session_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -774,13 +778,14 @@ async def complete_business_onboarding(
     else:
         ver.verification_status = "completed"
 
-
-
     if current_user.role == "user":
         current_user.role = "ceo"
 
     await db.flush()
     logger.info(f"Business onboarding completed for business_id {gen.id} (user_id: {current_user.id}).")
+
+    # Pre-generate competitor list via LLM in background so the UI doesn't hang later
+    background_tasks.add_task(generate_competitors_background, gen.id)
 
     return {
         "status": "success",

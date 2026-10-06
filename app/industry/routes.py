@@ -3,7 +3,9 @@ import json
 import logging
 import re
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+from pydantic import BaseModel
+from app.ai.llm import PeerValuationSchema
 from fastapi import APIRouter, HTTPException, status, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
@@ -14,6 +16,72 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1", tags=["industry"])
 
 EMPLOYEE_COUNT = 10000
+
+class QuarterlyFinancial(BaseModel):
+    period: str
+    sales: float
+    other_income: float
+    expenditure: float
+    interest: float
+    net_profit: float
+    operating_profit: float
+    opm_percentage: float
+    total_income: float
+    npm_percentage: float
+
+class AnnualFinancial(BaseModel):
+    period: str
+    sales: float
+    other_income: float
+    expenditure: float
+    interest: float
+    net_profit: float
+    opm_percentage: float
+    total_income: float
+    npm_percentage: float
+
+class CompanyFinancialsResponseSchema(BaseModel):
+    company_id: int
+    quarterly: List[QuarterlyFinancial]
+    annual: List[AnnualFinancial]
+
+class CompetitorsResponseSchema(BaseModel):
+    as_of: str
+    sector_name: str
+    anchor_ticker: Optional[str] = None
+    total_peers_analyzed: int
+    target_summary: str
+    top_competitors: List[PeerValuationSchema]
+
+def format_fiscal_period(period_str: str, is_quarterly: bool, fye: int = 3) -> str:
+    if not period_str: return ""
+    clean_str = period_str.strip().split('\n')[0].strip()
+    parts = clean_str.split()
+    if len(parts) < 2: return clean_str
+    
+    month_name = parts[0][:3].title()
+    try:
+        year_int = int(parts[1])
+    except ValueError:
+        return clean_str
+        
+    months = {"Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6, 
+              "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12}
+    if month_name not in months:
+        return clean_str
+        
+    month = months[month_name]
+    start_month = (fye % 12) + 1
+    months_elapsed = (month - start_month) % 12
+    quarter = (months_elapsed // 3) + 1
+    
+    if month <= fye:
+        fy = year_int
+    else:
+        fy = year_int + 1
+        
+    fy_str = str(fy)[-2:]
+    return f"Q{quarter} FY{fy_str}" if is_quarterly else f"FY{fy_str}"
 
 def normalize_name(name: str) -> str:
     name = name.replace(".json", "")
@@ -33,6 +101,452 @@ def to_float(val: Any, default: Any = None) -> Any:
     if val is None:
         return default
     return float(val)
+
+@router.get("/similar-companies")
+async def get_similar_companies(
+    request: Request,
+    company_name: str = None,
+    business_category: str = None,
+    primary_product_service: str = None,
+    description: str = None,
+    cin: str = None,
+    employees: str = None,
+    db: AsyncSession = Depends(get_db)
+):
+    from app.ai.llm import gemini_service
+    import urllib.request
+    import json
+    import asyncio
+    import yfinance as yf
+    
+    if not (company_name and business_category and primary_product_service and cin and employees):
+        session_token = request.cookies.get("session")
+        if session_token:
+            from app.auth.service import verify_session
+            try:
+                user = await verify_session(db, session_token)
+                if user and user.business_id:
+                    res = await db.execute(
+                        text("""
+                        SELECT g.company_name, g.business_category, g.business_description, g.cin, l.primary_product_service, l.number_of_employees
+                        FROM general_info g
+                        LEFT JOIN leadership_info l ON g.id = l.business_id
+                        WHERE g.id = :biz_id
+                        """),
+                        {"biz_id": user.business_id}
+                    )
+                    row = res.fetchone()
+                    if row:
+                        if not company_name: company_name = row[0]
+                        if not business_category: business_category = row[1]
+                        if not description: description = row[2]
+                        if not cin: cin = row[3]
+                        if not primary_product_service: primary_product_service = row[4]
+                        if not employees: employees = row[5]
+            except Exception as e:
+                logger.warning(f"Failed to fetch business info from session: {e}")
+
+    if not company_name: company_name = "Unknown Company"
+    if not business_category: business_category = "General"
+    if not primary_product_service: primary_product_service = "Unknown"
+    if not description: description = "No description provided."
+    if not employees: employees = "50"
+
+    # 1. Fetch Taxonomy Rows
+    try:
+        class_res = await db.execute(text("SELECT id, sector, industry, basic_industry FROM classifications"))
+        taxonomy_rows = "ID | Sector | Industry | Basic Industry\n"
+        for r in class_res.fetchall():
+            taxonomy_rows += f"{r[0]} | {r[1]} | {r[2]} | {r[3]}\n"
+    except Exception as e:
+        logger.error(f"Failed to fetch classifications taxonomy: {e}")
+        taxonomy_rows = ""
+
+    # 2. Run Prompt 1: Get Target Classifications
+    ai_result = await gemini_service.get_target_classification_ids(
+        company_name=company_name,
+        business_category=business_category, 
+        primary_product_service=primary_product_service,
+        description=description,
+        employees=str(employees),
+        taxonomy_rows=taxonomy_rows
+    )
+
+    if not ai_result or not ai_result.get("matched_classification_ids"):
+        return {"sector_name": None, "anchor_ticker": None, "peers": [], "message": "No classifications found or AI service unavailable."}
+
+    matched_ids = ai_result["matched_classification_ids"]
+    sector_name = ai_result.get("primary_basic_industry", "Unknown Sector")
+    scale_tier = ai_result.get("scale_tier", "SME")
+
+    # 1. Define market cap ceiling based on scale tier
+    cap_limits = {
+        "MICRO": 500.0,       # Max ₹500 Cr
+        "SME": 1500.0,        # Max ₹1,500 Cr
+        "MID_CAP": 5000.0,    # Max ₹5,000 Cr
+        "LARGE_CAP": 500000.0 # Uncapped
+    }
+    max_cap = cap_limits.get(scale_tier, 1500.0)
+
+    # 2. Generate embedding for MSME search context
+    msme_text_blob = f"{company_name} - {business_category} - {primary_product_service} - {description}"
+    query_vector = await gemini_service.generate_embedding(msme_text_blob)
+
+    # 3. Hybrid SQL Query: Industry match + Scale ceiling + Vector similarity sort
+    candidate_peers = []
+    try:
+        if matched_ids:
+            peers_res = await db.execute(
+                text("""
+                SELECT 
+                    c.id AS company_id, 
+                    lc.company_name, 
+                    lc.nse_symbol AS ticker, 
+                    COALESCE(lc.market_cap_cr, 0.0) AS market_cap_cr, 
+                    COALESCE(lc.ttm_revenue_cr, 0.0) AS ttm_revenue_cr, 
+                    COALESCE(cls.basic_industry, 'Unknown') AS basic_industry,
+                    COALESCE(lc.business_summary, 'No summary available.') AS business_summary,
+                    COALESCE((e.embedding <=> :query_vector), 1.0) AS similarity_score
+                FROM companies c
+                JOIN listed_companies lc ON c.nse_symbol = lc.nse_symbol
+                LEFT JOIN company_embeddings e ON lc.company_id = e.company_id
+                LEFT JOIN classifications cls ON c.classification_id = cls.id
+                WHERE c.classification_id = ANY(:ids) 
+                  AND c.nse_symbol IS NOT NULL
+                  AND (c.market_cap_cr <= :max_cap OR c.market_cap_cr IS NULL)
+                ORDER BY similarity_score ASC
+                LIMIT 20
+                """),
+                {
+                    "ids": matched_ids, 
+                    "max_cap": max_cap,
+                    "query_vector": str(query_vector)
+                }
+            )
+            for row in peers_res.fetchall():
+                candidate_peers.append({
+                    "company_id": int(row[0]) if row[0] else None,
+                    "company_name": str(row[1]) if row[1] else "",
+                    "ticker": str(row[2]) if row[2] else "",
+                    "market_cap_cr": float(row[3]) if row[3] else 0.0,
+                    "ttm_revenue_cr": float(row[4]) if row[4] else 0.0,
+                    "basic_industry": str(row[5]) if row[5] else "",
+                    "business_summary": str(row[6]) if row[6] else "",
+                    "similarity_score": float(row[7]) if row[7] else 1.0
+                })
+            
+            # Fallback widening: If scale ceiling was too aggressive and returned < 3 peers, loosen the cap
+            if len(candidate_peers) < 3:
+                fallback_res = await db.execute(
+                    text("""
+                    SELECT 
+                        c.id AS company_id, 
+                        lc.company_name, 
+                        lc.nse_symbol AS ticker, 
+                        COALESCE(lc.market_cap_cr, 0.0) AS market_cap_cr, 
+                        COALESCE(lc.ttm_revenue_cr, 0.0) AS ttm_revenue_cr, 
+                        COALESCE(cls.basic_industry, 'Unknown') AS basic_industry,
+                        COALESCE(lc.business_summary, 'No summary available.') AS business_summary,
+                        COALESCE((e.embedding <=> :query_vector), 1.0) AS similarity_score
+                    FROM companies c
+                    LEFT JOIN company_embeddings e ON c.id = e.company_id
+                    JOIN listed_companies lc ON c.nse_symbol = lc.nse_symbol
+                    LEFT JOIN classifications cls ON c.classification_id = cls.id
+                    WHERE c.classification_id = ANY(:ids) AND c.nse_symbol IS NOT NULL
+                    ORDER BY similarity_score ASC
+                    LIMIT 20
+                    """),
+                    {"ids": matched_ids, "query_vector": str(query_vector)}
+                )
+                candidate_peers = []
+                for row in fallback_res.fetchall():
+                    candidate_peers.append({
+                        "company_id": int(row[0]) if row[0] else None,
+                        "company_name": str(row[1]) if row[1] else "",
+                        "ticker": str(row[2]) if row[2] else "",
+                        "market_cap_cr": float(row[3]) if row[3] else 0.0,
+                        "ttm_revenue_cr": float(row[4]) if row[4] else 0.0,
+                        "basic_industry": str(row[5]) if row[5] else "",
+                        "business_summary": str(row[6]) if row[6] else "",
+                        "similarity_score": float(row[7]) if row[7] else 1.0
+                    })
+    except Exception as e:
+        logger.warning(f"Database error during hybrid peer retrieval: {e}")
+        # If the vector query fails, attempt a simpler SQL LIKE search as a last resort
+        if matched_ids and not candidate_peers:
+            try:
+                logger.info("Falling back to LIKE-based peer search...")
+                like_res = await db.execute(
+                    text("""
+                    SELECT 
+                        c.id AS company_id, 
+                        lc.company_name, 
+                        lc.nse_symbol AS ticker, 
+                        COALESCE(lc.market_cap_cr, 0.0) AS market_cap_cr, 
+                        COALESCE(lc.ttm_revenue_cr, 0.0) AS ttm_revenue_cr, 
+                        COALESCE(cls.basic_industry, 'Unknown') AS basic_industry,
+                        COALESCE(lc.business_summary, 'No summary available.') AS business_summary,
+                        1.0 AS similarity_score
+                    FROM companies c
+                    JOIN listed_companies lc ON c.nse_symbol = lc.nse_symbol
+                    LEFT JOIN company_embeddings e ON lc.company_id = e.company_id
+                    LEFT JOIN classifications cls ON c.classification_id = cls.id
+                    WHERE c.classification_id = ANY(:ids) 
+                      AND c.nse_symbol IS NOT NULL
+                      AND (c.market_cap_cr <= :max_cap OR c.market_cap_cr IS NULL)
+                    LIMIT 20
+                    """),
+                    {"ids": matched_ids, "max_cap": max_cap}
+                )
+                for row in like_res.fetchall():
+                    candidate_peers.append({
+                        "company_id": int(row[0]) if row[0] else None,
+                        "company_name": str(row[1]) if row[1] else "",
+                        "ticker": str(row[2]) if row[2] else "",
+                        "market_cap_cr": float(row[3]) if row[3] else 0.0,
+                        "ttm_revenue_cr": float(row[4]) if row[4] else 0.0,
+                        "basic_industry": str(row[5]) if row[5] else "",
+                        "business_summary": str(row[6]) if row[6] else "",
+                        "similarity_score": float(row[7]) if row[7] else 1.0
+                    })
+            except Exception as like_e:
+                logger.error(f"LIKE-based fallback failed: {like_e}")
+
+    # Remove duplicates
+    unique_peers = []
+    seen = set()
+    for cp in candidate_peers:
+        if cp["ticker"] not in seen:
+            seen.add(cp["ticker"])
+            unique_peers.append(cp)
+    candidate_peers = unique_peers[:20]
+
+    if not candidate_peers:
+        logger.warning("No peers found for matched classification IDs. Returning empty.")
+        return {
+            "sector_name": sector_name,
+            "anchor_ticker": None,
+            "total_peers_analyzed": 0,
+            "target_summary": "No peers found in database.",
+            "top_competitors": []
+        }
+
+    anchor_ticker = candidate_peers[0]["ticker"]
+
+    # 4. Run Prompt 2: Ruthless M&A Analyst
+    json_list_of_database_peers = json.dumps(candidate_peers, indent=2, default=str)
+    
+    ai_response = await gemini_service.get_top_competitors_from_peers(
+        company_name=company_name,
+        business_category=business_category,             
+        primary_product_service=primary_product_service, 
+        business_description=description,
+        employees=str(employees),
+        scale_tier=scale_tier,                           
+        json_list_of_database_peers=json_list_of_database_peers
+    )
+
+    if not ai_response:
+        return {
+            "sector_name": sector_name,
+            "anchor_ticker": anchor_ticker,
+            "total_peers_analyzed": len(candidate_peers),
+            "target_summary": "AI ranking failed.",
+            "top_competitors": []
+        }
+
+    target_summary = ai_response.get("target_summary", "No summary provided.")
+    top_competitors_ai = ai_response.get("top_competitors", [])
+
+    return {
+        "as_of": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "sector_name": sector_name,
+        "anchor_ticker": anchor_ticker,
+        "total_peers_analyzed": len(candidate_peers),
+        "target_summary": target_summary,
+        "top_competitors": top_competitors_ai
+    }
+
+@router.get("/company/{company_id}/financials", response_model=CompanyFinancialsResponseSchema)
+async def get_company_financials(
+    company_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Serves both quarterly and annual financials in one payload.
+    """
+    try:
+        fye_res = await db.execute(
+            text("SELECT fiscal_year_end FROM listed_companies WHERE company_id = :id"),
+            {"id": company_id}
+        )
+        fye_row = fye_res.fetchone()
+        fye = fye_row[0] if fye_row and fye_row[0] else 3
+        
+        q_res = await db.execute(
+            text("""
+            SELECT quarter, revenue, expenditure, profit, operating_profit, other_income, interest, total_income, npm_percentage
+            FROM quarterly_financials
+            WHERE company_id = :id
+            """),
+            {"id": company_id}
+        )
+        
+        def get_sort_date(period_str: str) -> datetime:
+            if not period_str: return datetime.min
+            clean_str = period_str.strip().split('\n')[0].strip()
+            if clean_str.upper() == "TTM":
+                return datetime.max
+            parts = clean_str.split()
+            if len(parts) >= 2:
+                clean_str = f"{parts[0][:3]} {parts[1]}"
+            return parse_quarter(clean_str)
+        
+        q_rows = q_res.fetchall()
+        q_rows = sorted(q_rows, key=lambda r: get_sort_date(str(r[0]) if r[0] else ""))
+        
+        quarterly = []
+        for row in q_rows:
+            sales_val = float(row[1]) if row[1] else 0.0
+            op_profit_val = float(row[4]) if row[4] else 0.0
+            opm = (op_profit_val / sales_val * 100.0) if sales_val != 0 else 0.0
+            
+            quarterly.append({
+                "period": format_fiscal_period(str(row[0]), is_quarterly=True, fye=fye) if row[0] else "",
+                "sales": sales_val,
+                "other_income": float(row[5]) if row[5] else 0.0,
+                "expenditure": float(row[2]) if row[2] else 0.0,
+                "interest": float(row[6]) if row[6] else 0.0,
+                "net_profit": float(row[3]) if row[3] else 0.0,
+                "operating_profit": op_profit_val,
+                "opm_percentage": opm,
+                "total_income": float(row[7]) if row[7] else 0.0,
+                "npm_percentage": float(row[8]) if row[8] else 0.0,
+            })
+            
+        a_res = await db.execute(
+            text("""
+            SELECT period, sales, other_income, expenditure, interest, net_profit, opm_percentage, total_income, npm_percentage
+            FROM annual_financials
+            WHERE company_id = :id
+            """),
+            {"id": company_id}
+        )
+        
+        a_rows = a_res.fetchall()
+        a_rows = sorted(a_rows, key=lambda r: get_sort_date(str(r[0]) if r[0] else ""))
+        
+        annual = []
+        for row in a_rows:
+            annual.append({
+                "period": format_fiscal_period(str(row[0]), is_quarterly=False, fye=fye) if row[0] else "",
+                "sales": float(row[1]) if row[1] else 0.0,
+                "other_income": float(row[2]) if row[2] else 0.0,
+                "expenditure": float(row[3]) if row[3] else 0.0,
+                "interest": float(row[4]) if row[4] else 0.0,
+                "net_profit": float(row[5]) if row[5] else 0.0,
+                "opm_percentage": float(row[6]) if row[6] else 0.0,
+                "total_income": float(row[7]) if row[7] else 0.0,
+                "npm_percentage": float(row[8]) if row[8] else 0.0,
+            })
+            
+        return {
+            "company_id": company_id,
+            "quarterly": quarterly,
+            "annual": annual
+        }
+    except Exception as e:
+        logger.error(f"Error fetching financials for company_id {company_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch financial data: {str(e)}"
+        )
+
+@router.get("/company/competitors", response_model=CompetitorsResponseSchema)
+async def get_company_competitors(
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+):
+    session_token = request.cookies.get("session")
+    if not session_token:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+        
+    from app.auth.service import verify_session
+    user = await verify_session(db, session_token)
+    if not user or not user.business_id:
+        raise HTTPException(status_code=400, detail="User or business not found")
+        
+    biz_id = user.business_id
+    
+    # Check cache first
+    cache_res = await db.execute(text("SELECT competitors_data FROM business_competitors WHERE business_id = :biz_id"), {"biz_id": biz_id})
+    row = cache_res.fetchone()
+    if row and row[0]:
+        return row[0]
+        
+    # Generate on the fly if not cached
+    data = await get_similar_companies(request, db=db)
+    
+    # Save cache
+    await db.execute(text("""
+        INSERT INTO business_competitors (business_id, competitors_data)
+        VALUES (:biz_id, :data)
+        ON CONFLICT (business_id) DO UPDATE SET competitors_data = :data, updated_at = NOW()
+    """), {"biz_id": biz_id, "data": json.dumps(data)})
+    await db.commit()
+    
+    return data
+
+async def generate_competitors_background(biz_id):
+    from app.database.connection import db_manager
+    from sqlalchemy import text
+    import json
+    
+    try:
+        async with db_manager.session_factory() as db:
+            res = await db.execute(
+                text("""
+                SELECT g.company_name, g.business_category, g.business_description, g.cin, l.primary_product_service, l.number_of_employees
+                FROM general_info g
+                LEFT JOIN leadership_info l ON g.id = l.business_id
+                WHERE g.id = :biz_id
+                """),
+                {"biz_id": biz_id}
+            )
+            row = res.fetchone()
+            if not row:
+                return
+                
+            company_name = row[0] or "Unknown Company"
+            business_category = row[1] or "General"
+            description = row[2] or "No description provided."
+            cin = row[3] or "N/A"
+            primary_product_service = row[4] or "Unknown"
+            employees = str(row[5]) if row[5] else "50"
+            
+            # Call get_similar_companies bypassing request
+            data = await get_similar_companies(
+                request=None,
+                company_name=company_name,
+                business_category=business_category,
+                primary_product_service=primary_product_service,
+                cin=cin,
+                employees=employees,
+                description=description,
+                db=db
+            )
+            
+            # Save cache
+            await db.execute(text("""
+                INSERT INTO business_competitors (business_id, competitors_data)
+                VALUES (:biz_id, :data)
+                ON CONFLICT (business_id) DO UPDATE SET competitors_data = :data, updated_at = NOW()
+            """), {"biz_id": biz_id, "data": json.dumps(data)})
+            await db.commit()
+    except Exception as e:
+        logger.error(f"Error in background competitors generation: {e}")
+
+
 
 @router.get("/basic-industry/{basic_industry_name:path}")
 async def get_basic_industry_data(basic_industry_name: str, db: AsyncSession = Depends(get_db)):
@@ -398,269 +912,6 @@ async def get_top_5_stocks(
         
     return dict(data)
 
-@router.get("/similar-companies")
-async def get_similar_companies(
-    request: Request,
-    company_name: str = None,
-    business_category: str = None,
-    primary_product_service: str = None,
-    description: str = None,
-    cin: str = None,
-    employees: str = None,
-    db: AsyncSession = Depends(get_db)
-):
-    from app.ai.llm import gemini_service
-    import urllib.request
-    import json
-    import asyncio
-    import yfinance as yf
-    
-    if not (company_name and business_category and primary_product_service and cin and employees):
-        session_token = request.cookies.get("session")
-        if session_token:
-            from app.auth.service import verify_session
-            try:
-                user = await verify_session(db, session_token)
-                if user and user.business_id:
-                    res = await db.execute(
-                        text("""
-                        SELECT g.company_name, g.business_category, g.business_description, g.cin, l.primary_product_service, l.number_of_employees
-                        FROM general_info g
-                        LEFT JOIN leadership_info l ON g.id = l.business_id
-                        WHERE g.id = :biz_id
-                        """),
-                        {"biz_id": user.business_id}
-                    )
-                    row = res.fetchone()
-                    if row:
-                        if not company_name: company_name = row[0]
-                        if not business_category: business_category = row[1]
-                        if not description: description = row[2]
-                        if not cin: cin = row[3]
-                        if not primary_product_service: primary_product_service = row[4]
-                        if not employees: employees = row[5]
-            except Exception as e:
-                logger.warning(f"Failed to fetch business info from session: {e}")
-
-    if not company_name: company_name = "Unknown Company"
-    if not business_category: business_category = "General"
-    if not primary_product_service: primary_product_service = "Unknown"
-    if not description: description = "No description provided."
-    if not employees: employees = "50"
-
-    # 1. Fetch Taxonomy Rows
-    try:
-        class_res = await db.execute(text("SELECT id, sector, industry, basic_industry FROM classifications"))
-        taxonomy_rows = "ID | Sector | Industry | Basic Industry\n"
-        for r in class_res.fetchall():
-            taxonomy_rows += f"{r[0]} | {r[1]} | {r[2]} | {r[3]}\n"
-    except Exception as e:
-        logger.error(f"Failed to fetch classifications taxonomy: {e}")
-        taxonomy_rows = ""
-
-    # 2. Run Prompt 1: Get Target Classifications
-    ai_result = await gemini_service.get_target_classification_ids(
-        company_name=company_name,
-        business_category=business_category, 
-        primary_product_service=primary_product_service,
-        description=description,
-        employees=str(employees),
-        taxonomy_rows=taxonomy_rows
-    )
-
-    if not ai_result or not ai_result.get("matched_classification_ids"):
-        return {"sector_name": None, "anchor_ticker": None, "peers": [], "message": "No classifications found or AI service unavailable."}
-
-    matched_ids = ai_result["matched_classification_ids"]
-    sector_name = ai_result.get("primary_basic_industry", "Unknown Sector")
-    scale_tier = ai_result.get("scale_tier", "SME")
-
-    # 1. Define market cap ceiling based on scale tier
-    cap_limits = {
-        "MICRO": 500.0,       # Max ₹500 Cr
-        "SME": 1500.0,        # Max ₹1,500 Cr
-        "MID_CAP": 5000.0,    # Max ₹5,000 Cr
-        "LARGE_CAP": 500000.0 # Uncapped
-    }
-    max_cap = cap_limits.get(scale_tier, 1500.0)
-
-    # 2. Generate embedding for MSME search context
-    msme_text_blob = f"{company_name} - {business_category} - {primary_product_service} - {description}"
-    query_vector = await gemini_service.generate_embedding(msme_text_blob)
-
-    # 3. Hybrid SQL Query: Industry match + Scale ceiling + Vector similarity sort
-    candidate_peers = []
-    try:
-        if matched_ids:
-            peers_res = await db.execute(
-                text("""
-                SELECT 
-                    lc.company_id, 
-                    lc.company_name, 
-                    lc.nse_symbol AS ticker, 
-                    COALESCE(lc.market_cap_cr, 0.0) AS market_cap_cr, 
-                    COALESCE(lc.ttm_revenue_cr, 0.0) AS ttm_revenue_cr, 
-                    COALESCE(cls.basic_industry, 'Unknown') AS basic_industry,
-                    COALESCE(lc.business_summary, 'No summary available.') AS business_summary,
-                    COALESCE((e.embedding <=> :query_vector), 1.0) AS similarity_score
-                FROM companies c
-                JOIN listed_companies lc ON c.nse_symbol = lc.nse_symbol
-                LEFT JOIN company_embeddings e ON lc.company_id = e.company_id
-                LEFT JOIN classifications cls ON c.classification_id = cls.id
-                WHERE c.classification_id = ANY(:ids) 
-                  AND c.nse_symbol IS NOT NULL
-                  AND (c.market_cap_cr <= :max_cap OR c.market_cap_cr IS NULL)
-                ORDER BY similarity_score ASC
-                LIMIT 20
-                """),
-                {
-                    "ids": matched_ids, 
-                    "max_cap": max_cap,
-                    "query_vector": str(query_vector)
-                }
-            )
-            for row in peers_res.fetchall():
-                candidate_peers.append({
-                    "company_id": int(row[0]) if row[0] else None,
-                    "company_name": str(row[1]) if row[1] else "",
-                    "ticker": str(row[2]) if row[2] else "",
-                    "market_cap_cr": float(row[3]) if row[3] else 0.0,
-                    "ttm_revenue_cr": float(row[4]) if row[4] else 0.0,
-                    "basic_industry": str(row[5]) if row[5] else "",
-                    "business_summary": str(row[6]) if row[6] else "",
-                    "similarity_score": float(row[7]) if row[7] else 1.0
-                })
-            
-            # Fallback widening: If scale ceiling was too aggressive and returned < 3 peers, loosen the cap
-            if len(candidate_peers) < 3:
-                fallback_res = await db.execute(
-                    text("""
-                    SELECT 
-                        lc.company_id, 
-                        lc.company_name, 
-                        lc.nse_symbol AS ticker, 
-                        COALESCE(lc.market_cap_cr, 0.0) AS market_cap_cr, 
-                        COALESCE(lc.ttm_revenue_cr, 0.0) AS ttm_revenue_cr, 
-                        COALESCE(cls.basic_industry, 'Unknown') AS basic_industry,
-                        COALESCE(lc.business_summary, 'No summary available.') AS business_summary,
-                        COALESCE((e.embedding <=> :query_vector), 1.0) AS similarity_score
-                    FROM companies c
-                    LEFT JOIN company_embeddings e ON c.id = e.company_id
-                    JOIN listed_companies lc ON c.nse_symbol = lc.nse_symbol
-                    LEFT JOIN classifications cls ON c.classification_id = cls.id
-                    WHERE c.classification_id = ANY(:ids) AND c.nse_symbol IS NOT NULL
-                    ORDER BY similarity_score ASC
-                    LIMIT 20
-                    """),
-                    {"ids": matched_ids, "query_vector": str(query_vector)}
-                )
-                candidate_peers = []
-                for row in fallback_res.fetchall():
-                    candidate_peers.append({
-                        "company_id": int(row[0]) if row[0] else None,
-                        "company_name": str(row[1]) if row[1] else "",
-                        "ticker": str(row[2]) if row[2] else "",
-                        "market_cap_cr": float(row[3]) if row[3] else 0.0,
-                        "ttm_revenue_cr": float(row[4]) if row[4] else 0.0,
-                        "basic_industry": str(row[5]) if row[5] else "",
-                        "business_summary": str(row[6]) if row[6] else "",
-                        "similarity_score": float(row[7]) if row[7] else 1.0
-                    })
-    except Exception as e:
-        logger.warning(f"Database error during hybrid peer retrieval: {e}")
-        # If the vector query fails, attempt a simpler SQL LIKE search as a last resort
-        if matched_ids and not candidate_peers:
-            try:
-                logger.info("Falling back to LIKE-based peer search...")
-                like_res = await db.execute(
-                    text("""
-                    SELECT 
-                        lc.company_id, 
-                        lc.company_name, 
-                        lc.nse_symbol AS ticker, 
-                        COALESCE(lc.market_cap_cr, 0.0) AS market_cap_cr, 
-                        COALESCE(lc.ttm_revenue_cr, 0.0) AS ttm_revenue_cr, 
-                        COALESCE(cls.basic_industry, 'Unknown') AS basic_industry,
-                        COALESCE(lc.business_summary, 'No summary available.') AS business_summary,
-                        1.0 AS similarity_score
-                    FROM companies c
-                    JOIN listed_companies lc ON c.nse_symbol = lc.nse_symbol
-                    LEFT JOIN company_embeddings e ON lc.company_id = e.company_id
-                    LEFT JOIN classifications cls ON c.classification_id = cls.id
-                    WHERE c.classification_id = ANY(:ids) 
-                      AND c.nse_symbol IS NOT NULL
-                      AND (c.market_cap_cr <= :max_cap OR c.market_cap_cr IS NULL)
-                    LIMIT 20
-                    """),
-                    {"ids": matched_ids, "max_cap": max_cap}
-                )
-                for row in like_res.fetchall():
-                    candidate_peers.append({
-                        "company_id": int(row[0]) if row[0] else None,
-                        "company_name": str(row[1]) if row[1] else "",
-                        "ticker": str(row[2]) if row[2] else "",
-                        "market_cap_cr": float(row[3]) if row[3] else 0.0,
-                        "ttm_revenue_cr": float(row[4]) if row[4] else 0.0,
-                        "basic_industry": str(row[5]) if row[5] else "",
-                        "business_summary": str(row[6]) if row[6] else "",
-                        "similarity_score": float(row[7]) if row[7] else 1.0
-                    })
-            except Exception as like_e:
-                logger.error(f"LIKE-based fallback failed: {like_e}")
-
-    # Remove duplicates
-    unique_peers = []
-    seen = set()
-    for cp in candidate_peers:
-        if cp["ticker"] not in seen:
-            seen.add(cp["ticker"])
-            unique_peers.append(cp)
-    candidate_peers = unique_peers[:20]
-
-    if not candidate_peers:
-        logger.warning("No peers found for matched classification IDs. Returning empty.")
-        return {
-            "sector_name": sector_name,
-            "anchor_ticker": None,
-            "total_peers_analyzed": 0,
-            "target_summary": "No peers found in database.",
-            "top_competitors": []
-        }
-
-    anchor_ticker = candidate_peers[0]["ticker"]
-
-    # 4. Run Prompt 2: Ruthless M&A Analyst
-    json_list_of_database_peers = json.dumps(candidate_peers, indent=2, default=str)
-    
-    ai_response = await gemini_service.get_top_competitors_from_peers(
-        company_name=company_name,
-        business_category=business_category,             
-        primary_product_service=primary_product_service, 
-        business_description=description,
-        employees=str(employees),
-        scale_tier=scale_tier,                           
-        json_list_of_database_peers=json_list_of_database_peers
-    )
-
-    if not ai_response:
-        return {
-            "sector_name": sector_name,
-            "anchor_ticker": anchor_ticker,
-            "total_peers_analyzed": len(candidate_peers),
-            "target_summary": "AI ranking failed.",
-            "top_competitors": []
-        }
-
-    target_summary = ai_response.get("target_summary", "No summary provided.")
-    top_competitors_ai = ai_response.get("top_competitors", [])
-
-    return {
-        "sector_name": sector_name,
-        "anchor_ticker": anchor_ticker,
-        "total_peers_analyzed": len(candidate_peers),
-        "target_summary": target_summary,
-        "top_competitors": top_competitors_ai
-    }
 
 @router.get("/basic-industries")
 async def get_all_basic_industries(db: AsyncSession = Depends(get_db)):
@@ -707,3 +958,6 @@ async def get_all_classifications(db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Database query error: {str(e)}"
         )
+
+
+
