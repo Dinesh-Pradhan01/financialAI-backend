@@ -252,7 +252,7 @@ async def replace_company_document(
     duplicate_res = await db.execute(
         select(BusinessVerificationDocument).where(BusinessVerificationDocument.file_hash == file_hash, BusinessVerificationDocument.id != doc_id)
     )
-    if duplicate_res.scalar_one_or_none():
+    if duplicate_res.scalars().first():
         raise HTTPException(status_code=400, detail="Duplicate document uploaded.")
         
     effective_type = document_type or doc.document_type
@@ -344,12 +344,15 @@ async def download_company_document(
         
     local_path, memory_bytes, mime_type = document_storage.locate_or_fetch(doc, str(business.id))
 
+    from urllib.parse import quote
+    
     if memory_bytes is not None:
+        filename_quoted = quote(doc.original_name)
         return StreamingResponse(
             io.BytesIO(memory_bytes),
             media_type=mime_type,
             headers={
-                "Content-Disposition": f'attachment; filename="{doc.original_name}"',
+                "Content-Disposition": f"attachment; filename*=utf-8''{filename_quoted}",
                 "Content-Length": str(len(memory_bytes)),
             }
         )
@@ -357,8 +360,7 @@ async def download_company_document(
         return FileResponse(
             local_path, 
             filename=doc.original_name, 
-            media_type=mime_type,
-            headers={"Content-Disposition": f'attachment; filename="{doc.original_name}"'}
+            media_type=mime_type
         )
     else:
         raise HTTPException(
@@ -386,20 +388,26 @@ async def preview_company_document(
         
     local_path, memory_bytes, mime_type = document_storage.locate_or_fetch(doc, str(business.id))
 
+    from urllib.parse import quote
+
     if memory_bytes is not None:
+        filename_quoted = quote(doc.original_name)
         return StreamingResponse(
             io.BytesIO(memory_bytes),
             media_type=mime_type,
             headers={
-                "Content-Disposition": f'inline; filename="{doc.original_name}"',
+                "Content-Disposition": f"inline; filename*=utf-8''{filename_quoted}",
                 "Content-Length": str(len(memory_bytes)),
             }
         )
     elif local_path is not None and os.path.exists(local_path):
+        # FileResponse supports content_disposition_type since Starlette 0.28+ 
+        # but to be safe for all versions, we pass headers if it's inline, properly quoted
+        filename_quoted = quote(doc.original_name)
         return FileResponse(
             local_path, 
             media_type=mime_type,
-            headers={"Content-Disposition": f'inline; filename="{doc.original_name}"'}
+            headers={"Content-Disposition": f"inline; filename*=utf-8''{filename_quoted}"}
         )
     else:
         raise HTTPException(
