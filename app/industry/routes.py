@@ -479,7 +479,7 @@ async def get_company_competitors(
     biz_id = user.business_id
     
     # Check cache first
-    cache_res = await db.execute(text("SELECT competitors_data FROM business_competitors WHERE business_id = :biz_id"), {"biz_id": biz_id})
+    cache_res = await db.execute(text("SELECT competitors_data FROM cache WHERE business_id = :biz_id"), {"biz_id": biz_id})
     row = cache_res.fetchone()
     if row and row[0]:
         return row[0]
@@ -489,7 +489,7 @@ async def get_company_competitors(
     
     # Save cache
     await db.execute(text("""
-        INSERT INTO business_competitors (business_id, competitors_data)
+        INSERT INTO cache (business_id, competitors_data)
         VALUES (:biz_id, :data)
         ON CONFLICT (business_id) DO UPDATE SET competitors_data = :data, updated_at = NOW()
     """), {"biz_id": biz_id, "data": json.dumps(data)})
@@ -538,7 +538,7 @@ async def generate_competitors_background(biz_id):
             
             # Save cache
             await db.execute(text("""
-                INSERT INTO business_competitors (business_id, competitors_data)
+                INSERT INTO cache (business_id, competitors_data)
                 VALUES (:biz_id, :data)
                 ON CONFLICT (business_id) DO UPDATE SET competitors_data = :data, updated_at = NOW()
             """), {"biz_id": biz_id, "data": json.dumps(data)})
