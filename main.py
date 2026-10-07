@@ -212,3 +212,8 @@ async def health_check(db: AsyncSession = Depends(get_db)):
         return {"status": "unhealthy", "database": "disconnected", "detail": str(e)}
 
 # Trigger reload
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=settings.DEBUG)

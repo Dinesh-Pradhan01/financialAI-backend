@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     # Firebase settings
     FIREBASE_PROJECT_ID: Optional[str] = os.getenv("FIREBASE_PROJECT_ID")
     FIREBASE_CREDENTIALS_PATH: Optional[str] = os.getenv("FIREBASE_CREDENTIALS_PATH")
+    FIREBASE_CREDENTIALS_BASE64: Optional[str] = os.getenv("FIREBASE_CREDENTIALS_BASE64")
 
     # CORS settings
     CORS_ORIGINS: str = "http://localhost:8000,http://localhost:8080"
