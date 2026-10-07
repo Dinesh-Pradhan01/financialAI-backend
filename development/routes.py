@@ -18,14 +18,44 @@ async def get_company_developments(
     db: AsyncSession = Depends(get_db),
 ):
     try:
+        from app.business.models import Cache
+        from sqlalchemy import select
+        from datetime import datetime, timedelta
+        import uuid
+
+        biz_uuid = None
+        try:
+            biz_uuid = uuid.UUID(company_id)
+            cache_res = await db.execute(select(Cache).where(Cache.business_id == biz_uuid))
+            cache = cache_res.scalar_one_or_none()
+            if cache and cache.development_news and cache.updated_at > datetime.now() - timedelta(days=7):
+                return cache.development_news
+        except ValueError:
+            cache = None
+
         service = DevelopmentService()
-        return await service.fetch_company_developments(
+        data = await service.fetch_company_developments(
             company_id=company_id,
             db=db,
             limit=limit,
             days=days,
             category=category,
         )
+
+        if biz_uuid:
+            if cache:
+                cache.development_news = data
+                cache.updated_at = datetime.now()
+            else:
+                cache = Cache(
+                    business_id=biz_uuid,
+                    development_news=data,
+                    updated_at=datetime.now()
+                )
+                db.add(cache)
+            await db.commit()
+
+        return data
     except HTTPException:
         raise
     except Exception as exc:

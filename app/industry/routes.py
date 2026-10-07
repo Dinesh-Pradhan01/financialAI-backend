@@ -478,21 +478,30 @@ async def get_company_competitors(
         
     biz_id = user.business_id
     
-    # Check cache first
-    cache_res = await db.execute(text("SELECT competitors_data FROM cache WHERE business_id = :biz_id"), {"biz_id": biz_id})
-    row = cache_res.fetchone()
-    if row and row[0]:
-        return row[0]
+    from app.company.routes import get_user_business, get_business_metadata
+    from datetime import datetime, timedelta
+    from app.business.models import Cache
+
+    business = await get_user_business(user, db)
+    cache = await get_business_metadata(business, db)
+
+    if cache and cache.competitors_data and cache.updated_at > datetime.now() - timedelta(days=7):
+        return cache.competitors_data
         
     # Generate on the fly if not cached
     data = await get_similar_companies(request, db=db)
     
-    # Save cache
-    await db.execute(text("""
-        INSERT INTO cache (business_id, competitors_data)
-        VALUES (:biz_id, :data)
-        ON CONFLICT (business_id) DO UPDATE SET competitors_data = :data, updated_at = NOW()
-    """), {"biz_id": biz_id, "data": json.dumps(data)})
+    if cache:
+        cache.competitors_data = data
+        cache.updated_at = datetime.now()
+    else:
+        cache = Cache(
+            business_id=biz_id,
+            competitors_data=data,
+            updated_at=datetime.now()
+        )
+        db.add(cache)
+        
     await db.commit()
     
     return data
@@ -537,11 +546,22 @@ async def generate_competitors_background(biz_id):
             )
             
             # Save cache
-            await db.execute(text("""
-                INSERT INTO cache (business_id, competitors_data)
-                VALUES (:biz_id, :data)
-                ON CONFLICT (business_id) DO UPDATE SET competitors_data = :data, updated_at = NOW()
-            """), {"biz_id": biz_id, "data": json.dumps(data)})
+            from app.business.models import Cache
+            from sqlalchemy import select
+            from datetime import datetime
+
+            cache_res = await db.execute(select(Cache).where(Cache.business_id == biz_id))
+            cache = cache_res.scalar_one_or_none()
+            if cache:
+                cache.competitors_data = data
+                cache.updated_at = datetime.now()
+            else:
+                cache = Cache(
+                    business_id=biz_id,
+                    competitors_data=data,
+                    updated_at=datetime.now()
+                )
+                db.add(cache)
             await db.commit()
     except Exception as e:
         logger.error(f"Error in background competitors generation: {e}")

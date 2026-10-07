@@ -18,6 +18,7 @@ from app.business.models import (
     LeadershipInfo,
     BusinessVerification,
     BusinessVerificationDocument,
+    Cache
 )
 from app.company.schemas import (
     CompanyProfileResponse,
@@ -47,6 +48,14 @@ async def get_user_business(user: User, db: AsyncSession) -> GeneralInfo:
         raise HTTPException(status_code=404, detail="Business profile not found.")
         
     return business
+
+async def get_business_metadata(ginfo: GeneralInfo, db: AsyncSession) -> Cache|None:
+    cache = None
+    if ginfo.id:
+        res = await db.execute(select(Cache).where(Cache.business_id == ginfo.id))
+        cache = res.scalar_one_or_none()
+    
+    return cache
 
 @router.get("/profile", response_model=CompanyProfileResponse)
 async def get_company_profile(
@@ -342,6 +351,10 @@ async def get_competitors(
     db: AsyncSession = Depends(get_db),
 ):
     company = await get_user_business(current_user,db)
+    rspns = await get_business_metadata(company,db)
+
+    if rspns is not None and rspns.peers_data is not None and rspns.updated_at > datetime.datetime.now() - datetime.timedelta(days=7):
+        return {"status": "success", "type": rspns.peers_data["type"], "content": rspns.peers_data["content"]}
 
     name = company.company_name
     location = f"{company.city}, {company.state} - {company.pincode}"
@@ -351,6 +364,17 @@ async def get_competitors(
     res = await competitors(name, location, type, category)
     if res["type"] == "Null":
         return {"status": "Failed - Error occured"}
+    if rspns:
+        rspns.peers_data = res
+    else:
+        cache = Cache(
+            business_id=company.id,
+            peers_data = res,
+            updated_at=datetime.datetime.now()
+        )
+        db.add(cache)
+    await db.flush()
+    await db.commit()
     return {"status": "success", "type": res["type"], "content": res["content"]}
 
 @router.get("/public-rating", response_model=Dict)
@@ -358,7 +382,13 @@ async def get_pub_rating(
     current_user: User = Depends(get_current_session_user),
     db: AsyncSession = Depends(get_db),
     ):
+
+    #Checking data availability in the DB first!
     company = await get_user_business(current_user,db)
+    rspns = await get_business_metadata(company, db)
+
+    if rspns is not None and rspns.ratings_review is not None and rspns.updated_at > datetime.datetime.now() - datetime.timedelta(days=7):
+        return {"status": "Success", "content": rspns.ratings_review}
     
     name = company.company_name
     location = f"{company.city}, {company.state} - {company.pincode}"
@@ -366,9 +396,8 @@ async def get_pub_rating(
     res: CompanyRating = await rate_company(name, location, {})
     if not res:
         return {"status": "Failure", "Error": "Unable To Fetch Results"}
-    return {
-        "status": "Success",
-        "content":{
+
+    cntnt = {
         "employee_experience": res.employee_experience,
         "creditworthiness": res.creditworthiness,
         "client_satisfaction": res.client_satisfaction,
@@ -377,4 +406,19 @@ async def get_pub_rating(
         "overall_grade": res.overall_grade,
         "sources": [i.source for i in res.sources]
         }
+    if rspns:
+        rspns.ratings_review = cntnt
+
+    else:
+        cache = Cache(
+            business_id=company.id,
+            ratings_review=cntnt,
+            updated_at=datetime.datetime.now()
+        )
+        db.add(cache)
+    await db.flush()
+    await db.commit()
+    return {
+        "status": "Success",
+        "content": cntnt
     }

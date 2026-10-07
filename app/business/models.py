@@ -2,9 +2,9 @@ import uuid
 from datetime import datetime, date
 from typing import List, Optional
 # pyrefly: ignore [missing-import]
-from sqlalchemy import String, Integer, Float, Text, ForeignKey, Date, DateTime, JSON, Boolean
+from sqlalchemy import String, Integer, Float, Text, ForeignKey, Date, DateTime, JSON, Boolean, func
 # pyrefly: ignore [missing-import]
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -200,3 +200,25 @@ class TeamInviteAuditLog(TimestampMixin, Base):
     target_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     details: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
+
+class Cache(Base):
+    __tablename__ = "b360_cache"
+
+    business_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            GeneralInfo.id,
+            ondelete="CASCADE",
+            name="b360_cache_business_id_fkey",
+        ),
+        primary_key=True,
+        # Constraint name matches "b360_cache_pkey" automatically
+    )
+    competitors_data: Mapped[dict] = mapped_column(JSONB, nullable=True)
+    ratings_review: Mapped[dict] = mapped_column(JSONB, nullable=True)
+    development_news: Mapped[dict] = mapped_column(JSONB, nullable=True)
+    peers_data: Mapped[dict] = mapped_column(JSONB, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        server_default=func.now(),
+        nullable=False,
+    )
