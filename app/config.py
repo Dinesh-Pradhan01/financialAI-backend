@@ -62,6 +62,8 @@ class Settings(BaseSettings):
     S3_BUCKET_NAME: Optional[str] = os.getenv("S3_BUCKET_NAME", os.getenv("AWS_STORAGE_BUCKET_NAME"))
     AWS_ACCESS_KEY_ID: Optional[str] = os.getenv("AWS_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY: Optional[str] = os.getenv("AWS_SECRET_ACCESS_KEY")
+    AWS_ASSUME_ROLE_ARN: Optional[str] = os.getenv("AWS_ASSUME_ROLE_ARN")
+    AWS_ROLE_SESSION_NAME: str = os.getenv("AWS_ROLE_SESSION_NAME", "spotlite-session")
     AWS_REGION: str = os.getenv("AWS_REGION", os.getenv("AWS_S3_REGION_NAME", "us-east-1"))
     AWS_ENDPOINT_URL: Optional[str] = os.getenv("AWS_ENDPOINT_URL", os.getenv("AWS_S3_ENDPOINT_URL"))
 
