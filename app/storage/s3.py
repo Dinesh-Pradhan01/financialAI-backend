@@ -10,6 +10,7 @@ try:
     import boto3
     from botocore.exceptions import ClientError, BotoCoreError
     BOTO3_AVAILABLE = True
+    logger.info("boto3 is available. S3 storage integration is enabled.")
 except ImportError:
     BOTO3_AVAILABLE = False
     logger.info("boto3 is not available. S3 storage disabled; local fallback active.")
@@ -26,6 +27,8 @@ class S3StorageManager:
         self.secret_key = getattr(settings, "AWS_SECRET_ACCESS_KEY", None) or os.getenv("AWS_SECRET_ACCESS_KEY")
         self.region = getattr(settings, "AWS_REGION", "us-east-1") or os.getenv("AWS_REGION", "us-east-1")
         self.endpoint_url = getattr(settings, "AWS_ENDPOINT_URL", None) or os.getenv("AWS_ENDPOINT_URL")
+        self.assume_role_arn = getattr(settings, "AWS_ASSUME_ROLE_ARN", None) or os.getenv("AWS_ASSUME_ROLE_ARN")
+        self.role_session_name = getattr(settings, "AWS_ROLE_SESSION_NAME", "spotlite-session") or os.getenv("AWS_ROLE_SESSION_NAME", "spotlite-session")
         self._client = None
 
     @property
@@ -37,14 +40,42 @@ class S3StorageManager:
             return None
         if self._client is None:
             try:
-                kwargs = {"region_name": self.region}
-                if self.access_key and self.secret_key:
-                    kwargs["aws_access_key_id"] = self.access_key
-                    kwargs["aws_secret_access_key"] = self.secret_key
-                if self.endpoint_url:
-                    kwargs["endpoint_url"] = self.endpoint_url
+                if self.assume_role_arn:
+                    # 1. Create STS client with base credentials
+                    sts_kwargs = {"region_name": self.region}
+                    if self.access_key and self.secret_key:
+                        sts_kwargs["aws_access_key_id"] = self.access_key
+                        sts_kwargs["aws_secret_access_key"] = self.secret_key
+                    
+                    sts_client = boto3.client("sts", **sts_kwargs)
+                    
+                    # 2. Assume role
+                    response = sts_client.assume_role(
+                        RoleArn=self.assume_role_arn,
+                        RoleSessionName=self.role_session_name
+                    )
+                    creds = response["Credentials"]
+                    
+                    # 3. Setup kwargs for S3 client with temporary credentials
+                    s3_kwargs = {
+                        "region_name": self.region,
+                        "aws_access_key_id": creds["AccessKeyId"],
+                        "aws_secret_access_key": creds["SecretAccessKey"],
+                        "aws_session_token": creds["SessionToken"]
+                    }
+                    if self.endpoint_url:
+                        s3_kwargs["endpoint_url"] = self.endpoint_url
+                    
+                    self._client = boto3.client("s3", **s3_kwargs)
+                else:
+                    kwargs = {"region_name": self.region}
+                    if self.access_key and self.secret_key:
+                        kwargs["aws_access_key_id"] = self.access_key
+                        kwargs["aws_secret_access_key"] = self.secret_key
+                    if self.endpoint_url:
+                        kwargs["endpoint_url"] = self.endpoint_url
 
-                self._client = boto3.client("s3", **kwargs)
+                    self._client = boto3.client("s3", **kwargs)
             except Exception as e:
                 logger.error(f"Failed to initialize S3 client: {e}")
                 self._client = None
