@@ -13,6 +13,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.connection import get_db
 from app.utils.response import success_response, error_response
 from app.services.spotlite_service import SpotliteEngine
+from app.auth.dependencies import get_optional_current_user
+from app.auth.model import User
+import logging
+import json
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Spotlite"])
 
@@ -39,6 +45,7 @@ class ScenarioRequest(BaseModel):
 @router.get("/metrics/tier1", summary="Get Tier 1 Front Page Executive Insights")
 async def get_tier1_executive_metrics(
     business_id: Optional[str] = Query(None, description="Optional business ID filter"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -51,7 +58,9 @@ async def get_tier1_executive_metrics(
     - Idle Cash Reframed as Annual Forfeited Income
     """
     try:
-        metrics = await SpotliteEngine.compute_tier1_metrics(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        metrics = await SpotliteEngine.compute_tier1_metrics(db, business_id=biz_id)
+        logger.info(f"[Spotlite Tier 1 API] Response: {json.dumps(metrics, ensure_ascii=True)}")
         return success_response("Spotlite Tier 1 Executive Insights fetched successfully", data=metrics)
     except Exception as e:
         return error_response(f"Failed to fetch Spotlite Tier 1 metrics: {str(e)}", status_code=500)
@@ -60,6 +69,7 @@ async def get_tier1_executive_metrics(
 @router.get("/metrics/tier2", summary="Get Tier 2 Contextual Executive Metrics")
 async def get_tier2_contextual_metrics(
     business_id: Optional[str] = Query(None, description="Optional business ID filter"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -70,7 +80,9 @@ async def get_tier2_contextual_metrics(
     - Efficiency Ratios (revenue per ₹ opex & cost-to-income ratio)
     """
     try:
-        metrics = await SpotliteEngine.compute_tier2_metrics(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        metrics = await SpotliteEngine.compute_tier2_metrics(db, business_id=biz_id)
+        logger.info(f"[Spotlite Tier 2 API] Response: {json.dumps(metrics, ensure_ascii=True)}")
         return success_response("Spotlite Tier 2 Contextual Metrics fetched successfully", data=metrics)
     except Exception as e:
         return error_response(f"Failed to fetch Spotlite Tier 2 metrics: {str(e)}", status_code=500)
@@ -79,18 +91,22 @@ async def get_tier2_contextual_metrics(
 @router.get("/metrics/all", summary="Get Unified Tier 1 + Tier 2 Executive Metrics Payload")
 async def get_all_spotlite_metrics(
     business_id: Optional[str] = Query(None, description="Optional business ID filter"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Returns complete unified Spotlite Executive Metrics payload combining Tier 1 and Tier 2.
     """
     try:
-        tier1 = await SpotliteEngine.compute_tier1_metrics(db, business_id=business_id)
-        tier2 = await SpotliteEngine.compute_tier2_metrics(db, business_id=business_id)
-        return success_response("All Spotlite Executive Metrics fetched successfully", data={
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        tier1 = await SpotliteEngine.compute_tier1_metrics(db, business_id=biz_id)
+        tier2 = await SpotliteEngine.compute_tier2_metrics(db, business_id=biz_id)
+        payload = {
             "tier1_frontpage_insights": tier1,
             "tier2_contextual_metrics": tier2
-        })
+        }
+        logger.info(f"[Spotlite All API] Response: {json.dumps(payload, ensure_ascii=True)}")
+        return success_response("All Spotlite Executive Metrics fetched successfully", data=payload)
     except Exception as e:
         return error_response(f"Failed to fetch Spotlite metrics payload: {str(e)}", status_code=500)
 
@@ -102,6 +118,7 @@ async def get_all_spotlite_metrics(
 async def get_llm_augmented_insights(
     business_id: Optional[str] = Query(None, description="Optional business ID filter"),
     use_ai: bool = Query(True, description="Whether to include live Gemini AI synthesis"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -117,7 +134,9 @@ async def get_llm_augmented_insights(
     9. Verification Audit Trail (Zero-hallucination numeric verification)
     """
     try:
-        report = await SpotliteEngine.compute_llm_augmented_features(db, business_id=business_id, use_ai=use_ai)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        report = await SpotliteEngine.compute_llm_augmented_features(db, business_id=biz_id, use_ai=use_ai)
+        logger.info(f"[Spotlite Augmented API] Response: {json.dumps(report, ensure_ascii=True)}")
         return success_response("Spotlite LLM-Augmented Insights generated successfully", data=report)
     except Exception as e:
         return error_response(f"Failed to generate Spotlite LLM-augmented insights: {str(e)}", status_code=500)
@@ -163,13 +182,15 @@ async def classify_counterparty_narration(
 async def ask_cfo(
     req: AskCFORequest,
     business_id: Optional[str] = Query(None, description="Optional business ID filter"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Answers free-form executive CFO questions by retrieving verified rules-engine cells.
     """
     try:
-        res = await SpotliteEngine.ask_cfo_query(db, query=req.query, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        res = await SpotliteEngine.ask_cfo_query(db, query=req.query, business_id=biz_id)
         return success_response("Ask-CFO response generated successfully", data=res)
     except Exception as e:
         return error_response(f"Ask-CFO failed: {str(e)}", status_code=500)
@@ -179,6 +200,7 @@ async def ask_cfo(
 async def simulate_compound_scenario(
     req: ScenarioRequest,
     business_id: Optional[str] = Query(None, description="Optional business ID filter"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -186,7 +208,8 @@ async def simulate_compound_scenario(
     combining churn + planned hiring expansion + unresolved vendor overbilling into a single runway estimate.
     """
     try:
-        tier1 = await SpotliteEngine.compute_tier1_metrics(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        tier1 = await SpotliteEngine.compute_tier1_metrics(db, business_id=biz_id)
         shock_info = tier1["plausible_shock_runway"]
         overbill_info = tier1["vendor_overbilling_detector"]
 
@@ -228,10 +251,12 @@ async def simulate_compound_scenario(
 @router.get("/vendors/analytics", summary="Get Vendor Analytics Matrix (Spotlite Convenience Alias)")
 async def get_spotlite_vendor_analytics(
     business_id: Optional[str] = Query(None),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        data = await SpotliteEngine.compute_vendor_analytics(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        data = await SpotliteEngine.compute_vendor_analytics(db, business_id=biz_id)
         return success_response("Vendor analytics fetched successfully", data=data)
     except Exception as e:
         return error_response(f"Failed to fetch vendor analytics: {str(e)}", status_code=500)
@@ -240,10 +265,12 @@ async def get_spotlite_vendor_analytics(
 @router.get("/clients/analytics", summary="Get Client Analytics Matrix (Spotlite Convenience Alias)")
 async def get_spotlite_client_analytics(
     business_id: Optional[str] = Query(None),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        data = await SpotliteEngine.compute_client_analytics(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        data = await SpotliteEngine.compute_client_analytics(db, business_id=biz_id)
         return success_response("Client analytics fetched successfully", data=data)
     except Exception as e:
         return error_response(f"Failed to fetch client analytics: {str(e)}", status_code=500)
@@ -252,10 +279,12 @@ async def get_spotlite_client_analytics(
 @router.get("/vendors/bubble", summary="Get Vendor Radial Bubble Graph Data (Spotlite Convenience Alias)")
 async def get_spotlite_vendor_bubble(
     business_id: Optional[str] = Query(None),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        data = await SpotliteEngine.compute_vendor_bubble_data(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        data = await SpotliteEngine.compute_vendor_bubble_data(db, business_id=biz_id)
         return success_response("Vendor bubble graph fetched successfully", data=data)
     except Exception as e:
         return error_response(f"Failed to fetch vendor bubble graph: {str(e)}", status_code=500)
@@ -264,10 +293,12 @@ async def get_spotlite_vendor_bubble(
 @router.get("/clients/bubble", summary="Get Client Radial Bubble Graph Data (Spotlite Convenience Alias)")
 async def get_spotlite_client_bubble(
     business_id: Optional[str] = Query(None),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        data = await SpotliteEngine.compute_client_bubble_data(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        data = await SpotliteEngine.compute_client_bubble_data(db, business_id=biz_id)
         return success_response("Client bubble graph fetched successfully", data=data)
     except Exception as e:
         return error_response(f"Failed to fetch client bubble graph: {str(e)}", status_code=500)

@@ -75,6 +75,10 @@ class SpotliteService:
                     if d_row and d_row.business_id:
                         business_id = str(d_row.business_id)
 
+        # If still no business_id, fallback to current user's business_id
+        if not business_id and not company_name and current_user and getattr(current_user, "business_id", None):
+            business_id = str(current_user.business_id)
+
         # -------------------------------------------------------------------
         # 1. Fetch Company Info & Transactions from DB
         # -------------------------------------------------------------------
@@ -124,7 +128,61 @@ class SpotliteService:
 
 
         if not tx_rows:
-            raise ValueError("No transaction data available in database for Spotlite analysis.")
+            return SpotliteFullReport(
+                company_name=company_name or "New Company",
+                period="N/A",
+                total_transactions_analyzed=0,
+                executive_summary=[],
+                section_1_header_metadata=HeaderMetadataResponse(
+                    bank_name="N/A",
+                    account_holder_name="N/A",
+                    account_number="N/A",
+                    account_type="N/A",
+                    ifsc_code_branch="N/A",
+                    statement_coverage_period="N/A",
+                    opening_balance=0.0,
+                    closing_balance=0.0
+                ),
+                section_2_macro_cash_flow=MacroCashFlowResponse(
+                    monthly_cash_flow_trajectory=[],
+                    liquidity_diagnostics=LiquidityDiagnostics(
+                        avg_monthly_outflow_burn=0.0,
+                        cash_runway_months=0.0,
+                        liquidity_buffer_ratio=0.0,
+                        safety_reserve_3_month=0.0,
+                        idle_cash_available=0.0,
+                        cash_conversion_retention_pct=0.0
+                    )
+                ),
+                section_3_temporal_patterns=TemporalPatternsResponse(
+                    day_of_month_distribution=[],
+                    month_end_liquidity_dips=[],
+                    day_of_week_spend=[]
+                ),
+                section_4_channel_distribution=ChannelDistributionResponse(
+                    channels=[],
+                    total_transactions=0,
+                    total_volume=0.0
+                ),
+                section_5_anomaly_risk=AnomalyRiskResponse(
+                    statistical_outliers=[],
+                    duplicate_transactions=[],
+                    total_outliers_found=0,
+                    total_duplicates_found=0
+                ),
+                section_6_efficiency_projections=EfficiencyProjectionsResponse(
+                    operational_efficiency=OperationalEfficiencyRatios(
+                        inflow_to_outflow_ratio=0.0,
+                        cost_to_income_ratio_pct=0.0,
+                        net_cash_margin_proxy_pct=0.0
+                    ),
+                    projections=ProjectionsAndRunRates(
+                        annualized_inflow_run_rate=0.0,
+                        annualized_outflow_run_rate=0.0,
+                        projected_next_month_ending_balance=0.0
+                    )
+                )
+            )
 
         target_company = tx_rows[0].company_name or "Nimbus Logistics Solutions Pvt Ltd"
 

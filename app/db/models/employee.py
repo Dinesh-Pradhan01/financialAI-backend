@@ -3,7 +3,8 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Integer, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
-from app.db.base import Base, SoftDeleteMixin
+from app.db.base import SoftDeleteMixin
+from app.database.models import Base
 
 class EmployeeMaster(SoftDeleteMixin, Base):
     __tablename__ = "employee_master"

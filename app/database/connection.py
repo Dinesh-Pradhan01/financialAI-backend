@@ -159,7 +159,13 @@ class PostgreSQLConnectionManager:
                             await conn.execute(text(f"ALTER TABLE employee_master DROP CONSTRAINT IF EXISTS {pk_row[0]};"))
                         await conn.execute(text("ALTER TABLE employee_master DROP COLUMN IF EXISTS id;"))
                         await conn.execute(text("ALTER TABLE employee_master ALTER COLUMN employee_id SET NOT NULL;"))
-                        await conn.execute(text("ALTER TABLE employee_master ADD PRIMARY KEY (employee_id);"))
+                        await conn.execute(text("ALTER TABLE employee_master ALTER COLUMN business_id SET NOT NULL;"))
+                        await conn.execute(text("DROP INDEX IF EXISTS ix_employee_master_employee_id;"))
+                        try:
+                            await conn.execute(text("ALTER TABLE employee_master DROP CONSTRAINT IF EXISTS employee_master_pkey;"))
+                            await conn.execute(text("ALTER TABLE employee_master ADD PRIMARY KEY (business_id, employee_id);"))
+                        except Exception as e:
+                            logger.warning(f"Failed to update employee_master primary key: {e}")
 
                 # ----- Vendor table migrations -----
                 if await table_exists("vendor_master"):

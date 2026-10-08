@@ -481,7 +481,7 @@ async def get_all_transactions(
             )
         )
     else:
-        # Admin can optionally filter by business_id
+        # Admin can optionally filter by business_id, otherwise scope to their own business
         if business_id:
             try:
                 admin_target_biz = uuid.UUID(business_id)
@@ -493,6 +493,13 @@ async def get_all_transactions(
                 )
             except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid business_id UUID format.")
+        elif current_user.business_id:
+            conditions.append(
+                or_(
+                    Transaction.business_id == current_user.business_id,
+                    Account.business_id == current_user.business_id
+                )
+            )
 
     # 3. Dynamic filters (AND conditions)
     if date_from:

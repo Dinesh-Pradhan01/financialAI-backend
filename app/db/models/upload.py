@@ -2,7 +2,8 @@ import uuid
 from sqlalchemy import String, Integer, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
-from app.db.base import Base, TimestampMixin
+from app.db.base import TimestampMixin
+from app.database.models import Base
 
 class UploadHistory(TimestampMixin, Base):
     __tablename__ = "upload_history"

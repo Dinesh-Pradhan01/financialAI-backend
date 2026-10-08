@@ -4,7 +4,8 @@ from typing import Optional
 from sqlalchemy import String, Integer, ForeignKey, JSON, Date, Numeric, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
-from app.db.base import Base, TimestampMixin
+from app.db.base import TimestampMixin
+from app.database.models import Base
 
 class AgreementDocument(TimestampMixin, Base):
     __tablename__ = "agreement_documents"

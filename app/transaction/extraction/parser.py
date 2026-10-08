@@ -273,42 +273,11 @@ class FallbackStatementParser:
                 except Exception:
                     pass
 
-        if len(transactions) < 3 or account_holder == "Rohan Sharma":
-            logger.info("Regex yielded insufficient transaction lines. Injecting high-fidelity synthetic dataset.")
-            
-            if account_holder == "Rohan Sharma" or "rohan" in text_lower:
-                account_holder = "Rohan Sharma"
-                account_number = "····3421"
-                bank_name = "State Bank of India"
-                ifsc_code = "SBIN0001234"
-                branch = "SBI Koramangala, Bengaluru"
-                opening_balance = 2000000.0
-                closing_balance = 1868000.0
-                statement_period = "01-Apr-2025 to 31-Mar-2026"
-                statement_month = "March 2026"
-            
-            transactions = [
-                {"transaction_date": "2026-03-12", "value_date": "2026-03-12", "narration": "UPI/42300/IndiGo 6E/Travel", "debit_amount": 42300.0, "credit_amount": 0.0, "running_balance": 1957700.0, "reference_number": "42300", "utr_upi_ref": "UPI/42300", "cheque_number": None},
-                {"transaction_date": "2026-02-28", "value_date": "2026-02-28", "narration": "FT/8890/Air India/Airlines", "debit_amount": 38900.0, "credit_amount": 0.0, "running_balance": 1918800.0, "reference_number": "8890", "utr_upi_ref": None, "cheque_number": None},
-                {"transaction_date": "2026-02-15", "value_date": "2026-02-15", "narration": "TXN/MakeMyTrip/Airlines", "debit_amount": 61200.0, "credit_amount": 0.0, "running_balance": 1857600.0, "reference_number": "MMT1234", "utr_upi_ref": None, "cheque_number": None},
-                {"transaction_date": "2026-03-20", "value_date": "2026-03-20", "narration": "UPI/Swiggy/Food", "debit_amount": 542.0, "credit_amount": 0.0, "running_balance": 1857058.0, "reference_number": "SWG998", "utr_upi_ref": "UPI/542", "cheque_number": None},
-                {"transaction_date": "2026-03-18", "value_date": "2026-03-18", "narration": "POS/Zomato/Restaurant", "debit_amount": 890.0, "credit_amount": 0.0, "running_balance": 1856168.0, "reference_number": "ZOM001", "utr_upi_ref": None, "cheque_number": None},
-                {"transaction_date": "2026-03-15", "value_date": "2026-03-15", "narration": "UPI/Toit Brewpub", "debit_amount": 3200.0, "credit_amount": 0.0, "running_balance": 1852968.0, "reference_number": "TOIT99", "utr_upi_ref": "UPI/3200", "cheque_number": None},
-                {"transaction_date": "2026-03-22", "value_date": "2026-03-22", "narration": "NETFLIX CARD PAYMENT", "debit_amount": 649.0, "credit_amount": 0.0, "running_balance": 1852319.0, "reference_number": "NFLX44", "utr_upi_ref": None, "cheque_number": None},
-                {"transaction_date": "2026-03-11", "value_date": "2026-03-11", "narration": "SPOTIFY INDIA CARD", "debit_amount": 119.0, "credit_amount": 0.0, "running_balance": 1852200.0, "reference_number": "SPOT11", "utr_upi_ref": None, "cheque_number": None},
-                {"transaction_date": "2026-03-24", "value_date": "2026-03-24", "narration": "POS/Indian Oil Corp", "debit_amount": 3200.0, "credit_amount": 0.0, "running_balance": 1849000.0, "reference_number": "IOC88", "utr_upi_ref": None, "cheque_number": None},
-                {"transaction_date": "2026-03-21", "value_date": "2026-03-21", "narration": "UPI/BigBasket/Grocery", "debit_amount": 4200.0, "credit_amount": 0.0, "running_balance": 1844800.0, "reference_number": "BB909", "utr_upi_ref": "UPI/4200", "cheque_number": None},
-                {"transaction_date": "2026-03-14", "value_date": "2026-03-14", "narration": "UPI/Zepto/Grocery", "debit_amount": 1850.0, "credit_amount": 0.0, "running_balance": 1842950.0, "reference_number": "ZPT88", "utr_upi_ref": "UPI/1850", "cheque_number": None},
-                {"transaction_date": "2026-03-19", "value_date": "2026-03-19", "narration": "Amazon Pay/Lifestyle", "debit_amount": 8900.0, "credit_amount": 0.0, "running_balance": 1834050.0, "reference_number": "AMZN123", "utr_upi_ref": None, "cheque_number": None},
-                {"transaction_date": "2026-03-05", "value_date": "2026-03-05", "narration": "IMPS/RENT TRANSFER/MAHESH", "debit_amount": 60000.0, "credit_amount": 0.0, "running_balance": 1774050.0, "reference_number": "RENT03", "utr_upi_ref": None, "cheque_number": None},
-                {"transaction_date": "2026-03-01", "value_date": "2026-03-01", "narration": "NEFT/SALARY/IT SERVICES CO", "debit_amount": 0.0, "credit_amount": 190000.0, "running_balance": 1964050.0, "reference_number": "SAL03", "utr_upi_ref": None, "cheque_number": None},
-                {"transaction_date": "2026-03-25", "value_date": "2026-03-25", "narration": "TRF/HDFC SAVINGS CONSOLIDATION", "debit_amount": 0.0, "credit_amount": 20000.0, "running_balance": 1984050.0, "reference_number": "TRF999", "utr_upi_ref": None, "cheque_number": None}
-            ]
-            
-            opening_balance = 2000000.0
-            closing_balance = 1984050.0
+        if len(transactions) < 3:
+            logger.warning("Offline regex parsing yielded insufficient transaction lines. Returning empty transaction list instead of synthetic data.")
+            transactions = []
 
-        if transactions and len(transactions) >= 3 and account_holder != "Rohan Sharma":
+        if transactions and len(transactions) >= 3:
             try:
                 first_date_str = transactions[0]["transaction_date"]
                 dt = datetime.strptime(first_date_str, "%Y-%m-%d")

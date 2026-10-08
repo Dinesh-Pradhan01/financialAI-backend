@@ -71,8 +71,8 @@ class StatementProcessingService:
             extracted_data = None
             if gemini_service.is_available():
                 num_pages = len(pages_text)
-                if num_pages <= 15:
-                    # Single-shot extraction for small-to-medium statements
+                if num_pages <= 1:
+                    # Single-shot extraction for single-page statements
                     logger.info(f"[{document_id}] PDF has {num_pages} page(s). Dispatching single-shot prompt to Gemini LLM API...")
                     logs.append(f"[{datetime.utcnow().isoformat()}] Dispatching single-shot prompt to Gemini API.")
                     extracted_data = await gemini_service.extract_statement_data(pdf_text)
@@ -97,8 +97,8 @@ class StatementProcessingService:
                         output_tokens += meta_metrics.get("output_tokens", 0)
                         model_used = meta_metrics.get("model_used", settings.GEMINI_MODEL)
                         
-                        # 3b. Group pages into 5-page chunks to respect daily quota limits on Gemini Free Tier
-                        chunk_size = 5
+                        # 3b. Group pages into 2-page chunks to respect daily quota limits and max output tokens on Gemini
+                        chunk_size = 2
                         page_chunks = [pages_text[i:i + chunk_size] for i in range(0, num_pages, chunk_size)]
                         logs.append(f"[{datetime.utcnow().isoformat()}] Extracted account metadata. Processing {len(page_chunks)} page chunks in parallel...")
                         

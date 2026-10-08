@@ -3,7 +3,8 @@ from sqlalchemy import String, Boolean, Date, Numeric, Text, UniqueConstraint, D
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from sqlalchemy.orm import Mapped, mapped_column
-from app.db.base import Base, SoftDeleteMixin
+from app.db.base import SoftDeleteMixin
+from app.database.models import Base
 
 class VendorMaster(SoftDeleteMixin, Base):
     __tablename__ = "vendor_master"

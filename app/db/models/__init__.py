@@ -1,4 +1,4 @@
-from app.db.base import Base
+from app.database.models import Base
 from app.db.models.employee import EmployeeMaster
 from app.db.models.vendor import VendorMaster
 from app.db.models.client import ClientMaster

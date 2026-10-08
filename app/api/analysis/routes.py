@@ -123,10 +123,12 @@ async def get_expenditure_analysis(
 )
 async def get_client_bubble_graph(
     business_id: Optional[str] = Query(None),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        data = await SpotliteEngine.compute_client_bubble_data(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        data = await SpotliteEngine.compute_client_bubble_data(db, business_id=biz_id)
         return success_response("Client bubble graph data fetched successfully", data=data)
     except Exception as e:
         return error_response(f"Failed to fetch client bubble graph data: {str(e)}", status_code=500)
@@ -139,10 +141,12 @@ async def get_client_bubble_graph(
 )
 async def get_client_analytics(
     business_id: Optional[str] = Query(None),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        data = await SpotliteEngine.compute_client_analytics(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        data = await SpotliteEngine.compute_client_analytics(db, business_id=biz_id)
         return success_response("Client analytics fetched successfully", data=data)
     except Exception as e:
         return error_response(f"Failed to fetch client analytics: {str(e)}", status_code=500)
@@ -156,10 +160,12 @@ async def get_client_analytics(
 async def get_client_bubble_transactions(
     client_id: str,
     business_id: Optional[str] = Query(None),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        bubble_data = await SpotliteEngine.compute_client_bubble_data(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        bubble_data = await SpotliteEngine.compute_client_bubble_data(db, business_id=biz_id)
         matching_client = next(
             (c for c in bubble_data["client_bubbles"] if c["client_id"].lower() == client_id.lower() or c["client_name"].lower() == client_id.lower()),
             None
@@ -190,10 +196,12 @@ async def get_client_bubble_transactions(
 )
 async def get_vendor_bubble_graph(
     business_id: Optional[str] = Query(None),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        data = await SpotliteEngine.compute_vendor_bubble_data(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        data = await SpotliteEngine.compute_vendor_bubble_data(db, business_id=biz_id)
         return success_response("Vendor bubble graph data fetched successfully", data=data)
     except Exception as e:
         return error_response(f"Failed to fetch vendor bubble graph data: {str(e)}", status_code=500)
@@ -206,10 +214,12 @@ async def get_vendor_bubble_graph(
 )
 async def get_vendor_analytics(
     business_id: Optional[str] = Query(None),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        data = await SpotliteEngine.compute_vendor_analytics(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        data = await SpotliteEngine.compute_vendor_analytics(db, business_id=biz_id)
         return success_response("Vendor analytics fetched successfully", data=data)
     except Exception as e:
         return error_response(f"Failed to fetch vendor analytics: {str(e)}", status_code=500)
@@ -223,10 +233,12 @@ async def get_vendor_analytics(
 async def get_vendor_bubble_transactions(
     vendor_id: str,
     business_id: Optional[str] = Query(None),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        bubble_data = await SpotliteEngine.compute_vendor_bubble_data(db, business_id=business_id)
+        biz_id = str(current_user.business_id) if current_user and getattr(current_user, "business_id", None) and not business_id else business_id
+        bubble_data = await SpotliteEngine.compute_vendor_bubble_data(db, business_id=biz_id)
         matching_vendor = next(
             (v for v in bubble_data["vendor_bubbles"] if v["vendor_id"].lower() == vendor_id.lower() or v["vendor_name"].lower() == vendor_id.lower()),
             None

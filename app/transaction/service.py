@@ -71,7 +71,7 @@ class TransactionExtractionService:
             extracted_data = None
             if gemini_service.is_available():
                 num_pages = len(pages_text)
-                if num_pages <= 15:
+                if num_pages <= 2:
                     # Single-shot extraction for small-to-medium statements
                     logger.info(f"[{document_id}] PDF has {num_pages} page(s). Dispatching single-shot prompt to Gemini LLM API...")
                     logs.append(f"[{datetime.utcnow().isoformat()}] Dispatching single-shot prompt to Gemini API.")

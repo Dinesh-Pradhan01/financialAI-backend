@@ -3,7 +3,8 @@ from sqlalchemy import String, Numeric, Date, UniqueConstraint, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from sqlalchemy.orm import Mapped, mapped_column
-from app.db.base import Base, SoftDeleteMixin, TimestampMixin
+from app.db.base import SoftDeleteMixin, TimestampMixin
+from app.database.models import Base
 
 
 class ClientMaster(SoftDeleteMixin, TimestampMixin, Base):
