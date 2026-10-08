@@ -52,6 +52,8 @@ class FinancialMetaSchema(BaseModel):
 
 class CompanyFinancialsResponseSchema(BaseModel):
     company_id: int
+    company_name: Optional[str] = None
+    ticker: Optional[str] = None
     as_of: Optional[str]
     latest_period: Optional[str]
     unit: str
@@ -466,17 +468,30 @@ async def get_company_financials(
     """
     try:
         fye_res = await db.execute(
-            text("SELECT fiscal_year_end FROM listed_companies WHERE company_id = :id"),
+            text("""
+                SELECT lc.company_name, c.nse_symbol, lc.fiscal_year_end 
+                FROM companies c
+                LEFT JOIN listed_companies lc ON c.nse_symbol = lc.nse_symbol
+                WHERE c.id = :id 
+                   OR c.nse_symbol = (SELECT nse_symbol FROM listed_companies WHERE company_id = :id LIMIT 1)
+                LIMIT 1
+            """),
             {"id": company_id}
         )
         fye_row = fye_res.fetchone()
-        fye = fye_row[0] if fye_row and fye_row[0] else 3
+        
+        company_name = fye_row[0] if fye_row else None
+        ticker = fye_row[1] if fye_row else None
+        fye = fye_row[2] if fye_row and fye_row[2] else 3
         
         q_res = await db.execute(
             text("""
             SELECT quarter, revenue, expenditure, profit, operating_profit, other_income, interest, total_income, npm_percentage
             FROM quarterly_financials
-            WHERE company_id = :id
+            WHERE company_id IN (
+                :id,
+                (SELECT lc.company_id FROM listed_companies lc JOIN companies c ON lc.nse_symbol = c.nse_symbol WHERE c.id = :id LIMIT 1)
+            )
             """),
             {"id": company_id}
         )
@@ -518,7 +533,10 @@ async def get_company_financials(
             text("""
             SELECT period, sales, other_income, expenditure, interest, net_profit, opm_percentage, total_income, npm_percentage
             FROM annual_financials
-            WHERE company_id = :id
+            WHERE company_id IN (
+                :id,
+                (SELECT lc.company_id FROM listed_companies lc JOIN companies c ON lc.nse_symbol = c.nse_symbol WHERE c.id = :id LIMIT 1)
+            )
             """),
             {"id": company_id}
         )
@@ -546,17 +564,23 @@ async def get_company_financials(
             
         latest_period = quarterly[-1]["period_label"] if quarterly else None
         
+        ttm_rev = sum((q.get("revenue") or 0.0) for q in quarterly[-4:]) if quarterly else 0.0
+        ttm_exp = sum((q.get("expenditure") or 0.0) for q in quarterly[-4:]) if quarterly else 0.0
+        exp_to_rev_pct = (ttm_exp / ttm_rev * 100.0) if ttm_rev else 0.0
+        
         return {
             "company_id": company_id,
+            "company_name": company_name,
+            "ticker": ticker,
             "as_of": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
             "latest_period": latest_period,
             "unit": "INR_CR",
             "financial_status": "available" if quarterly or annual else "unavailable",
             "reason": None,
             "key_metrics": {
-                "ttm_revenue": {"value": sum((q.get("revenue") or 0.0) for q in quarterly[-4:]), "period_label": "TTM", "basis": "rolled_up"},
+                "ttm_revenue": {"value": ttm_rev, "period_label": "TTM", "basis": "rolled_up"},
                 "latest_quarter_revenue": {"value": quarterly[-1].get("revenue") if quarterly else 0.0, "period_label": latest_period, "basis": "reported"},
-                "expenditure_to_revenue_pct": {"value": 0.0, "period_label": "TTM", "basis": "rolled_up"},
+                "expenditure_to_revenue_pct": {"value": exp_to_rev_pct, "period_label": "TTM", "basis": "rolled_up"},
                 "net_profit_margin_pct": {"value": quarterly[-1].get("npm_pct") if quarterly else 0.0, "period_label": latest_period, "basis": "reported"}
             },
             "quarterly": quarterly,
