@@ -241,8 +241,15 @@ async def get_company_news(
         
         # Fall back to loose search if no entries found
         if not feed.entries:
-            query_no_quotes = urllib.parse.quote(company_name)
+            short_name = company_name.replace("Private Limited", "").replace("Pvt Ltd", "").replace("Ltd", "").strip()
+            query_no_quotes = urllib.parse.quote(short_name)
             rss_url = f"https://news.google.com/rss/search?q={query_no_quotes}&hl=en-IN&gl=IN&ceid=IN:en"
+            feed = feedparser.parse(rss_url)
+            
+        # Ultimate fallback: search for industry in the state
+        if not feed.entries:
+            query_fallback = urllib.parse.quote(f'"{business.business_category}" {business.state} India')
+            rss_url = f"https://news.google.com/rss/search?q={query_fallback}&hl=en-IN&gl=IN&ceid=IN:en"
             feed = feedparser.parse(rss_url)
 
         def clean_html(raw_html):
@@ -293,34 +300,10 @@ async def get_company_news(
         logger.error(f"Error fetching Google News RSS feed: {e}")
         news_list = []
 
+    # If still no news, return empty list instead of fake mock data
     if not news_list:
-        news_list = [
-            {
-                "id": 1,
-                "headline": f"{business.company_name} announces new strategic growth plans for Q3.",
-                "source": "Financial Express",
-                "date": datetime.datetime.now().strftime("%Y-%m-%d"),
-                "summary": "The company revealed its expansion strategy focusing on emerging markets.",
-                "url": None
-            },
-            {
-                "id": 2,
-                "headline": f"Industry trends point to massive shifts in {business.business_category} sector.",
-                "source": "Economic Times",
-                "date": (datetime.datetime.now() - datetime.timedelta(days=2)).strftime("%Y-%m-%d"),
-                "summary": "Analysts predict significant regulatory and technological changes affecting local businesses.",
-                "url": None
-            },
-            {
-                "id": 3,
-                "headline": f"Government introduces new subsidies for SMEs in {business.state}.",
-                "source": "LiveMint",
-                "date": (datetime.datetime.now() - datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
-                "summary": "Eligible businesses can now apply for grants to accelerate digital transformation.",
-                "url": None
-            }
-        ]
-
+        return []
+        
     return [CompanyNewsResponse(**n) for n in news_list]
 
 @router.post("/ai-view", response_model=CompanyAIViewResponse)

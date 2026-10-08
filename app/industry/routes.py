@@ -3,7 +3,7 @@ import json
 import logging
 import re
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Literal
 from pydantic import BaseModel
 from app.ai.llm import PeerValuationSchema
 from fastapi import APIRouter, HTTPException, status, Depends, Request
@@ -17,41 +17,77 @@ router = APIRouter(prefix="/v1", tags=["industry"])
 
 EMPLOYEE_COUNT = 10000
 
-class QuarterlyFinancial(BaseModel):
-    period: str
-    sales: float
-    other_income: float
-    expenditure: float
-    interest: float
-    net_profit: float
-    operating_profit: float
-    opm_percentage: float
-    total_income: float
-    npm_percentage: float
+class MetricValueSchema(BaseModel):
+    value: Optional[float]
+    period_label: Optional[str]
+    basis: Optional[str]
 
-class AnnualFinancial(BaseModel):
-    period: str
-    sales: float
-    other_income: float
-    expenditure: float
-    interest: float
-    net_profit: float
-    opm_percentage: float
-    total_income: float
-    npm_percentage: float
+class KeyMetricsSchema(BaseModel):
+    ttm_revenue: MetricValueSchema
+    latest_quarter_revenue: MetricValueSchema
+    expenditure_to_revenue_pct: MetricValueSchema
+    net_profit_margin_pct: MetricValueSchema
+
+class FinancialPeriodRowSchema(BaseModel):
+    period_label: str
+    period_end: Optional[str]
+    revenue: Optional[float]
+    other_income: Optional[float]
+    total_income: Optional[float]
+    expenditure: Optional[float]
+    interest: Optional[float]
+    operating_profit: Optional[float]
+    net_profit: Optional[float]
+    opm_pct: Optional[float]
+    npm_pct: Optional[float]
+
+class AnnualFinancialRowSchema(FinancialPeriodRowSchema):
+    basis: str
+
+class FinancialMetaSchema(BaseModel):
+    source: str
+    fiscal_year_end: Optional[int]
+    fiscal_year_end_assumed: bool
+    quarters_available: int
 
 class CompanyFinancialsResponseSchema(BaseModel):
     company_id: int
-    quarterly: List[QuarterlyFinancial]
-    annual: List[AnnualFinancial]
+    as_of: Optional[str]
+    latest_period: Optional[str]
+    unit: str
+    financial_status: str
+    reason: Optional[str]
+    key_metrics: KeyMetricsSchema
+    quarterly: List[FinancialPeriodRowSchema]
+    annual: List[AnnualFinancialRowSchema]
+    annual_status: str
+    meta: FinancialMetaSchema
+
+class AnchorCompanySchema(BaseModel):
+    company_name: str
+    cin: Optional[str]
+    industry: str
+    description: str
+    listing_status: Literal["unlisted", "listed"]
+    financial_status: Literal["available", "unavailable"]
+    reason: Optional[str]
+
+class CompetitorItemSchema(BaseModel):
+    company_id: int
+    company_name: str
+    ticker: str
+    overlap_level: Literal["Very High", "High", "Moderate High", "Moderate"]
+    overlap_rank: int
+    overlap_summary: str
+    overlap_source: Literal["curated", "ai_assessed"]
+    has_financials: bool
+    latest_period: Optional[str]
 
 class CompetitorsResponseSchema(BaseModel):
-    as_of: str
-    sector_name: str
-    anchor_ticker: Optional[str] = None
-    total_peers_analyzed: int
-    target_summary: str
-    top_competitors: List[PeerValuationSchema]
+    status: Literal["ready", "generating", "none"]
+    generated_at: Optional[str]
+    anchor: AnchorCompanySchema
+    competitors: List[CompetitorItemSchema]
 
 def format_fiscal_period(period_str: str, is_quarterly: bool, fye: int = 3) -> str:
     if not period_str: return ""
@@ -128,7 +164,7 @@ async def get_similar_companies(
                 if user and user.business_id:
                     res = await db.execute(
                         text("""
-                        SELECT g.company_name, g.business_category, g.business_description, g.cin, l.primary_product_service, l.number_of_employees
+                        SELECT g.company_name, g.business_category, l.business_description, g.cin, l.primary_product_service, l.number_of_employees
                         FROM general_info g
                         LEFT JOIN leadership_info l ON g.id = l.business_id
                         WHERE g.id = :biz_id
@@ -159,6 +195,7 @@ async def get_similar_companies(
         for r in class_res.fetchall():
             taxonomy_rows += f"{r[0]} | {r[1]} | {r[2]} | {r[3]}\n"
     except Exception as e:
+        await db.rollback()
         logger.error(f"Failed to fetch classifications taxonomy: {e}")
         taxonomy_rows = ""
 
@@ -173,7 +210,20 @@ async def get_similar_companies(
     )
 
     if not ai_result or not ai_result.get("matched_classification_ids"):
-        return {"sector_name": None, "anchor_ticker": None, "peers": [], "message": "No classifications found or AI service unavailable."}
+        return {
+            "status": "none",
+            "generated_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "anchor": {
+                "company_name": company_name,
+                "cin": cin,
+                "industry": "Unknown",
+                "description": description,
+                "listing_status": "unlisted",
+                "financial_status": "unavailable",
+                "reason": "No classifications found or AI service unavailable."
+            },
+            "competitors": []
+        }
 
     matched_ids = ai_result["matched_classification_ids"]
     sector_name = ai_result.get("primary_basic_industry", "Unknown Sector")
@@ -271,6 +321,7 @@ async def get_similar_companies(
                         "similarity_score": float(row[7]) if row[7] else 1.0
                     })
     except Exception as e:
+        await db.rollback()
         logger.warning(f"Database error during hybrid peer retrieval: {e}")
         # If the vector query fails, attempt a simpler SQL LIKE search as a last resort
         if matched_ids and not candidate_peers:
@@ -310,6 +361,7 @@ async def get_similar_companies(
                         "similarity_score": float(row[7]) if row[7] else 1.0
                     })
             except Exception as like_e:
+                await db.rollback()
                 logger.error(f"LIKE-based fallback failed: {like_e}")
 
     # Remove duplicates
@@ -324,11 +376,18 @@ async def get_similar_companies(
     if not candidate_peers:
         logger.warning("No peers found for matched classification IDs. Returning empty.")
         return {
-            "sector_name": sector_name,
-            "anchor_ticker": None,
-            "total_peers_analyzed": 0,
-            "target_summary": "No peers found in database.",
-            "top_competitors": []
+            "status": "none",
+            "generated_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "anchor": {
+                "company_name": company_name,
+                "cin": cin,
+                "industry": sector_name,
+                "description": description,
+                "listing_status": "unlisted",
+                "financial_status": "unavailable",
+                "reason": "No peers found in database."
+            },
+            "competitors": []
         }
 
     anchor_ticker = candidate_peers[0]["ticker"]
@@ -348,26 +407,56 @@ async def get_similar_companies(
 
     if not ai_response:
         return {
-            "sector_name": sector_name,
-            "anchor_ticker": anchor_ticker,
-            "total_peers_analyzed": len(candidate_peers),
-            "target_summary": "AI ranking failed.",
-            "top_competitors": []
+            "status": "none",
+            "generated_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "anchor": {
+                "company_name": company_name,
+                "cin": cin,
+                "industry": sector_name,
+                "description": description,
+                "listing_status": "unlisted",
+                "financial_status": "unavailable",
+                "reason": "AI ranking failed."
+            },
+            "competitors": []
         }
 
     target_summary = ai_response.get("target_summary", "No summary provided.")
     top_competitors_ai = ai_response.get("top_competitors", [])
 
-    return {
-        "as_of": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "sector_name": sector_name,
-        "anchor_ticker": anchor_ticker,
-        "total_peers_analyzed": len(candidate_peers),
-        "target_summary": target_summary,
-        "top_competitors": top_competitors_ai
+    anchor = {
+        "company_name": company_name,
+        "cin": cin,
+        "industry": sector_name,
+        "description": description,
+        "listing_status": "unlisted",
+        "financial_status": "unavailable",
+        "reason": target_summary
     }
 
-@router.get("/company/{company_id}/financials", response_model=CompanyFinancialsResponseSchema)
+    competitors = []
+    for c in top_competitors_ai:
+        c_dict = c if isinstance(c, dict) else c.dict()
+        competitors.append({
+            "company_id": c_dict.get("company_id", 0),
+            "company_name": c_dict.get("company_name", ""),
+            "ticker": c_dict.get("ticker", ""),
+            "overlap_level": c_dict.get("peer_fit_confidence", "Moderate"),
+            "overlap_rank": c_dict.get("similarity_rank", 0),
+            "overlap_summary": c_dict.get("reasoning", ""),
+            "overlap_source": "ai_assessed",
+            "has_financials": True,
+            "latest_period": None
+        })
+
+    return {
+        "status": "ready",
+        "generated_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "anchor": anchor,
+        "competitors": competitors
+    }
+
+@router.get("/company/competitors/{company_id}/financials", response_model=CompanyFinancialsResponseSchema)
 async def get_company_financials(
     company_id: int,
     db: AsyncSession = Depends(get_db)
@@ -412,16 +501,17 @@ async def get_company_financials(
             opm = (op_profit_val / sales_val * 100.0) if sales_val != 0 else 0.0
             
             quarterly.append({
-                "period": format_fiscal_period(str(row[0]), is_quarterly=True, fye=fye) if row[0] else "",
-                "sales": sales_val,
+                "period_label": format_fiscal_period(str(row[0]), is_quarterly=True, fye=fye) if row[0] else "",
+                "period_end": None,
+                "revenue": sales_val,
                 "other_income": float(row[5]) if row[5] else 0.0,
+                "total_income": float(row[7]) if row[7] else 0.0,
                 "expenditure": float(row[2]) if row[2] else 0.0,
                 "interest": float(row[6]) if row[6] else 0.0,
-                "net_profit": float(row[3]) if row[3] else 0.0,
                 "operating_profit": op_profit_val,
-                "opm_percentage": opm,
-                "total_income": float(row[7]) if row[7] else 0.0,
-                "npm_percentage": float(row[8]) if row[8] else 0.0,
+                "net_profit": float(row[3]) if row[3] else 0.0,
+                "opm_pct": opm,
+                "npm_pct": float(row[8]) if row[8] else 0.0,
             })
             
         a_res = await db.execute(
@@ -438,22 +528,46 @@ async def get_company_financials(
         
         annual = []
         for row in a_rows:
+            sales_val = float(row[1]) if row[1] else 0.0
             annual.append({
-                "period": format_fiscal_period(str(row[0]), is_quarterly=False, fye=fye) if row[0] else "",
-                "sales": float(row[1]) if row[1] else 0.0,
+                "period_label": format_fiscal_period(str(row[0]), is_quarterly=False, fye=fye) if row[0] else "",
+                "period_end": None,
+                "revenue": sales_val,
                 "other_income": float(row[2]) if row[2] else 0.0,
+                "total_income": float(row[7]) if row[7] else 0.0,
                 "expenditure": float(row[3]) if row[3] else 0.0,
                 "interest": float(row[4]) if row[4] else 0.0,
+                "operating_profit": sales_val * (float(row[6]) / 100.0) if row[6] else 0.0,
                 "net_profit": float(row[5]) if row[5] else 0.0,
-                "opm_percentage": float(row[6]) if row[6] else 0.0,
-                "total_income": float(row[7]) if row[7] else 0.0,
-                "npm_percentage": float(row[8]) if row[8] else 0.0,
+                "opm_pct": float(row[6]) if row[6] else 0.0,
+                "npm_pct": float(row[8]) if row[8] else 0.0,
+                "basis": "reported"
             })
             
+        latest_period = quarterly[-1]["period_label"] if quarterly else None
+        
         return {
             "company_id": company_id,
+            "as_of": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "latest_period": latest_period,
+            "unit": "INR_CR",
+            "financial_status": "available" if quarterly or annual else "unavailable",
+            "reason": None,
+            "key_metrics": {
+                "ttm_revenue": {"value": sum((q.get("revenue") or 0.0) for q in quarterly[-4:]), "period_label": "TTM", "basis": "rolled_up"},
+                "latest_quarter_revenue": {"value": quarterly[-1].get("revenue") if quarterly else 0.0, "period_label": latest_period, "basis": "reported"},
+                "expenditure_to_revenue_pct": {"value": 0.0, "period_label": "TTM", "basis": "rolled_up"},
+                "net_profit_margin_pct": {"value": quarterly[-1].get("npm_pct") if quarterly else 0.0, "period_label": latest_period, "basis": "reported"}
+            },
             "quarterly": quarterly,
-            "annual": annual
+            "annual": annual,
+            "annual_status": "ok",
+            "meta": {
+                "source": "Database",
+                "fiscal_year_end": fye,
+                "fiscal_year_end_assumed": False,
+                "quarters_available": len(quarterly)
+            }
         }
     except Exception as e:
         logger.error(f"Error fetching financials for company_id {company_id}: {e}")
@@ -486,7 +600,8 @@ async def get_company_competitors(
     cache = await get_business_metadata(business, db)
 
     if cache and cache.competitors_data and cache.updated_at > datetime.now() - timedelta(days=7):
-        return cache.competitors_data
+        if "status" in cache.competitors_data:
+            return cache.competitors_data
         
     # Generate on the fly if not cached
     data = await get_similar_companies(request, db=db)
@@ -515,7 +630,7 @@ async def generate_competitors_background(biz_id):
         async with db_manager.session_factory() as db:
             res = await db.execute(
                 text("""
-                SELECT g.company_name, g.business_category, g.business_description, g.cin, l.primary_product_service, l.number_of_employees
+                SELECT g.company_name, g.business_category, l.business_description, g.cin, l.primary_product_service, l.number_of_employees
                 FROM general_info g
                 LEFT JOIN leadership_info l ON g.id = l.business_id
                 WHERE g.id = :biz_id

@@ -47,10 +47,10 @@ class QueryBuilder:
             add(T.OPPORTUNITY, f'"{domain}" opportunity OR investment India', .91 - index * .02)
             add(T.INDUSTRY, f'"{domain}" industry updates India', .80 - index * .02)
             if city:
-                add(T.LOCAL, f'"{city}" "{domain}" project OR initiative OR tender', .90 - index * .015)
-                add(T.LOCAL, f'"{city}" "{domain}"', .85 - index * .015)
+                add(T.LOCAL, f'"{city}" "{domain}" project OR initiative OR tender', 1.05 - index * .01)
+                add(T.LOCAL, f'"{city}" "{domain}"', 1.0 - index * .01)
             if state:
-                add(T.STATE, f'"{state}" "{domain}" government project OR procurement OR RFP', .89 - index * .015)
+                add(T.STATE, f'"{state}" "{domain}" government project OR procurement OR RFP', 1.02 - index * .01)
             for place in nearby[:3]:
                 add(T.NEARBY, f'"{place}" "{domain}" project OR tender OR investment', .77 - index * .01)
 
@@ -65,9 +65,9 @@ class QueryBuilder:
             add(T.TENDER, f'"{technology}" government procurement OR tender India', .96)
             add(T.RFP, f'"{technology}" RFP India', .95)
             if city:
-                add(T.LOCAL, f'"{city}" "{technology}" project OR initiative OR tender', .88)
+                add(T.LOCAL, f'"{city}" "{technology}" project OR initiative OR tender', 1.03)
             if state:
-                add(T.STATE, f'"{state}" "{technology}" project OR procurement', .87)
+                add(T.STATE, f'"{state}" "{technology}" project OR procurement', 1.01)
 
         for competitor in competitors:
             add(T.COMPETITOR, f'"{competitor}" expansion OR contract OR technology launch India', .84)

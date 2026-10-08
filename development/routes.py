@@ -29,7 +29,8 @@ async def get_company_developments(
             cache_res = await db.execute(select(Cache).where(Cache.business_id == biz_uuid))
             cache = cache_res.scalar_one_or_none()
             if cache and cache.development_news and cache.updated_at > datetime.now() - timedelta(days=7):
-                return cache.development_news
+                if cache.development_news.get("items"):
+                    return cache.development_news
         except ValueError:
             cache = None
 

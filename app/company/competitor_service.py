@@ -16,7 +16,6 @@ async def competitors(company_name: str, location: str, industry_type: str, indu
     Asynchronously identifies market competitors using Groq's web-search enabled LLM.
     """
     
-    GQclient = AsyncGroq(api_key=os.environ.get("GROQ_API_KEY") or settings.GROQ_API_KEY)
     GNclient = genai.Client(api_key=os.environ.get("GEMINI_API_KEY") or settings.GEMINI_API_KEY)
 
     system_prompt = (
@@ -63,6 +62,7 @@ async def competitors(company_name: str, location: str, industry_type: str, indu
                     "Trying via Groq Model...!")
         
         try:
+            GQclient = AsyncGroq(api_key=os.environ.get("GROQ_API_KEY") or settings.GROQ_API_KEY)
             response = await GQclient.chat.completions.create(
                 # Using a tool-capable model
                 model="openai/gpt-oss-120b", 

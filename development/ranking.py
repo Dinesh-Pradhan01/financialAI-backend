@@ -125,6 +125,11 @@ def _calculate_geographic_relevance(item: Dict[str, Any], query_context: Dict[st
     nearby = _context_terms(query_context, "nearby_locations")
     if any(place in haystack for place in nearby):
         return 0.7
+        
+    item_state = (item.get("state") or "").lower()
+    if item_state and state and item_state != state:
+        return -0.8  # Aggressive penalty for out-of-state news
+        
     return 0.3
 
 
@@ -200,6 +205,13 @@ def score_development_item(item: Dict[str, Any], query_context: Dict[str, Any]) 
              + authority * COMPANY_WEIGHTS.get("source_authority", .10)
              + max(company_relevance, competitor_relevance, government * .6) * COMPANY_WEIGHTS.get("company_competitor_government", .10))
     score += completeness * COMPANY_WEIGHTS.get("completeness", .02) + local_relevance * COMPANY_WEIGHTS.get("local_bonus", .01)
+    
+    # Strict geographic enforcement: if the news is explicitly tagged for a different state, tank the final score.
+    item_state = (item.get("state") or "").lower()
+    state = (query_context.get("state") or "").lower()
+    if item_state and state and item_state != state:
+        score -= 0.60
+        
     score = max(0.0, min(1.0, score))
     item["relevance_score"] = round(score, 4)
     item["business_opportunity_score"] = round(opportunity, 4)
@@ -249,6 +261,13 @@ def _matches_company_domain(item: Dict[str, Any], query_context: Dict[str, Any])
 
 
 def rank_development_items(items: Iterable[Dict[str, Any]], query_context: Dict[str, Any]) -> List[Dict[str, Any]]:
-    scored = [score_development_item(item, query_context) for item in items if _matches_company_domain(item, query_context)]
-    sorted_items = sorted(scored, key=lambda row: (row.get("relevance_score", 0.0), row.get("published_at") or ""), reverse=True)
+    scored = [score_development_item(item, query_context) for item in items]
+    domain_matched = [item for item in scored if _matches_company_domain(item, query_context)]
+    
+    # If the strict domain filter wiped out everything, fall back to the raw scored items
+    # so that the SME fallback in service.py has candidates to choose from.
+    if not domain_matched and scored:
+        domain_matched = scored
+        
+    sorted_items = sorted(domain_matched, key=lambda row: (row.get("relevance_score", 0.0), row.get("published_at") or ""), reverse=True)
     return sorted_items

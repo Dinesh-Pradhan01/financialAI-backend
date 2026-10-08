@@ -121,24 +121,7 @@ class SpotliteService:
         tx_result = await db.execute(query_txs, params)
         tx_rows = tx_result.fetchall()
 
-        # Fallback query if specific filter returned zero rows
-        if not tx_rows:
-            logger.warning(f"No transactions found for filter {params}. Falling back to all transactions.")
-            fallback_txs = text("""
-                SELECT t.id, t.transaction_date, t.narration, t.debit_amount, t.credit_amount,
-                       t.running_balance, t.reference_number, t.category as raw_category, t.type,
-                       g.company_name, a.bank_name, a.account_holder_name, a.account_number,
-                       a.account_type, a.ifsc_code, a.branch_name,
-                       bs.opening_balance as stmt_open_bal, bs.closing_balance as stmt_close_bal
-                FROM transactions t
-                JOIN documents d ON t.document_id = d.id
-                LEFT JOIN general_info g ON d.business_id = g.id
-                LEFT JOIN accounts a ON t.account_id = a.id
-                LEFT JOIN bank_statement_data bs ON bs.document_id = d.id
-                ORDER BY t.transaction_date ASC, t.id ASC;
-            """)
-            tx_result = await db.execute(fallback_txs)
-            tx_rows = tx_result.fetchall()
+
 
         if not tx_rows:
             raise ValueError("No transaction data available in database for Spotlite analysis.")

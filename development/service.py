@@ -139,6 +139,11 @@ class CompanyIntelligenceService:
                 continue
             for result in results[:5]:
                 public_evidence.append({"source": source, "url": result.get("source_url"), "title": result.get("title"), "published_at": result.get("published_at"), "evidence": result.get("summary")})
+        
+        description = company.get("business_description")
+        if description and len(description.strip()) > 10:
+            public_evidence.append({"source": "company_registry", "evidence": description.strip()})
+            
         evidence = website_evidence + public_evidence
         profile = {
             **company,
@@ -387,7 +392,7 @@ class DevelopmentService:
         if db is None:
             return None
         try:
-            result = db.execute(text("SELECT id, company_name, city, state, business_category, business_type, website FROM general_info WHERE id = :company_id"), {"company_id": company_id})
+            result = db.execute(text("SELECT id, company_name, city, state, business_category, business_type, website, business_description FROM general_info WHERE id = :company_id"), {"company_id": company_id})
             result = await result if inspect.isawaitable(result) else result
         except Exception as exc:
             logger.exception("Failed to load company profile")
@@ -396,8 +401,8 @@ class DevelopmentService:
         if row is None:
             return None
         if hasattr(row, "_mapping"):
-            return {key: row._mapping.get(key) for key in ("id", "company_name", "city", "state", "business_category", "business_type", "website")}
-        return dict(zip(("id", "company_name", "city", "state", "business_category", "business_type", "website"), row))
+            return {key: row._mapping.get(key) for key in ("id", "company_name", "city", "state", "business_category", "business_type", "website", "business_description")}
+        return dict(zip(("id", "company_name", "city", "state", "business_category", "business_type", "website", "business_description"), row))
 
     async def fetch_company_developments(self, company_id: str, db: Any = None, limit: int = 10, days: int = 15, category: Optional[str] = None) -> Dict[str, Any]:
         try:
@@ -483,6 +488,12 @@ class DevelopmentService:
             classify_development(item, profile)
         ranked_all = rank_development_items(deduped, {**query_context, **profile})
         ranked = [item for item in ranked_all if item.get("relevance_score", 0.0) >= MIN_RELEVANCE_SCORE]
+        
+        # Fallback for SMEs: if strict relevance filters out everything, provide top industry context
+        if not ranked and ranked_all:
+            logger.info("Strict relevance filtering removed all items; falling back to top 5 domain articles.")
+            ranked = ranked_all[:5]
+            
         relevance_filtered_count = len(ranked)
         logger.info("Development ranking completed: ranked=%d above_threshold=%d threshold=%.2f", len(ranked_all), relevance_filtered_count, MIN_RELEVANCE_SCORE)
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
