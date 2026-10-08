@@ -27,5 +27,6 @@ pytesseract
 pdf2image
 numpy==2.5.2
 pytest==9.1.1
-groq
-yfinance
+groq==1.7.0
+yfinance==1.7.0
+boto3>=1.43.0

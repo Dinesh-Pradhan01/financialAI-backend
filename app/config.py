@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     @classmethod
     def convert_postgres_scheme(cls, v: str) -> str:
         """Ensure we use asyncpg driver even if the user pastes a standard postgresql:// URL."""
+        v = v.strip("\"'")
         if v.startswith("postgresql://"):
             v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
         # asyncpg does not support channel_binding query param
