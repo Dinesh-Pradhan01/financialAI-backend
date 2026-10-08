@@ -31,9 +31,21 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 COOKIE_NAME = "session"
-# On localhost (HTTP), Secure must be False or the browser silently drops the cookie.
-# In production (HTTPS), set ENVIRONMENT=production in your .env.
-_IS_PRODUCTION = os.getenv("ENVIRONMENT", "development").lower() == "production"
+
+# --- Cookie security flags ---
+# Cross-domain deployment (frontend on localhost / Vercel, backend on Railway) requires:
+#   SameSite=None + Secure=True  — otherwise browsers silently drop cross-origin cookies.
+# Local development (same machine, different ports) works with SameSite=Lax + Secure=False.
+#
+# Rules:
+#   ENVIRONMENT=production  → secure=True,  samesite="none"
+#   ENVIRONMENT=development → secure=False, samesite="lax"   (default)
+#
+# Override via COOKIE_SAMESITE env var if needed (e.g. "none" without full prod mode).
+_ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
+_IS_PRODUCTION = _ENVIRONMENT == "production"
+_COOKIE_SAMESITE: str = os.getenv("COOKIE_SAMESITE", "none" if _IS_PRODUCTION else "lax")
+_COOKIE_SECURE: bool = _IS_PRODUCTION or _COOKIE_SAMESITE == "none"
 
 
 @router.post(
@@ -78,8 +90,8 @@ async def sync_user(
         key=COOKIE_NAME,
         value=session_token,
         httponly=True,
-        secure=_IS_PRODUCTION,
-        samesite="lax",
+        secure=_COOKIE_SECURE,
+        samesite=_COOKIE_SAMESITE,
         max_age=7 * 24 * 60 * 60,  # 7 days
         path="/",
     )
@@ -161,8 +173,8 @@ async def google_sign_in(
         key=COOKIE_NAME,
         value=session_token,
         httponly=True,
-        secure=_IS_PRODUCTION,
-        samesite="lax",
+        secure=_COOKIE_SECURE,
+        samesite=_COOKIE_SAMESITE,
         max_age=7 * 24 * 60 * 60,
         path="/",
     )
@@ -212,8 +224,8 @@ async def logout(
     response.delete_cookie(
         key=COOKIE_NAME,
         httponly=True,
-        secure=_IS_PRODUCTION,
-        samesite="lax",
+        secure=_COOKIE_SECURE,
+        samesite=_COOKIE_SAMESITE,
         path="/",
     )
 
