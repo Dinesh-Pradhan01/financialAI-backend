@@ -35,9 +35,11 @@ class Settings(BaseSettings):
     FIREBASE_CREDENTIALS_PATH: Optional[str] = os.getenv("FIREBASE_CREDENTIALS_PATH")
     FIREBASE_CREDENTIALS_BASE64: Optional[str] = os.getenv("FIREBASE_CREDENTIALS_BASE64")
 
-    # CORS settings
-    CORS_ORIGINS: str = "http://localhost:8000,http://localhost:8080"
-    FRONTEND_URL: str = "http://localhost:8080"
+    # CORS settings — must be set in .env / Railway Variables.
+    # CORS_ORIGINS: comma-separated list of allowed frontend origins.
+    # Example: http://localhost:8080,https://app.yourdomain.com
+    CORS_ORIGINS: str = "http://localhost:8080"   # safe fallback for local dev only
+    FRONTEND_URL: str = "http://localhost:8080"   # safe fallback for local dev only
 
     # Groq LLM & Document Extraction Settings
     GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY")
